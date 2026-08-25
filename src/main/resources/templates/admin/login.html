@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登录 · DEAOFU 管理后台</title>
+    <link href="/admin/vendor/layui/css/layui.css" rel="stylesheet">
+    <link href="/admin/css/admin.css" rel="stylesheet">
+</head>
+<body class="admin-login-page">
+<div class="login-ambient login-ambient-a"></div>
+<div class="login-ambient login-ambient-b"></div>
+<main class="login-shell">
+    <section class="login-story">
+        <div class="brand-lockup">
+            <span class="brand-mark">D</span>
+            <div><strong>DEAOFU</strong><small>BUS GLASS · MANAGEMENT</small></div>
+        </div>
+        <div class="login-copy">
+            <span class="eyebrow">Enterprise Operations</span>
+            <h1>让每一块玻璃，<br>抵达更远的地方。</h1>
+            <p>统一管理产品、全球运输网络、合作伙伴、公司动态与客户咨询。</p>
+        </div>
+        <div class="login-metric"><span>17+</span>
+            <p>年汽车玻璃制造经验</p></div>
+    </section>
+    <section class="login-panel">
+        <div class="login-panel-inner">
+            <span class="panel-kicker">WELCOME BACK</span>
+            <h2>登录管理后台</h2>
+            <p class="muted">使用管理员账号继续</p>
+            <form id="login-form" class="layui-form login-form">
+                <label>用户名</label>
+                <div class="input-wrap"><i class="layui-icon layui-icon-username"></i><input type="text" name="username"
+                                                                                             autocomplete="username"
+                                                                                             placeholder="请输入用户名"
+                                                                                             lay-verify="required">
+                </div>
+                <label>密码</label>
+                <div class="input-wrap"><i class="layui-icon layui-icon-password"></i><input type="password"
+                                                                                             name="password"
+                                                                                             autocomplete="current-password"
+                                                                                             placeholder="请输入密码"
+                                                                                             lay-verify="required">
+                </div>
+                <button class="login-submit" type="submit"><span>进入控制台</span><i
+                        class="layui-icon layui-icon-right"></i></button>
+            </form>
+            <p class="login-note">DEAOFU internal system · Authorized access only</p>
+        </div>
+    </section>
+</main>
+<script src="/admin/vendor/layui/layui.js"></script>
+<script src="/admin/vendor/gsap/gsap.min.js"></script>
+<script src="/admin/js/admin.js"></script>
+</body>
+</html>

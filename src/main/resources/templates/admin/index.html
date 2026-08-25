@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DEAOFU 管理后台</title>
+    <link href="/admin/vendor/layui/css/layui.css" rel="stylesheet">
+    <link href="/admin/css/admin.css" rel="stylesheet">
+</head>
+<body class="admin-app-page">
+<div class="admin-shell">
+    <aside class="admin-sidebar" id="admin-sidebar">
+        <div class="sidebar-brand">
+            <span class="brand-mark">D</span>
+            <div><strong>DEAOFU</strong><small>MANAGEMENT</small></div>
+        </div>
+        <nav class="admin-nav">
+            <p class="nav-label">概览</p>
+            <button class="nav-item is-active" data-module="dashboard"><i
+                    class="layui-icon layui-icon-console"></i><span>仪表盘</span></button>
+            <p class="nav-label">内容管理</p>
+            <button class="nav-item" data-module="products"><i
+                    class="layui-icon layui-icon-component"></i><span>产品管理</span></button>
+            <button class="nav-item" data-module="categories"><i
+                    class="layui-icon layui-icon-template-1"></i><span>产品分类</span></button>
+            <button class="nav-item" data-module="news"><i class="layui-icon layui-icon-read"></i><span>公司动态</span>
+            </button>
+            <button class="nav-item" data-module="tags"><i class="layui-icon layui-icon-note"></i><span>动态标签</span>
+            </button>
+            <p class="nav-label">企业网络</p>
+            <button class="nav-item" data-module="routes"><i
+                    class="layui-icon layui-icon-location"></i><span>运输线路</span></button>
+            <button class="nav-item" data-module="partners"><i
+                    class="layui-icon layui-icon-group"></i><span>合作企业</span></button>
+            <button class="nav-item" data-module="consultations"><i class="layui-icon layui-icon-dialogue"></i><span>咨询信息</span>
+            </button>
+        </nav>
+        <div class="sidebar-footer"><span class="system-dot"></span>
+            <div><strong>System Online</strong><small>Spring Boot · MySQL</small></div>
+        </div>
+    </aside>
+    <section class="admin-main">
+        <header class="admin-topbar">
+            <div class="topbar-leading">
+                <button class="icon-button sidebar-toggle" id="sidebar-toggle"><i
+                        class="layui-icon layui-icon-spread-left"></i></button>
+                <div><span class="topbar-caption">DEAOFU /</span><strong id="current-section">仪表盘</strong></div>
+            </div>
+            <div class="topbar-actions"><span class="today" id="today-label"></span>
+                <div class="user-chip"><span class="user-avatar">A</span>
+                    <div><strong id="admin-display-name">管理员</strong><small>Administrator</small></div>
+                </div>
+                <button class="icon-button" id="logout-button" title="退出登录"><i
+                        class="layui-icon layui-icon-logout"></i></button>
+            </div>
+        </header>
+        <main class="admin-workspace" id="admin-workspace">
+            <div class="workspace-loader"><span></span>
+                <p>正在载入工作区</p></div>
+        </main>
+    </section>
+</div>
+<script src="/admin/vendor/layui/layui.js"></script>
+<script src="/admin/vendor/gsap/gsap.min.js"></script>
+<script src="/admin/js/admin.js"></script>
+</body>
+</html>

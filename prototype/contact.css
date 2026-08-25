@@ -1,0 +1,61 @@
+body.contact-page { background: #fafcfd; }
+body.contact-page .site-header { color: var(--ink); background: rgba(255,255,255,.96); box-shadow: 0 1px 0 var(--line); backdrop-filter: blur(14px); }
+body.contact-page .page-main { padding-top: 82px; }
+body.contact-page > .footer { border-top: 2px solid #cbdadc; }
+
+.contact-form-section { padding: 56px 0 100px; }
+.contact-head-wrap { padding-bottom: 36px; border-bottom: 1px solid var(--line); margin-bottom: 42px; }
+.contact-heading { margin: 0; font-size: clamp(34px, 4vw, 48px); font-weight: 400; line-height: 1.2; letter-spacing: -.03em; }
+.contact-desc { max-width: 520px; margin: 13px 0 0; color: var(--muted); font-size: 15px; line-height: 1.8; }
+.contact-layout { display: grid; grid-template-columns: 1fr 340px; gap: 70px; align-items: start; }
+
+.contact-form { display: grid; gap: 28px; }
+.contact-form label { display: block; margin-bottom: 8px; color: var(--ink); font-size: 14px; font-weight: 500; }
+.contact-form label em { color: #d13a3a; font-style: normal; }
+.contact-form .field-hint { display: block; margin-top: 5px; color: var(--muted); font-size: 11px; }
+
+.contact-checkboxes { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); column-gap: 28px; row-gap: 17px; }
+.contact-checkboxes .contact-checkbox { display: inline-flex; align-items: center; gap: 8px; min-width: 0; margin: 0; padding: 0; border: 0; border-radius: 0; background: transparent; color: var(--ink); cursor: pointer; }
+.contact-checkboxes .contact-checkbox:hover { border: 0; }
+.contact-checkboxes .contact-checkbox input { display: block; flex: 0 0 16px; width: 16px; height: 16px; margin: 0; accent-color: #2196e8; cursor: pointer; }
+.contact-checkboxes .contact-checkbox span { color: var(--ink); font-size: 13px; font-weight: 400; line-height: 1.4; user-select: none; }
+
+.contact-form input[type="text"],
+.contact-form input[type="email"],
+.contact-form input[type="tel"],
+.contact-form textarea { width: 100%; padding: 11px 15px; border: 1px solid #dbe4e6; border-radius: 6px; background: #fff; font: 14px 'Noto Sans SC', sans-serif; color: var(--ink); outline: 0; transition: border-color .2s; }
+.contact-phone-field { display: flex; align-items: stretch; width: 100%; border: 1px solid #dbe4e6; border-radius: 6px; background: #fff; overflow: hidden; transition: border-color .2s; }
+.contact-phone-prefix { display: inline-flex; align-items: center; padding: 0 14px; border-right: 1px solid #edf1f2; color: var(--muted); font-size: 14px; white-space: nowrap; }
+.contact-phone-field input[type="tel"] { min-width: 0; border: 0; border-radius: 0; }
+.contact-phone-field:focus-within { border-color: var(--blue); }
+.contact-form input:focus,
+.contact-form textarea:focus { border-color: var(--blue); }
+.contact-form textarea { min-height: 120px; resize: vertical; }
+.contact-form .field-error { display: none; margin-top: 6px; color: #d13a3a; font-size: 12px; }
+.contact-form .has-error input,
+.contact-form .has-error textarea { border-color: #d13a3a; }
+.contact-form .has-error .field-error { display: block; }
+
+.contact-form .btn-submit { padding: 14px 36px; border: 0; border-radius: 6px; color: #fff; background: var(--blue); font: 600 14px 'Noto Sans SC', sans-serif; cursor: pointer; transition: background .25s; justify-self: start; }
+.contact-form .btn-submit:hover { background: #004b6e; }
+
+.contact-info-side { padding-left: 36px; border-left: 1px solid var(--line); }
+.contact-info-side h3 { margin: 0 0 22px; font-size: 24px; font-weight: 500; }
+.contact-info-list { display: grid; gap: 22px; }
+.contact-info-item { display: grid; gap: 4px; padding-top: 16px; border-top: 1px solid var(--line); }
+.contact-info-item b { color: var(--ink); font-size: 13px; font-weight: 600; }
+.contact-info-item a, .contact-info-item span { color: var(--muted); font-size: 13px; line-height: 1.7; text-decoration: none; }
+.contact-info-item a:hover { color: var(--blue); }
+
+@media (max-width: 900px) {
+  body.contact-page .page-main { padding-top: 68px; }
+  .contact-hero { padding: 30px 0 28px; }
+  .contact-layout { grid-template-columns: 1fr; gap: 42px; }
+  .contact-info-side { padding: 26px 0 0; border-left: 0; border-top: 1px solid var(--line); }
+  .contact-checkboxes { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 22px; }
+}
+@media (max-width: 560px) {
+  .contact-checkboxes { grid-template-columns: 1fr; }
+  .contact-heading { font-size: 42px; }
+  .contact-form-section { padding: 50px 0 70px; }
+}

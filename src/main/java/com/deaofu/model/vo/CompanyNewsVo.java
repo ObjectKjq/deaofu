@@ -1,0 +1,38 @@
+package com.deaofu.model.vo;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
+import lombok.Data;
+
+import java.util.Date;
+import java.util.List;
+
+import static cn.hutool.core.date.DatePattern.NORM_DATETIME_PATTERN;
+
+/** 公司动态出参。 */
+@Data
+public class CompanyNewsVo {
+    /** 动态ID。 */
+    private String newsId;
+    /** 封面图访问文件名。 */
+    private String coverAccessName;
+    /** 封面图预览地址。 */
+    private String coverUrl;
+    /** 动态标题。 */
+    private String title;
+    /** 动态简介。 */
+    private String summary;
+    /** 动态正文HTML。 */
+    private String content;
+    /** 项目地区。 */
+    private String projectRegion;
+    /** 咨询邮箱。 */
+    private String contactEmail;
+    /** 关联的动态标签列表。 */
+    private List<NewsTagVo> tags;
+    /** 创建时间，格式 {@code yyyy-MM-dd HH:mm:ss}。 */
+    @JsonFormat(pattern = NORM_DATETIME_PATTERN)
+    private Date createTime;
+    /** 更新时间，格式 {@code yyyy-MM-dd HH:mm:ss}。 */
+    @JsonFormat(pattern = NORM_DATETIME_PATTERN)
+    private Date updateTime;
+}

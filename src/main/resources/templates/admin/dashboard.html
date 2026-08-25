@@ -1,0 +1,51 @@
+<section class="dashboard-view" data-dashboard-view>
+    <div class="page-heading">
+        <div><span class="eyebrow">OPERATIONS OVERVIEW</span>
+            <h1>业务仪表盘</h1>
+            <p>掌握官网内容与客户线索的实时概况。</p></div>
+        <button class="ghost-button" data-refresh-dashboard><i class="layui-icon layui-icon-refresh"></i> 刷新数据
+        </button>
+    </div>
+    <div class="stat-grid">
+        <article class="stat-card stat-card-primary">
+            <div class="stat-icon"><i class="layui-icon layui-icon-component"></i></div>
+            <p>产品总数</p><strong data-stat="productCount">0</strong><span>PRODUCTS</span></article>
+        <article class="stat-card">
+            <div class="stat-icon"><i class="layui-icon layui-icon-template-1"></i></div>
+            <p>产品分类</p><strong data-stat="categoryCount">0</strong><span>CATEGORIES</span></article>
+        <article class="stat-card">
+            <div class="stat-icon"><i class="layui-icon layui-icon-read"></i></div>
+            <p>公司动态</p><strong data-stat="newsCount">0</strong><span>NEWS</span></article>
+        <article class="stat-card stat-card-accent">
+            <div class="stat-icon"><i class="layui-icon layui-icon-dialogue"></i></div>
+            <p>客户咨询</p><strong data-stat="consultationCount">0</strong><span>INQUIRIES</span></article>
+    </div>
+    <div class="dashboard-columns">
+        <article class="panel-card recent-panel">
+            <div class="panel-heading">
+                <div><h2>最近咨询</h2>
+                    <p>最新收到的客户业务线索</p></div>
+                <button class="text-button" data-go-module="consultations">查看全部 <i
+                        class="layui-icon layui-icon-right"></i></button>
+            </div>
+            <div class="recent-list" id="recent-consultations">
+                <div class="empty-state">暂无咨询信息</div>
+            </div>
+        </article>
+        <article class="panel-card network-panel">
+            <div class="panel-heading">
+                <div><h2>全球网络</h2>
+                    <p>合作与运输节点概况</p></div>
+            </div>
+            <div class="network-visual">
+                <div class="orbit orbit-a"></div>
+                <div class="orbit orbit-b"></div>
+                <div class="network-core"><span>DEAOFU</span><small>GLOBAL</small></div>
+                <i class="point p1"></i><i class="point p2"></i><i class="point p3"></i></div>
+            <div class="network-stats">
+                <div><strong data-stat="partnerCount">0</strong><span>合作企业</span></div>
+                <div><strong data-stat="routeCount">0</strong><span>运输线路</span></div>
+            </div>
+        </article>
+    </div>
+</section>
