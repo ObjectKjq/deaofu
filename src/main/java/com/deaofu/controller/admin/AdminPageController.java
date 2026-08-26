@@ -17,7 +17,7 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class AdminPageController {
 
-    private static final Set<String> MODULES = Set.of("dashboard", "products", "categories", "routes",
+    private static final Set<String> MODULES = Set.of("dashboard", "forms", "uploads", "products", "categories", "routes",
             "partners", "news", "tags", "consultations");
 
     /** GET /admin/login：渲染登录页；该页面由鉴权切面白名单放行。 @return {@code admin/login} 模板名 */
@@ -37,7 +37,7 @@ public class AdminPageController {
      * 渲染统一的 {@code admin/index} 框架；前端 JS 根据 pathname 自动加载对应工作区内容。
      * @return {@code admin/index} 模板名
      */
-    @GetMapping({"/dashboard", "/products", "/categories", "/routes",
+    @GetMapping({"/dashboard", "/forms", "/uploads", "/products", "/categories", "/routes",
             "/partners", "/news", "/tags", "/consultations"})
     public String directModulePage() {
         return "admin/index";

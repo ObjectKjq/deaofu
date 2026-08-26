@@ -1,0 +1,60 @@
+/* 以 admin-prototype 的 LayuiAdmin 标准布局为基础，仅补充德奥福业务页面的动态内容。 */
+html,body{background:#f2f2f2;color:#666}
+#workspace{overflow:auto;background:#f2f2f2}
+#workspace .layui-fluid{padding:15px}
+#workspace .layui-card{box-shadow:none;border-radius:0}
+#workspace .layui-card-body{padding:15px}
+#workspace .toolbar{padding-bottom:10px}
+.layui-form-label{white-space:nowrap}
+#workspace .layui-card-header-auto .layui-form-label{width:94px;padding-left:0;padding-right:10px}
+#workspace .layui-card-header-auto .layui-btn .layui-icon{position:static;right:auto;top:auto;margin:0 3px 0 0;line-height:inherit}
+#workspace .layui-card-header-auto .layui-btn{min-width:68px}
+#workspace .table-wrap{overflow:auto}
+#workspace .table-wrap table{width:100%;min-width:760px;margin:0}
+#workspace .table-wrap th{height:auto;padding:9px 15px;background:#fff;font-size:14px;color:#333;font-weight:400}
+#workspace .table-wrap td{padding:9px 15px;color:#666;border-bottom:1px solid #e6e6e6}
+#workspace .table-wrap tbody tr:hover{background:#f8f8f8}
+#workspace .align-right{text-align:right!important}
+#workspace .action-list{display:flex;justify-content:flex-end;gap:5px;white-space:nowrap}
+#workspace .link-button{height:22px;line-height:22px;padding:0 7px;border:0;border-radius:2px;background:#1e9fff;color:#fff;font-size:12px}
+#workspace .link-button:hover{opacity:.85}
+#workspace .link-button.danger{background:#ff5722}
+#workspace .item-title{display:flex;align-items:center;gap:10px;color:#333}
+#workspace .thumb,#workspace .logo-thumb,#workspace .tag-icon{width:38px;height:30px;object-fit:contain;border:0;background:#f2f2f2}
+#workspace .tag-icon{width:24px;height:24px}
+#workspace .muted{color:#999}
+#workspace .ellipsis{max-width:320px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#workspace .tag{display:inline-block;margin:1px 3px 1px 0;padding:0 6px;line-height:21px;border-radius:2px;background:#f2f2f2;color:#666;font-size:12px}
+#workspace .level-badge{padding:2px 6px;background:#f2f2f2;color:#666;font-size:12px}
+#workspace .tree-indent{display:inline-block;width:18px;color:#999;font-style:normal}
+#workspace .route-arrow{color:#009688;font-size:16px;text-align:center}
+#workspace .route-direction{text-align:center;width:72px}
+#workspace .empty-state{padding:40px!important;text-align:center;color:#999}
+#workspace .table-footer{min-height:40px;padding:10px 0 0;display:flex;justify-content:space-between;align-items:center;color:#666;font-size:12px}
+#workspace .pagination{display:flex;gap:5px}
+#workspace .pagination button{width:28px;height:28px;border:1px solid #e2e2e2;background:#fff;color:#666;border-radius:2px}
+#workspace .pagination button.is-current{background:#009688;border-color:#009688;color:#fff}
+#workspace .pagination button:disabled{color:#d2d2d2}
+.layui-layout-admin .layui-logo span{font-size:16px;font-weight:400;letter-spacing:.5px}
+.layui-layout-admin .layui-nav-tree .layui-nav-child dd.layui-this a{background:#009688;color:#fff}
+.layui-layout-admin .layui-nav-tree .layui-nav-child dd.layui-this a:hover{background:#009688}
+.layui-side-menu .layui-nav .layui-nav-item .layui-icon{margin-top:-8px}
+.layui-side-menu .layui-nav .layui-nav-item>a{display:flex;align-items:center;height:40px;padding-top:8px;padding-bottom:8px;line-height:normal;position:relative}
+#LAY_app_tabsheader{transition:transform .3s;white-space:nowrap}
+.deaofu-layer-form{padding:20px 30px 0 18px}
+.deaofu-layer-form .form-grid{display:block}
+.deaofu-layer-form .form-field{display:grid;grid-template-columns:90px minmax(0,1fr);column-gap:10px;align-items:center;gap:0;margin:0 0 15px;color:#666;font-size:14px;white-space:nowrap;text-align:right}
+.deaofu-layer-form .form-field.full{grid-column:auto}
+.deaofu-layer-form .form-field input,.deaofu-layer-form .form-field select,.deaofu-layer-form .form-field textarea{width:100%;min-width:0;height:38px;padding:0 10px;border:1px solid #e6e6e6;border-radius:0;background:#fff;box-shadow:none;color:#333;font-weight:400}
+.deaofu-layer-form .form-field textarea{min-height:110px;padding:8px 10px;resize:vertical}
+.deaofu-layer-form .file-picker{min-height:58px;padding:8px;border:1px dashed #d2d2d2;background:#fafafa;display:flex;align-items:center;gap:10px}
+.deaofu-layer-form .file-picker>label{display:inline-block;padding:0 10px;line-height:28px;background:#fff;border:1px solid #e6e6e6;cursor:pointer;font-size:12px}
+.deaofu-layer-form .file-picker input[type=file]{display:none}.deaofu-layer-form .file-picker input[type=hidden]{display:none}
+.deaofu-layer-form .file-picker img{width:56px;height:42px;object-fit:contain;border:0}.deaofu-layer-form .form-help{color:#999;font-size:12px;font-weight:400}
+.deaofu-layer-form .image-list{display:flex;gap:7px;flex-wrap:wrap}.deaofu-layer-form .image-item{position:relative}.deaofu-layer-form .image-item img{width:52px;height:42px;object-fit:cover}
+.deaofu-layer-form .image-item button{position:absolute;right:-5px;top:-5px;width:15px;height:15px;padding:0;border:0;border-radius:50%;background:#ff5722;color:#fff;line-height:15px}
+.deaofu-layer-form .parameter-row{display:grid;grid-template-columns:1fr 1fr 28px;gap:8px;margin-bottom:8px}.deaofu-layer-form .parameter-row button{border:0;background:#f2f2f2;color:#666}
+.deaofu-layer-form .text-button,.deaofu-layer-form .secondary-button,.deaofu-layer-form .primary-button{height:32px;padding:0 15px;border:0;border-radius:2px;background:#009688;color:#fff}
+.deaofu-layer-form [data-add-parameter]{grid-column:2;justify-self:start;margin-top:-4px}.deaofu-layer-form .secondary-button{background:#fff;border:1px solid #e6e6e6;color:#333}.deaofu-layer-form .modal-footer{margin:20px -30px 0 -18px;padding:10px 15px;text-align:right;border-top:1px solid #f2f2f2}.deaofu-layer-form .modal-footer button{margin-left:8px}
+.deaofu-layer-form .detail-grid{display:grid;grid-template-columns:105px minmax(0,1fr);gap:12px 15px;margin:0}.deaofu-layer-form .detail-grid dt{color:#666}.deaofu-layer-form .detail-grid dd{margin:0;color:#333;line-height:1.7;word-break:break-all}.deaofu-layer-form .detail-cover{display:block;max-width:100%;max-height:180px;margin:0 auto 18px;object-fit:contain}
+@media screen and (max-width:768px){.deaofu-layer-form{padding-right:20px}.layui-layout-admin .layui-logo span{display:none}#workspace .table-wrap table{min-width:700px}}

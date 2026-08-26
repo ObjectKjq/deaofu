@@ -378,7 +378,7 @@ String statusText = StatusEnum.getInfoByCode(user.getStatus());   // 暴露给�
 | --- | --- | --- | --- | --- |
 | `GET` | `/admin/login` | 登录页 | `admin/login` | ✅ |
 | `GET` | `/admin`、`/admin/` | 后台主框架 | `admin/index` | ❌ |
-| `GET` | `/admin/pages/{module}` | 工作区模板；支持 `dashboard/products/categories/routes/partners/news/tags/consultations` | `admin/dashboard` 或 `admin/module` | ❌ |
+| `GET` | `/admin/pages/{module}` | 工作区模板；支持 `dashboard/forms/uploads/products/categories/routes/partners/news/tags/consultations` | `admin/dashboard` 或 `admin/module` | ❌ |
 
 #### 4.11.4 仪表盘 — `AdminDashboardController`
 
