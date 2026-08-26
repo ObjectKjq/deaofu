@@ -45,6 +45,115 @@
 
 
 
+    /**
+     * 切换侧边栏折叠状态。
+     * - 桌面端：通过 .is-collapsed 控制，保留过渡动画；
+     * - 移动端：通过 .is-open 控制抽屉式展开。
+     */
+    function toggleSidebar() {
+        const sidebar = $('#admin-sidebar');
+        if (!sidebar) return;
+        const isMobile = window.matchMedia('(max-width: 780px)').matches;
+        const icon = $('#sidebar-toggle-icon');
+        if (isMobile) {
+            sidebar.classList.toggle('is-open');
+        } else {
+            const willCollapse = !sidebar.classList.contains('is-collapsed');
+            sidebar.classList.toggle('is-collapsed', willCollapse);
+            if (icon) {
+                icon.classList.toggle('layui-icon-left', !willCollapse);
+                icon.classList.toggle('layui-icon-right', willCollapse);
+            }
+        }
+    }
+
+    /**
+     * 展开侧边栏（折叠态下用户操作菜单时调用）。
+     */
+    function expandSidebar() {
+        const sidebar = $('#admin-sidebar');
+        if (!sidebar) return;
+        const isMobile = window.matchMedia('(max-width: 780px)').matches;
+        if (isMobile) {
+            sidebar.classList.add('is-open');
+            return;
+        }
+        if (sidebar.classList.contains('is-collapsed')) {
+            sidebar.classList.remove('is-collapsed');
+            const icon = $('#sidebar-toggle-icon');
+            if (icon) {
+                icon.classList.add('layui-icon-left');
+                icon.classList.remove('layui-icon-right');
+            }
+        }
+    }
+
+    /**
+     * 折叠态下，鼠标悬停一级 / 二级菜单项时，弹出 tooltip 显示菜单名称。
+     * tooltip 使用 fixed 定位以避开 sidebar/父级 overflow 裁剪。
+     */
+    function bindSidebarTooltips() {
+        const sidebar = $('#admin-sidebar');
+        const tooltip = $('#sidebar-tooltip');
+        if (!sidebar || !tooltip) return;
+        const show = (target) => {
+            if (!sidebar.classList.contains('is-collapsed')) return;
+            const text = target.dataset.tip;
+            if (!text) return;
+            const rect = target.getBoundingClientRect();
+            tooltip.textContent = text;
+            tooltip.style.top = (rect.top + rect.height / 2) + 'px';
+            tooltip.style.left = (rect.right + 12) + 'px';
+            tooltip.classList.add('is-visible');
+        };
+        const hide = () => tooltip.classList.remove('is-visible');
+        $$('.nav-item, .nav-group-header', sidebar).forEach(item => {
+            item.addEventListener('mouseenter', () => show(item));
+            item.addEventListener('mouseleave', hide);
+        });
+        sidebar.addEventListener('mouseleave', hide);
+    }
+
+    /**
+     * 一级 / 二级菜单项点击处理。
+     * 折叠态：先展开侧边栏，再按常规逻辑跳转；
+     * 展开态：直接跳转。
+     */
+    function handleNavItemClick(item) {
+        expandSidebar();
+        navigate(item.dataset.module);
+    }
+
+    /**
+     * 二级菜单分组点击处理。
+     * 折叠态：先展开侧边栏，再展开该分组，并跳转至该分组下第一个二级菜单；
+     * 展开态：仅切换分组展开/折叠。
+     */
+    function handleGroupHeaderClick(header) {
+        const group = header.closest('.nav-group');
+        const sidebar = $('#admin-sidebar');
+        const isCollapsed = sidebar && sidebar.classList.contains('is-collapsed');
+        if (isCollapsed) {
+            expandSidebar();
+            toggleNavGroup(group);
+            const firstChild = group && group.querySelector('.nav-item-child');
+            if (firstChild) navigate(firstChild.dataset.module);
+            return;
+        }
+        toggleNavGroup(group);
+    }
+
+    /**
+     * 切换二级菜单分组的展开/折叠状态，并同步 aria-expanded 属性。
+     */
+    function toggleNavGroup(group) {
+        if (!group) return;
+        const willOpen = !group.classList.contains('is-open');
+        group.classList.toggle('is-open', willOpen);
+        const header = group.querySelector('.nav-group-header');
+        if (header) header.setAttribute('aria-expanded', String(willOpen));
+    }
+
     async function api(url, options = {}) {
 
         const settings = Object.assign({headers: {}}, options);
@@ -948,6 +1057,18 @@
             workspace.innerHTML = html;
 
             $$('.nav-item').forEach(item => item.classList.toggle('is-active', item.dataset.module === module));
+                // 若当前模块属于某个二级菜单分组，则自动展开该分组，便于用户感知层级关系
+                const activeItem = $(`.nav-item[data-module="${module}"]`);
+                if (activeItem) {
+                    const group = activeItem.closest('.nav-group');
+                    if (group) {
+                        group.classList.add('is-open');
+                        const header = group.querySelector('.nav-group-header');
+                        if (header) header.setAttribute('aria-expanded', 'true');
+                    }
+                }
+
+
 
             const sectionLabel = module === 'dashboard' ? '仪表盘' : (loadModuleConfig(module)?.title || '管理后台');
 
@@ -1051,9 +1172,30 @@
 
         } catch (ignored) { return; }
 
-        $$('.nav-item').forEach(item => item.addEventListener('click', () => navigate(item.dataset.module)));
+        $$('.nav-item').forEach(item => {
+            // 折叠态悬浮提示文字：从首个 <span> 取
+            if (!item.dataset.tip) {
+                const label = item.querySelector('span');
+                if (label) item.dataset.tip = label.textContent.trim();
+            }
+            item.addEventListener('click', () => handleNavItemClick(item));
+        });
 
-        $('#sidebar-toggle').onclick = () => $('#admin-sidebar').classList.toggle('is-open');
+        // 二级菜单分组的展开/折叠
+        $$('.nav-group-header').forEach(header => {
+            if (!header.dataset.tip) {
+                const label = header.querySelector('span');
+                if (label) header.dataset.tip = label.textContent.trim();
+            }
+            header.addEventListener('click', event => {
+                event.stopPropagation();
+                handleGroupHeaderClick(header);
+            });
+        });
+
+        $('#sidebar-toggle').onclick = () => toggleSidebar();
+
+        bindSidebarTooltips();
 
         $('#logout-button').onclick = async () => {
 
