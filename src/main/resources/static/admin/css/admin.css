@@ -105,6 +105,7 @@ button { cursor: pointer; }
 .ghost-button:hover { color: var(--green); border-color: #b9d1c8; }
 .text-button { padding: 8px 0; color: var(--green); background: transparent; font-size: 11px; }
 .panel-card { border: 1px solid rgba(222,231,226,.9); border-radius: 16px; background: #fff; box-shadow: var(--shadow); }
+.panel-card.no-shadow { box-shadow: none; }
 .panel-heading { display: flex; align-items: center; justify-content: space-between; padding: 24px 26px 20px; }
 .panel-heading h2 { margin: 0 0 5px; font-size: 15px; font-weight: 600; }
 .panel-heading p { margin: 0; color: var(--muted); font-size: 10px; }
@@ -152,6 +153,7 @@ button { cursor: pointer; }
 
 /* 表格模块 */
 .module-panel { padding: 0 22px 20px; }
+.toolbar-actions { display: flex; align-items: center; gap: 10px; }
 .table-toolbar { display: flex; align-items: center; justify-content: space-between; padding: 19px 0 12px; }
 .search-box { display: flex; align-items: center; width: min(420px, 60%); height: 39px; border: 1px solid var(--line); border-radius: 9px; background: #fafbfa; }
 .search-box i { margin: 0 10px 0 13px; color: #9aa5a1; }
@@ -199,6 +201,92 @@ button { cursor: pointer; }
 .multi-preview span { position: relative; }
 .multi-preview img { width: 54px; height: 54px; object-fit: cover; border-radius: 8px; }
 .multi-preview button { position: absolute; top: -5px; right: -5px; display: grid; place-items: center; width: 17px; height: 17px; color: #fff; border: 0; border-radius: 50%; background: var(--danger); font-size: 10px; }
+
+/* 主题色上传按钮：代替 layui-btn-normal 的蓝色，与网站主色一致 */
+.deaofu-upload-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    height: 38px;
+    padding: 0 18px;
+    color: #fff;
+    border: 0;
+    border-radius: 9px;
+    background: var(--navy);
+    font-size: 11px;
+    cursor: pointer;
+    transition: background .2s, transform .2s, box-shadow .2s;
+}
+.deaofu-upload-btn:hover {
+    background: var(--navy-soft);
+    transform: translateY(-1px);
+    box-shadow: 0 8px 18px rgba(18, 42, 36, .14);
+}
+.deaofu-upload-btn:active {
+    transform: translateY(0);
+    box-shadow: none;
+}
+.deaofu-upload-btn > i {
+    margin: 0;
+    font-size: 14px;
+}
+
+/* 富文本工具栅按钮：同主题色 */
+.deaofu-tool-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 30px;
+    padding: 0 10px;
+    color: var(--ink);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: #fff;
+    font-size: 10px;
+    cursor: pointer;
+    transition: .2s;
+}
+.deaofu-tool-btn:hover {
+    color: var(--green);
+    border-color: #b9d1c8;
+}
+
+/* layui 2.x 不会自动隐藏原 select，手动隐藏以防出现 layui 下拉 + 原生 select 两个并排 */
+.layui-form-select { position: relative; }
+.layui-form-select > select,
+.layui-form-select select {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    cursor: pointer !important;
+    border: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: transparent !important;
+    z-index: 2 !important;
+}
+
+/* 覆盖 layui 主题色：让 layui.form.render 生成的下拉框也跟网站主题一致 */
+.layui-form-select .layui-input {
+    border-color: var(--line) !important;
+    background: #fbfcfb !important;
+}
+.layui-form-select .layui-input:hover {
+    border-color: #b9d1c8 !important;
+}
+.layui-form-selected .layui-input {
+    border-color: var(--green) !important;
+    box-shadow: 0 0 0 3px rgba(60, 118, 103, .08) !important;
+    background: #fff !important;
+}
+.layui-form-select .layui-edge {
+    border-top-color: #6f7c77 !important;
+}
 .tag-options { display: flex; flex-wrap: wrap; gap: 8px; padding: 10px; border: 1px solid #dfe7e2; border-radius: 9px; background: #fbfcfb; }
 .tag-option { display: inline-flex; align-items: center; gap: 5px; padding: 6px 9px; border-radius: 8px; background: #edf3f1; font-size: 9px; }
 .rich-toolbar { display: flex; align-items: center; gap: 8px; padding: 7px; border: 1px solid #dfe7e2; border-bottom: 0; border-radius: 9px 9px 0 0; background: #f4f7f5; }
@@ -232,3 +320,6 @@ button { cursor: pointer; }
     .editor-grid { grid-template-columns: 1fr; }
     .editor-field.is-wide { grid-column: auto; }
 }
+
+
+

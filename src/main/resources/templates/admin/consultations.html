@@ -1,0 +1,80 @@
+<section class="module-view" data-admin-module="consultations">
+    <article class="panel-card module-panel no-shadow">
+        <div class="table-toolbar">
+            <div class="search-box">
+                <i class="layui-icon layui-icon-search"></i>
+                <input type="text" data-keyword placeholder="搜索关键字，按 Enter 查询">
+                <button data-search>查询</button>
+            </div>
+            <div class="toolbar-actions">
+                <button class="primary-button" data-add-record>
+                    <i class="layui-icon layui-icon-add-1"></i><span>新增咨询</span>
+                </button>
+                <button class="ghost-button" data-refresh>
+                    <i class="layui-icon layui-icon-refresh"></i> 刷新
+                </button>
+            </div>
+        </div>
+        <table id="admin-data-table" lay-filter="admin-data-table"></table>
+    </article>
+</section>
+
+<script type="application/json" id="module-config-consultations">
+{
+    "endpoint": "/admin/consultations",
+    "id": "consultationId",
+    "page": true,
+    "title": "咨询信息",
+    "addLabel": "新增咨询",
+    "deleteLabel": "咨询",
+    "columns": [
+        {"field": "contactName", "title": "联系人", "width": 110, "type": "title"},
+        {"field": "subjects", "title": "咨询主题", "minWidth": 200, "type": "subjects"},
+        {"field": "phone", "title": "电话", "width": 130},
+        {"field": "email", "title": "邮箱", "width": 200},
+        {"field": "createTime", "title": "提交时间", "width": 165}
+    ],
+    "fields": [
+        {"name": "subjects", "label": "咨询主题", "type": "csv", "required": true, "wide": true},
+        {"name": "contactName", "label": "姓名", "type": "text", "required": true},
+        {"name": "phone", "label": "电话", "type": "text"},
+        {"name": "email", "label": "邮箱", "type": "email", "required": true, "wide": true},
+        {"name": "content", "label": "咨询内容", "type": "textarea", "required": true, "wide": true}
+    ]
+}
+</script>
+
+<script type="text/html" id="module-editor-consultations">
+    <div class="admin-editor">
+        <div class="editor-grid">
+            <div class="editor-field is-wide">
+                <label class="required">咨询主题</label>
+                <input class="editor-input" name="subjects">
+                <p class="editor-help">多个主题请使用英文逗号分隔，例如：价格咨询,项目合作</p>
+            </div>
+            <div class="editor-field">
+                <label class="required">姓名</label>
+                <input class="editor-input" type="text" name="contactName">
+            </div>
+            <div class="editor-field">
+                <label>电话</label>
+                <input class="editor-input" type="text" name="phone">
+            </div>
+            <div class="editor-field is-wide">
+                <label class="required">邮箱</label>
+                <input class="editor-input" type="email" name="email">
+            </div>
+            <div class="editor-field is-wide">
+                <label class="required">咨询内容</label>
+                <textarea class="editor-textarea" name="content"></textarea>
+            </div>
+        </div>
+    </div>
+</script>
+
+<script type="text/html" id="admin-row-actions">
+    <div class="row-actions">
+        <button class="row-action edit" lay-event="edit">编辑</button>
+        <button class="row-action delete" lay-event="delete">删除</button>
+    </div>
+</script>

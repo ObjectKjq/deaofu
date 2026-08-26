@@ -1,0 +1,63 @@
+<section class="module-view" data-admin-module="routes">
+    <article class="panel-card module-panel no-shadow">
+        <div class="table-toolbar">
+            <div class="search-box">
+                <i class="layui-icon layui-icon-search"></i>
+                <input type="text" data-keyword placeholder="搜索关键字，按 Enter 查询">
+                <button data-search>查询</button>
+            </div>
+            <div class="toolbar-actions">
+                <button class="primary-button" data-add-record>
+                    <i class="layui-icon layui-icon-add-1"></i><span>新增线路</span>
+                </button>
+                <button class="ghost-button" data-refresh>
+                    <i class="layui-icon layui-icon-refresh"></i> 刷新
+                </button>
+            </div>
+        </div>
+        <table id="admin-data-table" lay-filter="admin-data-table"></table>
+    </article>
+</section>
+
+<script type="application/json" id="module-config-routes">
+{
+    "endpoint": "/admin/transport-routes",
+    "id": "routeId",
+    "page": true,
+    "title": "运输线路",
+    "addLabel": "新增线路",
+    "deleteLabel": "线路",
+    "columns": [
+        {"field": "sourceAddress", "title": "源地址", "minWidth": 180, "type": "title"},
+        {"field": "targetAddress", "title": "目标地址", "minWidth": 180},
+        {"field": "createTime", "title": "创建时间", "width": 170},
+        {"field": "updateTime", "title": "更新时间", "width": 170}
+    ],
+    "fields": [
+        {"name": "sourceAddress", "label": "源地址", "type": "text", "required": true, "wide": true},
+        {"name": "targetAddress", "label": "目标地址", "type": "text", "required": true, "wide": true}
+    ]
+}
+</script>
+
+<script type="text/html" id="module-editor-routes">
+    <div class="admin-editor">
+        <div class="editor-grid">
+            <div class="editor-field is-wide">
+                <label class="required">源地址</label>
+                <input class="editor-input" type="text" name="sourceAddress">
+            </div>
+            <div class="editor-field is-wide">
+                <label class="required">目标地址</label>
+                <input class="editor-input" type="text" name="targetAddress">
+            </div>
+        </div>
+    </div>
+</script>
+
+<script type="text/html" id="admin-row-actions">
+    <div class="row-actions">
+        <button class="row-action edit" lay-event="edit">编辑</button>
+        <button class="row-action delete" lay-event="delete">删除</button>
+    </div>
+</script>

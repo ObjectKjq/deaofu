@@ -32,13 +32,24 @@ public class AdminPageController {
         return "admin/index";
     }
 
-    /** GET /admin/pages/{module}：渲染工作区模块片段；模块不存在时返回404业务错误。 @param module 模块编码 @param model 视图模型 @return 仪表盘或通用模块模板 */
+    /**
+     * GET /admin/{module}：完整路径直达各模块页面(不带 #)。
+     * 渲染统一的 {@code admin/index} 框架；前端 JS 根据 pathname 自动加载对应工作区内容。
+     * @return {@code admin/index} 模板名
+     */
+    @GetMapping({"/dashboard", "/products", "/categories", "/routes",
+            "/partners", "/news", "/tags", "/consultations"})
+    public String directModulePage() {
+        return "admin/index";
+    }
+
+    /** GET /admin/pages/{module}：内部接口,由前端 fetch 拉取工作区片段; 模块不存在时返回404业务错误。 @param module 模块编码 @param model 视图模型 @return 与模块一一对应的独立模板名({@code admin/{module}}) */
     @GetMapping("/pages/{module}")
     public String modulePage(@PathVariable String module, Model model) {
         if (!MODULES.contains(module)) {
             throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "管理后台模块不存在");
         }
         model.addAttribute("module", module);
-        return "dashboard".equals(module) ? "admin/dashboard" : "admin/module";
+        return "admin/" + module;
     }
 }
