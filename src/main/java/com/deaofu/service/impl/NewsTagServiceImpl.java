@@ -3,11 +3,14 @@ package com.deaofu.service.impl;
 import cn.hutool.core.codec.Base64;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.deaofu.common.ErrorCode;
+import com.deaofu.common.PageResult;
 import com.deaofu.exception.BusinessException;
 import com.deaofu.mapper.CompanyNewsTagMapper;
 import com.deaofu.mapper.NewsTagMapper;
+import com.deaofu.model.dto.AdminPageDto;
 import com.deaofu.model.dto.NewsTagSaveDto;
 import com.deaofu.model.entity.CompanyNewsTag;
 import com.deaofu.model.entity.NewsTag;
@@ -34,6 +37,18 @@ public class NewsTagServiceImpl extends ServiceImpl<NewsTagMapper, NewsTag> impl
         return lambdaQuery().select(NewsTag::getTagId, NewsTag::getTagName, NewsTag::getIconContentType,
                         NewsTag::getCreateTime).orderByAsc(NewsTag::getTagName).list().stream()
                 .map(this::toVo).toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PageResult<NewsTagVo> pageTags(AdminPageDto dto) {
+        Page<NewsTag> page = lambdaQuery()
+                .select(NewsTag::getTagId, NewsTag::getTagName, NewsTag::getIconContentType, NewsTag::getCreateTime)
+                .like(StrUtil.isNotBlank(dto.getKeyword()), NewsTag::getTagName, dto.getKeyword())
+                .orderByAsc(NewsTag::getTagName)
+                .page(new Page<>(dto.getPageNum(), dto.getPageSize()));
+        List<NewsTagVo> list = page.getRecords().stream().map(this::toVo).toList();
+        return new PageResult<>(list, page.getTotal());
     }
 
     @Override

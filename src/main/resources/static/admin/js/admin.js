@@ -17,11 +17,15 @@
     let tabOffset = 0;
     const endpoints = {
         products: 'products',
+        categories: 'product-categories',
+        tags: 'news-tags',
         routes: 'transport-routes',
         partners: 'partner-companies',
         news: 'news',
         consultations: 'consultations'
     };
+    // 分类页面处于展开状态的一级分类ID集合（翻页/搜索后保持）
+    const expandedCategories = new Set();
     let layuiLayer;
     let layerIndex;
     window.layui?.use(['layer', 'element', 'form'], () => {
@@ -47,8 +51,16 @@
         return body?.data;
     };
     const notify = message => layuiLayer ? layuiLayer.msg(message, {icon: 2, time: 2400}) : window.alert(message);
+    // 图片预览遮罩层：点击任意处关闭
+    const openPreview = url => {
+        const mask = document.createElement('div');
+        mask.className = 'image-preview-mask';
+        mask.innerHTML = `<img src="${escapeHtml(url)}" alt="图片预览">`;
+        mask.addEventListener('click', () => mask.remove());
+        document.body.appendChild(mask);
+    };
     const modal = (title, body, actions = '') => {
-        const content = `<div class="layui-form" style="padding:20px 24px 4px">${body}${actions ? `<div class="layui-form-item" style="margin-bottom:0"><div class="layui-input-block" style="margin-left:0;text-align:right;border-top:1px solid #f2f2f2;padding-top:15px;margin-top:15px">${actions}</div></div>` : ''}</div>`;
+        const content = `<div class="layui-form" style="padding:20px 24px 4px">${body}${actions ? `<div class="layui-form-item" style="margin-bottom:0"><div class="layui-input-block" style="margin-left:0;text-align:right;border-top:1px solid #f2f2f2;padding-top:15px;margin-top:15px;padding-bottom:20px">${actions}</div></div>` : ''}</div>`;
         let shadeObserver = null;
         const syncShadeHeight = () => {
             const shade = document.querySelector('.layui-layer-shade');
@@ -95,7 +107,8 @@
                 }
             });
             window.layui?.form.render();
-            return;
+            // 返回当前弹窗根节点，避免全局查询命中未销毁的旧弹窗
+            return document.getElementById(`layui-layer${layerIndex}`);
         }
         document.getElementById('modal-root').innerHTML = `<div class="modal-backdrop"><section class="modal-panel" role="dialog" aria-modal="true"><header class="modal-header"><h2>${title}</h2><button class="modal-close" type="button" data-close>&times;</button></header><div class="modal-content">${content}</div></section></div>`;
         const backdrop = document.querySelector('.modal-backdrop');
@@ -113,6 +126,8 @@
         }
         document.querySelector('[data-close]').onclick = closeModal;
         window.layui?.form.render();
+        // 返回当前弹窗根节点，避免全局查询命中未销毁的旧弹窗
+        return panel;
     };
     const closeModal = () => {
         if (layuiLayer && layerIndex !== undefined) {
@@ -266,17 +281,21 @@
     };
     const initModule = async (module, root) => {
         pageState[module] = {pageNum: 1, pageSize: 10, keyword: ''};
-        root.querySelector('[data-filter]')?.addEventListener('submit', event => {
+        // 保存成功后会重复调用 initModule，必须用 onclick 赋值避免事件监听叠加（叠加会导致一次点击打开多个弹窗）
+        const filter = root.querySelector('[data-filter]');
+        if (filter) filter.onsubmit = event => {
             event.preventDefault();
             const data = new FormData(event.currentTarget);
             pageState[module] = {...pageState[module], ...Object.fromEntries(data), pageNum: 1};
             renderModule(module, root);
-        });
-        root.querySelector('[data-action="reset"]')?.addEventListener('click', () => setTimeout(() => {
+        };
+        const resetButton = root.querySelector('[data-action="reset"]');
+        if (resetButton) resetButton.onclick = () => setTimeout(() => {
             pageState[module] = {pageNum: 1, pageSize: 10, keyword: ''};
             renderModule(module, root);
-        }, 0));
-        root.querySelector('[data-action="create"]')?.addEventListener('click', () => openEditor(module));
+        }, 0);
+        const createButton = root.querySelector('[data-action="create"]');
+        if (createButton) createButton.onclick = () => openEditor(module);
         if (module === 'products' || module === 'categories') await populateCategories(root, module === 'products');
         if (module === 'news') await populateTags(root);
         await renderModule(module, root);
@@ -300,23 +319,13 @@
     const renderModule = async (module, root) => {
         try {
             const state = pageState[module];
-            let list, total;
-            if (module === 'categories') {
-                list = await request(`${API}/product-categories`);
-                if (state.keyword) list = list.filter(x => x.categoryName.includes(state.keyword));
-                total = list.length;
-            } else if (module === 'tags') {
-                list = await request(`${API}/news-tags`);
-                if (state.keyword) list = list.filter(x => x.tagName.includes(state.keyword));
-                total = list.length;
-            } else {
-                const params = new URLSearchParams(Object.entries(state).filter(([, v]) => v !== ''));
-                const page = await request(`${API}/${endpoints[module]}/page?${params}`);
-                list = page.list || [];
-                total = page.total || 0;
-            }
+            const params = new URLSearchParams(Object.entries(state).filter(([, v]) => v !== ''));
+            const page = await request(`${API}/${endpoints[module]}/page?${params}`);
+            const list = page.list || [];
+            const total = page.total || 0;
             root.querySelector('[data-list]').innerHTML = list.length ? list.map(row => rowHtml(module, row)).join('') : '<tr><td class="empty-state" colspan="8">暂无数据</td></tr>';
             bindRows(module, root, list);
+            bindCategoryToggle(module, root, list);
             renderPagination(module, root, total);
         } catch (error) {
             root.querySelector('[data-list]').innerHTML = `<tr><td class="empty-state" colspan="8">${escapeHtml(error.message)}</td></tr>`;
@@ -325,21 +334,28 @@
     const rowHtml = (module, x) => {
         const actions = id => `<div class="action-list">${button('view', '查看')}${module !== 'consultations' ? button('edit', '编辑') + button('delete', '删除', 'danger') : ''}</div>`;
         if (module === 'products') return `<tr data-id="${x.productId}"><td><div class="item-title">${image(x.coverUrl)}<span>${escapeHtml(x.title)}</span></div></td><td>${escapeHtml([x.parentCategoryName, x.categoryName].filter(Boolean).join(' / ') || '-')}</td><td class="ellipsis">${escapeHtml(x.summary || '-')}</td><td>${time(x.updateTime)}</td><td class="align-right">${actions()}</td></tr>`;
-        if (module === 'categories') return `<tr data-id="${x.categoryId}"><td><span class="tree-name">${x.level === 2 ? '<i class="tree-indent">└</i>' : ''}${escapeHtml(x.categoryName)}</span></td><td><span class="level-badge">${x.level === 1 ? '一级分类' : '二级分类'}</span></td><td>${escapeHtml(x.parentName || '-')}</td><td>${x.sortOrder ?? 0}</td><td>${time(x.createTime)}</td><td class="align-right">${actions()}</td></tr>`;
+        if (module === 'categories') {
+            if (x.level === 2) return `<tr data-id="${x.categoryId}" class="category-child-row"><td><div class="cell-collapse"><span class="tree-name"><i class="tree-indent">└</i>${escapeHtml(x.categoryName)}</span></div></td><td><div class="cell-collapse"><span class="level-badge">${escapeHtml(x.level === 1 ? '一级分类' : '二级分类')}</span></div></td><td><div class="cell-collapse">${escapeHtml(x.parentName || '-')}</div></td><td><div class="cell-collapse">${x.sortOrder ?? 0}</div></td><td><div class="cell-collapse">${time(x.createTime)}</div></td><td class="align-right"><div class="cell-collapse">${actions()}</div></td></tr>`;
+            const children = x.children || [];
+            const expanded = expandedCategories.has(x.categoryId);
+            const toggle = children.length ? `<span class="tree-toggle ${expanded ? '' : 'is-collapsed'}" data-toggle-category="${x.categoryId}" title="${expanded ? '收起' : '展开'}"><i class="layui-icon layui-icon-down"></i></span>` : '<span class="tree-toggle is-empty"></span>';
+            const childRows = expanded ? children.map(child => rowHtml('categories', child)).join('') : '';
+            return `<tr data-id="${x.categoryId}"><td><span class="tree-name">${toggle}${escapeHtml(x.categoryName)}${children.length ? `<span class="tree-count">${children.length}</span>` : ''}</span></td><td><span class="level-badge">一级分类</span></td><td>-</td><td>${x.sortOrder ?? 0}</td><td>${time(x.createTime)}</td><td class="align-right">${actions()}</td></tr>${childRows}`;
+        }
         if (module === 'routes') return `<tr data-id="${x.routeId}"><td>${escapeHtml(x.sourceAddress)}</td><td class="route-arrow">&#8594;</td><td>${escapeHtml(x.targetAddress)}</td><td>${time(x.updateTime)}</td><td class="align-right">${actions()}</td></tr>`;
         if (module === 'partners') return `<tr data-id="${x.partnerId}"><td>${image(x.logoUrl, 'logo-thumb')}</td><td><b>${escapeHtml(x.companyName)}</b></td><td>${time(x.createTime)}</td><td>${time(x.updateTime)}</td><td class="align-right">${actions()}</td></tr>`;
         if (module === 'news') return `<tr data-id="${x.newsId}"><td>${image(x.coverUrl)}</td><td><div class="item-title">${escapeHtml(x.title)}</div><span class="muted ellipsis">${escapeHtml(x.summary || '')}</span></td><td>${(x.tags || []).map(t => `<span class="tag">${escapeHtml(t.tagName)}</span>`).join('') || '-'}</td><td>${escapeHtml(x.projectRegion || '-')}</td><td>${time(x.updateTime)}</td><td class="align-right">${actions()}</td></tr>`;
         if (module === 'tags') return `<tr data-id="${x.tagId}"><td>${image(x.iconUrl, 'tag-icon')}</td><td><b>${escapeHtml(x.tagName)}</b></td><td>${time(x.createTime)}</td><td class="align-right">${actions()}</td></tr>`;
         return `<tr data-id="${x.consultationId}"><td><b>${escapeHtml(x.contactName)}</b></td><td>${escapeHtml(x.email)}<br><span class="muted">${escapeHtml(x.phone || '-')}</span></td><td>${(x.subjects || []).map(s => `<span class="tag">${escapeHtml(s)}</span>`).join('')}</td><td class="ellipsis">${escapeHtml(x.content)}</td><td>${time(x.createTime)}</td><td class="align-right">${actions()}</td></tr>`;
     };
-    const bindRows = (module, root, list) => root.querySelectorAll('[data-row-action]').forEach(node => node.addEventListener('click', async () => {
+    const bindRows = (module, root, list, rows) => (rows || root.querySelectorAll('[data-row-action]')).forEach(node => node.addEventListener('click', async () => {
         const row = node.closest('tr');
         const id = row.dataset.id;
         const action = node.dataset.rowAction;
         if (action === 'delete') {
             if (!confirm('确定删除这条记录吗？此操作无法撤销。')) return;
             try {
-                await request(`${API}/${module === 'categories' ? 'product-categories' : module === 'tags' ? 'news-tags' : endpoints[module]}/${id}`, {method: 'DELETE'});
+                await request(`${API}/${endpoints[module]}/${id}`, {method: 'DELETE'});
                 renderModule(module, root);
             } catch (error) {
                 notify(error.message);
@@ -354,6 +370,44 @@
         const data = list.find(x => x[idField] === id) || await fetchDetail(module, id);
         openDetail(module, data);
     }));
+    // 分类折叠/展开：局部插入/移除二级行并播放渐入渐出动画，避免整表重绘的生硬感
+    const bindCategoryToggle = (module, root, list) => {
+        if (module !== 'categories') return;
+        root.querySelectorAll('[data-toggle-category]').forEach(node => node.addEventListener('click', event => {
+            event.stopPropagation();
+            const id = node.dataset.toggleCategory;
+            const expanding = !expandedCategories.has(id);
+            expanding ? expandedCategories.add(id) : expandedCategories.delete(id);
+            const parentRow = node.closest('tr');
+            node.classList.toggle('is-collapsed', !expanding);
+            node.title = expanding ? '收起' : '展开';
+            const childRows = [];
+            let sibling = parentRow.nextElementSibling;
+            while (sibling?.classList.contains('category-child-row')) { childRows.push(sibling); sibling = sibling.nextElementSibling; }
+            if (expanding) {
+                const children = (list || []).find(x => x.categoryId === id)?.children || [];
+                parentRow.insertAdjacentHTML('afterend', children.map(child => rowHtml('categories', child)).join(''));
+                const newRows = [];
+                sibling = parentRow.nextElementSibling;
+                while (sibling?.classList.contains('category-child-row')) {
+                    const row = sibling;
+                    row.classList.add('category-child-enter');
+                    // 双 rAF 确保初始态先渲染，再过渡到展开态
+                    requestAnimationFrame(() => requestAnimationFrame(() => row.classList.add('is-shown')));
+                    newRows.push(row);
+                    sibling = row.nextElementSibling;
+                }
+                // 动态插入的行不在 renderModule 绑定范围内，需单独绑定查看/编辑/删除事件
+                bindRows(module, root, [...(list || []), ...children], newRows);
+            } else {
+                childRows.forEach(row => {
+                    row.classList.remove('category-child-enter', 'is-shown');
+                    row.classList.add('category-child-leave');
+                });
+                setTimeout(() => childRows.forEach(row => row.remove()), 240);
+            }
+        }));
+    };
     const renderPagination = (module, root, total) => {
         const target = root.querySelector('[data-pagination]');
         if (!target) return;
@@ -375,17 +429,16 @@
         else if (module === 'tags') fields = [['标签名称', x.tagName], ['创建时间', time(x.createTime)]];
         else fields = [['联系人', x.contactName], ['邮箱', x.email], ['电话', x.phone || '-'], ['咨询主题', (x.subjects || []).join('、')], ['咨询内容', x.content], ['提交时间', time(x.createTime)]];
         const cover = module === 'products' ? image(x.coverUrl, 'detail-cover') : module === 'partners' ? image(x.logoUrl, 'detail-cover') : module === 'news' ? image(x.coverUrl, 'detail-cover') : module === 'tags' ? image(x.iconUrl, 'detail-cover') : '';
-        modal(`${moduleTitles[module]}详情`, `${cover}<dl class="detail-grid">${fields.map(([k, v]) => `<dt>${escapeHtml(k)}</dt><dd>${v ? escapeHtml(v).replace(/\n/g, '<br>') : '-'}</dd>`).join('')}</dl>`, '<button class="layui-btn" type="button" data-close>关闭</button>');
-        document.querySelector('[data-close]')?.addEventListener('click', closeModal);
+        modal(`${moduleTitles[module]}详情`, `${cover}<dl class="detail-grid">${fields.map(([k, v]) => `<dt>${escapeHtml(k)}</dt><dd>${v ? escapeHtml(v).replace(/\n/g, '<br>') : '-'}</dd>`).join('')}</dl>`, '<button class="layui-btn" type="button" data-close>关闭</button>').querySelector('[data-close]')?.addEventListener('click', closeModal);
     };
     const openEditor = async (module, id) => {
         try {
             const data = id ? await fetchDetail(module, id) : {};
             const body = await editorForm(module, data);
-            modal(`${id ? '编辑' : '新增'}${moduleTitles[module]}`, body, '<button class="layui-btn layui-btn-primary" type="button" data-close>取消</button><button class="layui-btn" type="button" data-save>保存</button>');
-            document.querySelector('[data-close]')?.addEventListener('click', closeModal);
+            const panel = modal(`${id ? '编辑' : '新增'}${moduleTitles[module]}`, body, '<button class="layui-btn layui-btn-primary" type="button" data-close>取消</button><button class="layui-btn" type="button" data-save>保存</button>');
+            panel.querySelector('[data-close]')?.addEventListener('click', closeModal);
             bindEditor(module, data);
-            document.querySelector('[data-save]').onclick = () => saveEditor(module, id);
+            panel.querySelector('[data-save]').onclick = () => saveEditor(module, id, panel);
         } catch (error) {
             notify(error.message);
         }
@@ -395,28 +448,34 @@
         const select = (name, options, extra = '') => `<select name="${name}"${extra}><option value=""></option>${options}</select>`;
         const item = (label, control) => `<div class="layui-form-item"><label class="layui-form-label">${label}</label><div class="layui-input-block">${control}</div></div>`;
         const field = (name, label, value = '', placeholder = '') => item(label, input(name, value, placeholder));
-        const fileItem = (label, previewHtml, pickerHtml, hidden) => `<div class="layui-form-item"><label class="layui-form-label">${label}</label><div class="layui-input-block"><div class="file-picker">${previewHtml}${pickerHtml}<span class="form-help" data-file-name></span>${hidden}</div></div></div>`;
-        const previewImg = (url, cls) => url ? `<img class="${cls}" src="${escapeHtml(url)}" alt="">` : `<span class="${cls}"></span>`;
-        const uploadBtn = (text, dataAttr, hiddenName, multiple) => `<label class="layui-btn layui-btn-primary">${text}<input type="file" accept="image/*" ${multiple ? 'multiple' : ''} data-${dataAttr}="${hiddenName}"></label>`;
-        const hidden = (name, value) => name ? `<input type="hidden" name="${name}" value="${escapeHtml(value || '')}">` : '';
         if (module === 'categories') {
             const categories = await request(`${API}/product-categories`);
             return `<form lay-filter="editor-form" data-editor>${field('categoryName', '分类名称', data.categoryName)}${field('sortOrder', '排序值', data.sortOrder ?? 0)}${item('所属一级分类', select('parentId', categories.filter(x => x.level === 1 && x.categoryId !== data.categoryId).map(x => `<option value="${x.categoryId}" ${x.categoryId === data.parentId ? 'selected' : ''}>${escapeHtml(x.categoryName)}</option>`).join('')))}</form>`;
         }
         if (module === 'routes') return `<form lay-filter="editor-form" data-editor>${field('sourceAddress', '始发地', data.sourceAddress)}${field('targetAddress', '目的地', data.targetAddress)}</form>`;
-        if (module === 'partners') return `<form lay-filter="editor-form" data-editor>${field('companyName', '企业名称', data.companyName)}${fileItem('企业 Logo', previewImg(data.logoUrl, 'logo-thumb'), uploadBtn('选择图片', 'upload', 'logoAccessName', false), hidden('logoAccessName', data.logoAccessName))}</form>`;
-        if (module === 'tags') return `<form lay-filter="editor-form" data-editor>${field('tagName', '标签名称', data.tagName)}${fileItem('标签图标', previewImg(data.iconUrl, 'tag-icon'), uploadBtn('选择图标', 'base64', 'iconBase64', false), hidden('iconBase64', ''))}</form>`;
+        if (module === 'partners') return `<form lay-filter="editor-form" data-editor>${field('companyName', '企业名称', data.companyName)}${singleUpload('企业 Logo', 'logoAccessName', data.logoAccessName, data.logoUrl, data.logoAccessName)}</form>`;
+        if (module === 'tags') return `<form lay-filter="editor-form" data-editor>${field('tagName', '标签名称', data.tagName)}${singleUpload('标签图标', 'iconBase64', '', data.iconUrl, '')}</form>`;
         if (module === 'products') {
             const categories = await request(`${API}/product-categories`);
             const options = categories.filter(x => x.level === 2).map(x => `<option value="${x.categoryId}" ${x.categoryId === data.categoryId ? 'selected' : ''}>${escapeHtml(`${x.parentName || ''}${x.parentName ? ' / ' : ''}${x.categoryName}`)}</option>`).join('');
-            return `<form lay-filter="editor-form" data-editor>${field('title', '产品名称', data.title)}${item('所属分类', select('categoryId', options))}<div class="layui-form-item layui-form-text"><label class="layui-form-label">产品简介</label><div class="layui-input-block"><textarea name="summary" placeholder="请输入产品简介" class="layui-textarea">${escapeHtml(data.summary || '')}</textarea></div></div>${fileItem('产品封面', previewImg(data.coverUrl, 'thumb'), uploadBtn('上传封面', 'upload', 'coverAccessName', false), hidden('coverAccessName', data.coverAccessName))}<div class="layui-form-item"><label class="layui-form-label">详情图片</label><div class="layui-input-block"><div class="file-picker">${uploadBtn('添加图片', 'upload-list', 'detailImages', true)}<div class="image-list" data-image-list>${(data.detailImages || []).map(n => `<span class="image-item" data-access="${escapeHtml(n)}"><img src="${API}/sys-file/preview/${escapeHtml(n)}"><button type="button">&times;</button></span>`).join('')}</div></div></div></div><div class="layui-form-item"><label class="layui-form-label">产品参数</label><div class="layui-input-block"><div data-parameters>${(data.parameters || []).map(p => parameterRow(p)).join('') || parameterRow()}</div><button class="layui-btn layui-btn-primary layui-btn-sm" type="button" data-add-parameter>+ 添加参数</button></div></div></form>`;
+            return `<form lay-filter="editor-form" data-editor>${field('title', '产品名称', data.title)}${item('所属分类', select('categoryId', options))}<div class="layui-form-item layui-form-text"><label class="layui-form-label">产品简介</label><div class="layui-input-block"><textarea name="summary" placeholder="请输入产品简介" class="layui-textarea">${escapeHtml(data.summary || '')}</textarea></div></div>${singleUpload('产品封面', 'coverAccessName', data.coverAccessName, data.coverUrl, data.coverAccessName)}<div class="layui-form-item"><label class="layui-form-label">详情图片</label><div class="layui-input-block"><div class="upload-area" data-image-list>${uploadTile('upload-list', 'detailImages', true)}${(data.detailImages || []).map(n => imageTile(`${API}/sys-file/preview/${escapeHtml(n)}`, n, n)).join('')}<span class="upload-help">请选择图片文件，可批量上传</span></div></div></div><div class="layui-form-item"><label class="layui-form-label">产品参数</label><div class="layui-input-block"><div data-parameters>${(data.parameters || []).map(p => parameterRow(p)).join('') || parameterRow()}</div><button class="layui-btn layui-btn-primary layui-btn-sm" type="button" data-add-parameter>+ 添加参数</button></div></div></form>`;
         }
         const tags = module === 'news' ? await request(`${API}/news-tags`) : [];
         const selected = new Set((data.tags || []).map(x => x.tagId));
-        return `<form lay-filter="editor-form" data-editor>${field('title', '动态标题', data.title)}${field('projectRegion', '项目地区', data.projectRegion)}${field('contactEmail', '咨询邮箱', data.contactEmail)}<div class="layui-form-item"><label class="layui-form-label">动态标签</label><div class="layui-input-block"><select name="tagIds" multiple size="4">${tags.map(x => `<option value="${x.tagId}" ${selected.has(x.tagId) ? 'selected' : ''}>${escapeHtml(x.tagName)}</option>`).join('')}</select></div></div>${fileItem('动态封面', previewImg(data.coverUrl, 'thumb'), uploadBtn('上传封面', 'upload', 'coverAccessName', false), hidden('coverAccessName', data.coverAccessName))}<div class="layui-form-item layui-form-text"><label class="layui-form-label">动态摘要</label><div class="layui-input-block"><textarea name="summary" placeholder="请输入动态摘要" class="layui-textarea">${escapeHtml(data.summary || '')}</textarea></div></div><div class="layui-form-item layui-form-text"><label class="layui-form-label">动态正文</label><div class="layui-input-block"><textarea name="content" placeholder="支持 HTML 正文" class="layui-textarea">${escapeHtml(data.content || '')}</textarea></div></div></form>`;
+        return `<form lay-filter="editor-form" data-editor>${field('title', '动态标题', data.title)}${field('projectRegion', '项目地区', data.projectRegion)}${field('contactEmail', '咨询邮箱', data.contactEmail)}<div class="layui-form-item"><label class="layui-form-label">动态标签</label><div class="layui-input-block"><select name="tagIds" multiple size="4">${tags.map(x => `<option value="${x.tagId}" ${selected.has(x.tagId) ? 'selected' : ''}>${escapeHtml(x.tagName)}</option>`).join('')}</select></div></div>${singleUpload('动态封面', 'coverAccessName', data.coverAccessName, data.coverUrl, data.coverAccessName)}<div class="layui-form-item layui-form-text"><label class="layui-form-label">动态摘要</label><div class="layui-input-block"><textarea name="summary" placeholder="请输入动态摘要" class="layui-textarea">${escapeHtml(data.summary || '')}</textarea></div></div><div class="layui-form-item layui-form-text"><label class="layui-form-label">动态正文</label><div class="layui-input-block"><textarea name="content" placeholder="支持 HTML 正文" class="layui-textarea">${escapeHtml(data.content || '')}</textarea></div></div></form>`;
     };
-    const parameterRow = p => `<div class="layui-form-item parameter-row"><div class="parameter-grid"><input placeholder="参数名称" value="${escapeHtml(p?.label || '')}" autocomplete="off" class="layui-input"><input placeholder="参数值" value="${escapeHtml(p?.value || '')}" autocomplete="off" class="layui-input"><button type="button" data-remove-parameter class="layui-btn parameter-remove" title="删除"><i class="layui-icon layui-icon-close"></i></button></div></div>`;
+    // 上传组件图标（内联 SVG）
+    const eyeIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>';
+    const trashIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>';
+    // 上传占位方块：点击选择图片
+    const uploadTile = (dataAttr, hiddenName, multiple) => `<label class="upload-tile" title="点击上传图片"><input type="file" accept="image/*" ${multiple ? 'multiple' : ''} data-${dataAttr}="${hiddenName}"><i class="layui-icon layui-icon-add-1"></i><span>点击上传图片</span></label>`;
+    // 已上传图片块：缩略图 + hover 遮罩（预览/删除）+ 文件名
+    const imageTile = (src, name, access = '') => `<div class="image-tile"${access ? ` data-access="${escapeHtml(access)}"` : ''}><div class="image-thumb"><img src="${escapeHtml(src)}" alt=""><div class="image-mask"><button type="button" data-preview title="预览">${eyeIcon}</button><button type="button" data-remove-image title="删除">${trashIcon}</button></div></div><span class="image-name">${escapeHtml(name || '')}</span></div>`;
+    // 单图上传表单项：已有图片时隐藏占位方块
+    const singleUpload = (label, hiddenName, accessName, previewUrl, fileName) => `<div class="layui-form-item"><label class="layui-form-label">${label}</label><div class="layui-input-block"><div class="upload-area${previewUrl ? ' has-image' : ''}" data-single-upload>${uploadTile('upload', hiddenName, false)}${previewUrl ? imageTile(previewUrl, fileName, accessName) : ''}<span class="upload-help">请选择单张图片文件上传</span><input type="hidden" name="${hiddenName}" value="${escapeHtml(accessName || '')}"></div></div></div>`;
+    const parameterRow = p => `<div class="parameter-row"><div class="parameter-grid"><input placeholder="参数名称" value="${escapeHtml(p?.label || '')}" autocomplete="off" class="layui-input"><input placeholder="参数值" value="${escapeHtml(p?.value || '')}" autocomplete="off" class="layui-input"><button type="button" data-remove-parameter class="layui-btn parameter-remove" title="删除"><i class="layui-icon layui-icon-close"></i></button></div></div>`;
     const bindEditor = module => {
+        // 单图上传：成功后填充缩略图块并隐藏占位方块
         document.querySelectorAll('[data-upload]').forEach(input => input.addEventListener('change', async event => {
             const file = event.target.files[0];
             if (!file) return;
@@ -432,15 +491,17 @@
                 if (!response.ok || body.code !== 0) throw new Error(body.message);
                 const name = input.dataset.upload;
                 document.querySelector(`[name="${name}"]`).value = body.data.accessName;
-                input.closest('.file-picker').querySelector('[data-file-name]').textContent = body.data.originalName;
-                const preview = input.closest('.file-picker').querySelector('img');
-                if (preview) preview.src = `${API}/sys-file/preview/${body.data.accessName}`;
+                const area = input.closest('.upload-area');
+                area.querySelector('.image-tile')?.remove();
+                area.querySelector('.upload-help').insertAdjacentHTML('beforebegin', imageTile(`${API}/sys-file/preview/${body.data.accessName}`, body.data.originalName));
+                area.classList.add('has-image');
             } catch (error) {
                 notify(error.message);
             }
         }));
+        // 批量上传详情图片：逐张插入缩略图块
         document.querySelectorAll('[data-upload-list]').forEach(input => input.addEventListener('change', async event => {
-            const holder = document.querySelector('[data-image-list]');
+            const area = input.closest('.upload-area');
             for (const file of event.target.files) {
                 const form = new FormData();
                 form.append('file', file);
@@ -452,46 +513,65 @@
                     });
                     const body = await response.json();
                     if (body.code !== 0) throw new Error(body.message);
-                    holder.insertAdjacentHTML('beforeend', `<span class="image-item" data-access="${body.data.accessName}"><img src="${API}/sys-file/preview/${body.data.accessName}"><button type="button">&times;</button></span>`);
+                    area.querySelector('.upload-help').insertAdjacentHTML('beforebegin', imageTile(`${API}/sys-file/preview/${body.data.accessName}`, body.data.originalName, body.data.accessName));
                 } catch (error) {
                     notify(error.message);
                 }
             }
         }));
+        // 标签图标 Base64 上传
         document.querySelectorAll('[data-base64]').forEach(input => input.addEventListener('change', event => {
             const file = event.target.files[0];
             if (!file) return;
             const reader = new FileReader();
             reader.onload = () => {
                 document.querySelector('[name="iconBase64"]').value = reader.result;
-                input.closest('.file-picker').querySelector('[data-file-name]').textContent = file.name;
-                const preview = input.closest('.file-picker').querySelector('img');
-                if (preview) preview.src = reader.result;
+                const area = input.closest('.upload-area');
+                area.querySelector('.image-tile')?.remove();
+                area.querySelector('.upload-help').insertAdjacentHTML('beforebegin', imageTile(reader.result, file.name));
+                area.classList.add('has-image');
             };
             reader.readAsDataURL(file);
         }));
         document.querySelector('[data-add-parameter]')?.addEventListener('click', () => document.querySelector('[data-parameters]').insertAdjacentHTML('beforeend', parameterRow()));
         document.querySelector('[data-parameters]')?.addEventListener('click', event => {
-            if (event.target.matches('[data-remove-parameter]')) event.target.parentElement.remove();
+            const removeBtn = event.target.closest('[data-remove-parameter]');
+            if (removeBtn) removeBtn.closest('.parameter-row').remove();
         });
-        document.querySelector('[data-image-list]')?.addEventListener('click', event => {
-            if (event.target.tagName === 'BUTTON') event.target.parentElement.remove();
+        // 图片块预览 / 删除（单图清空隐藏域并恢复占位方块，列表图直接移除）
+        document.querySelector('[data-editor]')?.addEventListener('click', event => {
+            const previewBtn = event.target.closest('[data-preview]');
+            if (previewBtn) {
+                const src = previewBtn.closest('.image-tile')?.querySelector('img')?.src;
+                if (src) openPreview(src);
+                return;
+            }
+            const removeBtn = event.target.closest('[data-remove-image]');
+            if (!removeBtn) return;
+            const tile = removeBtn.closest('.image-tile');
+            const area = tile.closest('.upload-area');
+            if (area?.matches('[data-single-upload]')) {
+                const hiddenInput = area.querySelector('input[type=hidden]');
+                if (hiddenInput) hiddenInput.value = '';
+                area.classList.remove('has-image');
+            }
+            tile.remove();
         });
     };
-    const saveEditor = async (module, id) => {
-        const form = document.querySelector('[data-editor]');
+    const saveEditor = async (module, id, panel) => {
+        const form = (panel || document).querySelector('[data-editor]');
         const fields = new FormData(form);
         const data = Object.fromEntries(fields.entries());
         if (module === 'products') {
             data.detailImages = [...form.querySelectorAll('[data-image-list] [data-access]')].map(x => x.dataset.access);
-            data.parameters = [...form.querySelectorAll('.parameter-row')].map(row => ({
-                label: row.children[0].value.trim(),
-                value: row.children[1].value.trim()
-            })).filter(x => x.label && x.value);
+            data.parameters = [...form.querySelectorAll('.parameter-row')].map(row => {
+                const inputs = row.querySelectorAll('input');
+                return {label: inputs[0]?.value.trim() || '', value: inputs[1]?.value.trim() || ''};
+            }).filter(x => x.label && x.value);
         }
         if (module === 'news') data.tagIds = [...form.querySelector('[name="tagIds"]')?.selectedOptions || []].map(x => x.value);
         if (module === 'tags' && !data.iconBase64) delete data.iconBase64;
-        const path = module === 'categories' ? 'product-categories' : module === 'tags' ? 'news-tags' : endpoints[module];
+        const path = endpoints[module];
         try {
             await request(`${API}/${path}${id ? '/' + id : ''}`, {
                 method: id ? 'PUT' : 'POST',

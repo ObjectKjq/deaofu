@@ -2,11 +2,14 @@ package com.deaofu.service.impl;
 
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.deaofu.common.ErrorCode;
+import com.deaofu.common.PageResult;
 import com.deaofu.exception.BusinessException;
 import com.deaofu.mapper.ProductCategoryMapper;
 import com.deaofu.mapper.ProductMapper;
+import com.deaofu.model.dto.AdminPageDto;
 import com.deaofu.model.dto.ProductCategorySaveDto;
 import com.deaofu.model.entity.Product;
 import com.deaofu.model.entity.ProductCategory;
@@ -21,6 +24,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /** 产品分类管理业务实现，仅允许一级、二级两层结构。 */
 @Slf4j
@@ -42,6 +46,38 @@ public class ProductCategoryServiceImpl extends ServiceImpl<ProductCategoryMappe
                         .comparing((ProductCategory item) -> StrUtil.isNotBlank(item.getParentId()))
                         .thenComparing(ProductCategory::getSortOrder, Comparator.reverseOrder()))
                 .map(item -> toVo(item, byId)).toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PageResult<ProductCategoryVo> pageCategories(AdminPageDto dto) {
+        // 关键字命中二级分类名称时，把其父级分类也纳入分页范围
+        List<String> matchedParentIds = StrUtil.isBlank(dto.getKeyword()) ? List.of()
+                : lambdaQuery().like(ProductCategory::getCategoryName, dto.getKeyword())
+                        .isNotNull(ProductCategory::getParentId).list().stream()
+                        .map(ProductCategory::getParentId).distinct().toList();
+        Page<ProductCategory> page = lambdaQuery()
+                .isNull(ProductCategory::getParentId)
+                .and(StrUtil.isNotBlank(dto.getKeyword()), wrapper -> wrapper
+                        .like(ProductCategory::getCategoryName, dto.getKeyword())
+                        .or().in(!matchedParentIds.isEmpty(), ProductCategory::getCategoryId, matchedParentIds))
+                .orderByDesc(ProductCategory::getSortOrder)
+                .orderByAsc(ProductCategory::getCategoryName)
+                .page(new Page<>(dto.getPageNum(), dto.getPageSize()));
+        // 批量查出当前页一级分类下的二级分类并分组
+        List<String> parentIds = page.getRecords().stream().map(ProductCategory::getCategoryId).toList();
+        Map<String, List<ProductCategory>> childMap = parentIds.isEmpty() ? Map.of()
+                : lambdaQuery().in(ProductCategory::getParentId, parentIds)
+                        .orderByDesc(ProductCategory::getSortOrder)
+                        .orderByAsc(ProductCategory::getCategoryName).list().stream()
+                        .collect(Collectors.groupingBy(ProductCategory::getParentId));
+        List<ProductCategoryVo> list = page.getRecords().stream().map(item -> {
+            ProductCategoryVo vo = toVo(item, Map.of());
+            vo.setChildren(childMap.getOrDefault(item.getCategoryId(), List.of()).stream()
+                    .map(child -> toVo(child, Map.of(item.getCategoryId(), item))).toList());
+            return vo;
+        }).toList();
+        return new PageResult<>(list, page.getTotal());
     }
 
     @Override
@@ -133,9 +169,10 @@ public class ProductCategoryServiceImpl extends ServiceImpl<ProductCategoryMappe
         vo.setCategoryName(entity.getCategoryName());
         vo.setSortOrder(entity.getSortOrder());
         vo.setParentId(entity.getParentId());
-        ProductCategory parent = byId.get(entity.getParentId());
+        // 一级分类 parentId 为 null，不可变 Map 禁止 null 查询，需先判空
+        ProductCategory parent = entity.getParentId() == null ? null : byId.get(entity.getParentId());
         vo.setParentName(parent == null ? null : parent.getCategoryName());
-        vo.setLevel(StrUtil.isBlank(entity.getParentId()) ? 1 : 2);
+        vo.setLevel(entity.getParentId() == null ? 1 : 2);
         vo.setCreateTime(entity.getCreateTime());
         return vo;
     }

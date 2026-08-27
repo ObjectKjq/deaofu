@@ -3,8 +3,10 @@ package com.deaofu.controller.admin;
 import cn.hutool.core.util.StrUtil;
 import com.deaofu.common.BaseResponse;
 import com.deaofu.common.ErrorCode;
+import com.deaofu.common.PageResult;
 import com.deaofu.common.ResultUtils;
 import com.deaofu.exception.BusinessException;
+import com.deaofu.model.dto.AdminPageDto;
 import com.deaofu.model.dto.NewsTagSaveDto;
 import com.deaofu.model.entity.NewsTag;
 import com.deaofu.model.vo.NewsTagVo;
@@ -36,6 +38,12 @@ public class NewsTagController {
     @GetMapping
     public BaseResponse<List<NewsTagVo>> list() {
         return ResultUtils.success(tagService.listTags());
+    }
+
+    /** GET /admin/news-tags/page：分页查询标签，keyword 按名称模糊匹配。 @param dto 分页入参 @return 标签分页结果 */
+    @GetMapping("/page")
+    public BaseResponse<PageResult<NewsTagVo>> page(@Valid AdminPageDto dto) {
+        return ResultUtils.success(tagService.pageTags(dto));
     }
 
     /** GET /admin/news-tags/{tagId}：查询标签详情。 @param tagId 标签ID @return 标签详情 */

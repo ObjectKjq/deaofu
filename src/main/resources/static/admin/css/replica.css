@@ -5,8 +5,32 @@ html, body {
 }
 
 #workspace {
-    overflow: auto;
+    /* fixed 定位下锁定右边界，宽度不再随内容（滚动条出现/消失）变化，表头不左右跳动 */
+    right: 0;
+    /* 垂直滚动轨道常驻，内容高度变化（表格展开收起）时宽度恒定，表头不左右跳动 */
+    overflow-y: scroll;
+    overflow-x: auto;
+    /* 细滚动条弱化常驻轨道的视觉存在感 */
+    scrollbar-width: thin;
     background: #f2f2f2
+}
+
+#workspace::-webkit-scrollbar {
+    width: 6px;
+    height: 6px
+}
+
+#workspace::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, .18);
+    border-radius: 3px
+}
+
+#workspace::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, .3)
+}
+
+#workspace::-webkit-scrollbar-track {
+    background: transparent
 }
 
 #workspace .layui-fluid {
@@ -55,26 +79,36 @@ html, body {
 #workspace .table-wrap table {
     width: 100%;
     min-width: 760px;
-    margin: 0
+    margin: 0;
+    border: 0;
+    border-collapse: collapse
+}
+
+/* 分类表固定列宽布局：展开/收起二级分类时列宽不随行内容重排，表头不左右移动 */
+#workspace [data-module="categories"] .table-wrap table {
+    table-layout: fixed
 }
 
 #workspace .table-wrap th {
     height: auto;
-    padding: 9px 15px;
-    background: #fff;
+    padding: 14px 16px;
+    background: #fafafa;
     font-size: 14px;
-    color: #333;
-    font-weight: 400
+    color: rgba(0, 0, 0, .88);
+    font-weight: 600;
+    border: 0;
+    border-bottom: 1px solid #f0f0f0
 }
 
 #workspace .table-wrap td {
-    padding: 9px 15px;
-    color: #666;
-    border-bottom: 1px solid #e6e6e6
+    padding: 15px 16px;
+    color: rgba(0, 0, 0, .88);
+    border: 0;
+    border-bottom: 1px solid #f0f0f0
 }
 
 #workspace .table-wrap tbody tr:hover {
-    background: #f8f8f8
+    background: #fafafa
 }
 
 #workspace .align-right {
@@ -84,27 +118,34 @@ html, body {
 #workspace .action-list {
     display: flex;
     justify-content: flex-end;
-    gap: 5px;
+    gap: 16px;
     white-space: nowrap
 }
 
+/* 操作列文字按钮：默认蓝色，删除红色（按功能区分） */
 #workspace .link-button {
-    height: 22px;
-    line-height: 22px;
-    padding: 0 7px;
+    height: auto;
+    line-height: inherit;
+    padding: 0;
     border: 0;
-    border-radius: 2px;
-    background: #1e9fff;
-    color: #fff;
-    font-size: 12px
+    border-radius: 0;
+    background: transparent;
+    color: #1677ff;
+    font-size: 14px
 }
 
 #workspace .link-button:hover {
-    opacity: .85
+    color: #4096ff;
+    background: transparent
 }
 
 #workspace .link-button.danger {
-    background: #ff5722
+    background: transparent;
+    color: #ff4d4f
+}
+
+#workspace .link-button.danger:hover {
+    color: #ff7875
 }
 
 #workspace .item-title {
@@ -141,18 +182,21 @@ html, body {
 #workspace .tag {
     display: inline-block;
     margin: 1px 3px 1px 0;
-    padding: 0 6px;
-    line-height: 21px;
-    border-radius: 2px;
-    background: #f2f2f2;
-    color: #666;
+    padding: 0 7px;
+    line-height: 20px;
+    border: 1px solid #b7eb8f;
+    border-radius: 4px;
+    background: #f6ffed;
+    color: #52c41a;
     font-size: 12px
 }
 
 #workspace .level-badge {
-    padding: 2px 6px;
-    background: #f2f2f2;
-    color: #666;
+    padding: 1px 8px;
+    border: 1px solid #d3adf7;
+    border-radius: 4px;
+    background: #f9f0ff;
+    color: #722ed1;
     font-size: 12px
 }
 
@@ -161,6 +205,55 @@ html, body {
     width: 18px;
     color: #999;
     font-style: normal
+}
+
+/* 分类树折叠箭头 */
+#workspace .tree-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    margin-right: 6px;
+    color: #999;
+    font-size: 12px;
+    cursor: pointer;
+    user-select: none
+}
+
+#workspace .tree-toggle:hover {
+    color: #1677ff
+}
+
+#workspace .tree-toggle.is-empty {
+    cursor: default
+}
+
+/* 分类树：折叠/展开动画（箭头旋转 + 二级行渐入渐出 + 高度塌缩，避免下方行跳跃） */
+#workspace .tree-toggle i { transition: transform 0.22s ease }
+#workspace .tree-toggle.is-collapsed i { transform: rotate(-90deg) }
+#workspace tr.category-child-row { transition: opacity 0.22s ease, transform 0.22s ease }
+#workspace tr.category-child-row > td { padding-top: 0; padding-bottom: 0 }
+#workspace tr.category-child-row .cell-collapse {
+    padding: 15px 16px;
+    max-height: 64px;
+    overflow: hidden;
+    transition: max-height 0.22s ease, padding 0.22s ease, opacity 0.22s ease
+}
+#workspace tr.category-child-row.category-child-enter { opacity: 0; transform: translateY(-8px) }
+#workspace tr.category-child-row.category-child-enter.is-shown { opacity: 1; transform: translateY(0) }
+#workspace tr.category-child-row.category-child-enter .cell-collapse,
+#workspace tr.category-child-row.category-child-leave .cell-collapse { max-height: 0; padding-top: 0; padding-bottom: 0; opacity: 0 }
+#workspace tr.category-child-row.category-child-enter.is-shown .cell-collapse { max-height: 64px; padding-top: 15px; padding-bottom: 15px; opacity: 1 }
+#workspace tr.category-child-row.category-child-leave { opacity: 0; transform: translateY(-8px) }
+
+#workspace .tree-count {
+    margin-left: 6px;
+    padding: 0 6px;
+    border-radius: 9px;
+    background: #f2f2f2;
+    color: #999;
+    font-size: 12px
 }
 
 #workspace .route-arrow {
@@ -186,32 +279,44 @@ html, body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    color: #666;
-    font-size: 12px
+    color: rgba(0, 0, 0, .88);
+    font-size: 14px
 }
 
 #workspace .pagination {
     display: flex;
-    gap: 5px
+    gap: 8px;
+    align-items: center
 }
 
 #workspace .pagination button {
-    width: 28px;
+    min-width: 28px;
     height: 28px;
-    border: 1px solid #e2e2e2;
-    background: #fff;
-    color: #666;
-    border-radius: 2px
+    padding: 0 6px;
+    border: 0;
+    background: transparent;
+    color: rgba(0, 0, 0, .88);
+    border-radius: 6px;
+    font-size: 14px;
+    transition: color .2s, background .2s
 }
 
+#workspace .pagination button:hover {
+    color: #1677ff;
+    background: rgba(0, 0, 0, .04)
+}
+
+/* 当前页：白色方块 + 灰边框 + 蓝色页码 */
 #workspace .pagination button.is-current {
-    background: #009688;
-    border-color: #009688;
-    color: #fff
+    border: 1px solid #d9d9d9;
+    background: #fff;
+    color: #1677ff
 }
 
 #workspace .pagination button:disabled {
-    color: #d2d2d2
+    color: rgba(0, 0, 0, .25);
+    background: transparent;
+    cursor: not-allowed
 }
 
 .layui-layout-admin .layui-logo span {
@@ -307,76 +412,149 @@ html.modal-page-scroll::-webkit-scrollbar {
     min-height: 100vh
 }
 
-.layui-form .file-picker {
-    min-height: 58px;
-    padding: 8px;
-    border: 1px dashed #d2d2d2;
-    background: #fafafa;
+/* ===== 图片上传区：占位方块 + 缩略图（hover 预览/删除） ===== */
+.layui-form .upload-area {
     display: flex;
-    align-items: center;
-    gap: 10px;
-    border-radius: 0
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: flex-start
 }
 
-.layui-form .file-picker > label {
-    display: inline-block;
-    padding: 0 10px;
-    line-height: 28px;
-    background: #fff;
-    border: 1px solid #e6e6e6;
+.layui-form .upload-tile {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 96px;
+    height: 96px;
+    border: 1px solid #d9d9d9;
+    border-radius: 4px;
+    background: #fafafa;
     cursor: pointer;
+    color: #999;
+    transition: border-color .2s, color .2s
+}
+
+.layui-form .upload-tile:hover {
+    border-color: #16b777;
+    color: #16b777
+}
+
+.layui-form .upload-tile input[type=file] {
+    display: none
+}
+
+.layui-form .upload-tile .layui-icon {
+    font-size: 28px
+}
+
+.layui-form .upload-tile span {
     font-size: 12px
 }
 
-.layui-form .file-picker input[type=file] {
+/* 单图区已有图片时隐藏占位方块 */
+.layui-form .upload-area.has-image .upload-tile {
     display: none
 }
 
-.layui-form .file-picker input[type=hidden] {
-    display: none
+.layui-form .image-tile {
+    width: 96px
 }
 
-.layui-form .file-picker img {
-    width: 56px;
-    height: 42px;
-    object-fit: contain;
-    border: 0
+.layui-form .image-tile .image-thumb {
+    position: relative;
+    width: 96px;
+    height: 96px;
+    border: 1px solid #e3e8e9;
+    border-radius: 4px;
+    overflow: hidden;
+    background: #f6f7f8
 }
 
-.layui-form .form-help {
-    color: #999;
-    font-size: 12px;
-    font-weight: 400
-}
-
-.layui-form .image-list {
-    display: flex;
-    gap: 7px;
-    flex-wrap: wrap
-}
-
-.layui-form .image-item {
-    position: relative
-}
-
-.layui-form .image-item img {
-    width: 52px;
-    height: 42px;
+.layui-form .image-tile img {
+    display: block;
+    width: 100%;
+    height: 100%;
     object-fit: cover
 }
 
-.layui-form .image-item button {
+.layui-form .image-tile .image-mask {
     position: absolute;
-    right: -5px;
-    top: -5px;
-    width: 15px;
-    height: 15px;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    background: rgba(0, 0, 0, .45);
+    opacity: 0;
+    transition: opacity .2s
+}
+
+.layui-form .image-tile:hover .image-mask {
+    opacity: 1
+}
+
+.layui-form .image-tile .image-mask button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
     padding: 0;
     border: 0;
-    border-radius: 50%;
-    background: #ff5722;
+    background: transparent;
     color: #fff;
-    line-height: 15px
+    cursor: pointer
+}
+
+.layui-form .image-tile .image-mask button svg {
+    width: 18px;
+    height: 18px
+}
+
+.layui-form .image-tile .image-mask button:hover {
+    color: #16b777
+}
+
+.layui-form .image-tile .image-name {
+    display: block;
+    margin-top: 5px;
+    font-size: 12px;
+    color: #666;
+    text-align: center;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap
+}
+
+.layui-form .image-tile .image-name:empty {
+    display: none
+}
+
+.layui-form .upload-help {
+    width: 100%;
+    color: #90999d;
+    font-size: 12px
+}
+
+/* 图片预览遮罩层：点击任意处关闭 */
+.image-preview-mask {
+    position: fixed;
+    inset: 0;
+    /* 高于 layui-layer 弹窗的 z-index（19891000 起） */
+    z-index: 198999999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, .6);
+    cursor: zoom-out
+}
+
+.image-preview-mask img {
+    max-width: 82vw;
+    max-height: 82vh;
+    padding: 8px;
+    background: #fff;
+    border-radius: 4px
 }
 
 .layui-form .parameter-row {

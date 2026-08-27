@@ -1,7 +1,9 @@
 package com.deaofu.controller.admin;
 
 import com.deaofu.common.BaseResponse;
+import com.deaofu.common.PageResult;
 import com.deaofu.common.ResultUtils;
+import com.deaofu.model.dto.AdminPageDto;
 import com.deaofu.model.dto.ProductCategorySaveDto;
 import com.deaofu.model.vo.ProductCategoryVo;
 import com.deaofu.service.IProductCategoryService;
@@ -29,6 +31,12 @@ public class ProductCategoryController {
     @GetMapping
     public BaseResponse<List<ProductCategoryVo>> list() {
         return ResultUtils.success(categoryService.listCategories());
+    }
+
+    /** GET /admin/product-categories/page：以一级分类为单位分页，每个一级分类携带二级分类列表。 @param dto 分页入参（keyword 可选） @return 一级分类分页结果 */
+    @GetMapping("/page")
+    public BaseResponse<PageResult<ProductCategoryVo>> page(@Valid AdminPageDto dto) {
+        return ResultUtils.success(categoryService.pageCategories(dto));
     }
 
     /** GET /admin/product-categories/{categoryId}：查询分类详情；不存在时返回404业务错误。 @param categoryId 分类ID @return 分类详情 */

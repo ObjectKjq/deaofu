@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 
 import java.util.Date;
+import java.util.List;
 
 import static cn.hutool.core.date.DatePattern.NORM_DATETIME_PATTERN;
 
@@ -25,4 +26,6 @@ public class ProductCategoryVo {
     /** 创建时间，格式 {@code yyyy-MM-dd HH:mm:ss}。 */
     @JsonFormat(pattern = NORM_DATETIME_PATTERN)
     private Date createTime;
+    /** 二级子分类列表，仅一级分类分页查询时返回。 */
+    private List<ProductCategoryVo> children;
 }
