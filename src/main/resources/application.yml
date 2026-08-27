@@ -5,7 +5,7 @@ spring:
     # MySQL 8.0 连接配置，可通过环境变量覆盖
     url: ${DB_URL:jdbc:mysql://localhost:3306/deaofu?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true&useInformationSchema=true}
     username: ${DB_USERNAME:root}
-    password: ${DB_PASSWORD:kjq}
+    password: ${DB_PASSWORD:root}
     driver-class-name: com.mysql.cj.jdbc.Driver
     hikari:
       pool-name: deaofuHikariPool

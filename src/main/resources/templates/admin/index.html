@@ -1,38 +1,96 @@
 <!doctype html>
 <html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=0">
-  <title>DEAOFU 管理后台</title>
-  <link rel="stylesheet" th:href="@{/admin/layui/css/layui.css}">
-  <link rel="stylesheet" th:href="@{/admin/style/admin.css}">
-  <link rel="stylesheet" th:href="@{/admin/css/admin.css}">
-  <link rel="stylesheet" th:href="@{/admin/css/replica.css}">
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <title>DEAOFU 管理后台</title>
+    <link rel="stylesheet" th:href="@{/admin/layui/css/layui.css}">
+    <link rel="stylesheet" th:href="@{/admin/style/admin.css}">
+    <link rel="stylesheet" th:href="@{/admin/css/admin.css}">
+    <link rel="stylesheet" th:href="@{/admin/css/replica.css}">
 </head>
 <body class="layui-layout-body">
-<div id="LAY_app"><div class="layui-layout layui-layout-admin">
-  <div class="layui-header">
-    <ul class="layui-nav layui-layout-left">
-      <li class="layui-nav-item layadmin-flexible"><a href="javascript:;" id="toggle-menu" title="侧边伸缩"><i class="layui-icon layui-icon-shrink-right"></i></a></li>
-    </ul>
-    <ul class="layui-nav layui-layout-right">
-      <li class="layui-nav-item"><a href="javascript:;"><cite id="current-user">管理员</cite></a><dl class="layui-nav-child"><dd><a href="javascript:;" id="logout-button">退出登录</a></dd></dl></li>
-    </ul>
-  </div>
-  <div class="layui-side layui-side-menu" id="sidebar"><div class="layui-side-scroll">
-    <div class="layui-logo"><span>DEAOFU</span></div>
-    <ul class="layui-nav layui-nav-tree" lay-shrink="all" id="LAY-system-side-menu">
-      <li class="layui-nav-item layui-nav-itemed"><a href="javascript:;"><i class="layui-icon layui-icon-home"></i><cite>内容管理</cite></a><dl class="layui-nav-child">
-        <dd><a href="/admin/products" data-module="products">产品管理</a></dd><dd><a href="/admin/categories" data-module="categories">产品分类</a></dd><dd><a href="/admin/routes" data-module="routes">运输路线</a></dd><dd><a href="/admin/partners" data-module="partners">合作企业</a></dd>
-      </dl></li>
-      <li class="layui-nav-item layui-nav-itemed"><a href="javascript:;"><i class="layui-icon layui-icon-app"></i><cite>资讯管理</cite></a><dl class="layui-nav-child">
-        <dd><a href="/admin/news" data-module="news">公司动态</a></dd><dd><a href="/admin/tags" data-module="tags">动态标签</a></dd><dd><a href="/admin/consultations" data-module="consultations">咨询信息</a></dd>
-      </dl></li>
-    </ul>
-  </div></div>
-  <div class="layadmin-pagetabs" id="page-tabs"><div class="layadmin-tabs-control layui-icon layui-icon-prev" id="tab-prev" title="向左滚动"></div><div class="layui-tab" lay-unauto lay-allowclose="true"><ul class="layui-tab-title" id="LAY_app_tabsheader"><li class="layui-this"><span id="breadcrumb-title">产品管理</span></li></ul></div><div class="layadmin-tabs-control layui-icon layui-icon-next" id="tab-next" title="向右滚动"></div></div>
-  <div class="layui-body" id="workspace"><div class="layadmin-loading"><i class="layui-icon layui-icon-loading layui-anim layui-anim-rotate layui-anim-loop"></i></div></div>
-</div></div>
-<div class="layadmin-body-shade" id="body-shade"></div><div id="modal-root"></div>
-<script th:src="@{/admin/layui/layui.js}"></script><script th:src="@{/admin/js/admin.js}"></script>
-</body></html>
+<div id="LAY_app">
+    <div class="layui-layout layui-layout-admin">
+        <div class="layui-header">
+            <ul class="layui-nav layui-layout-left">
+                <li class="layui-nav-item layadmin-flexible">
+                    <a href="javascript:;" id="toggle-menu" title="侧边伸缩" lay-tips="侧边伸缩"><i
+                            class="layui-icon layui-icon-shrink-right" id="toggle-menu-icon"></i></a>
+                </li>
+            </ul>
+            <ul class="layui-nav layui-layout-right">
+                <li class="layui-nav-item">
+                    <a href="javascript:;"><cite id="current-user">管理员</cite></a>
+                    <dl class="layui-nav-child">
+                        <dd>
+                            <a href="javascript:;" id="logout-button">退出登录</a>
+                        </dd>
+                    </dl>
+                </li>
+            </ul>
+        </div>
+        <div class="layui-side layui-side-menu" id="sidebar">
+            <div class="layui-side-scroll">
+                <div class="layui-logo"><span class="layui-logo-text">DEAOFU</span><span class="layui-logo-mark"
+                                                                                         aria-hidden="true">D</span>
+                </div>
+                <ul class="layui-nav layui-nav-tree" lay-shrink="all" id="LAY-system-side-menu">
+                    <li class="layui-nav-item layui-nav-itemed" data-group="content">
+                        <a href="javascript:;" lay-tips="内容管理" lay-direction="2"><i
+                                class="layui-icon layui-icon-home"></i><cite>内容管理</cite></a>
+                        <dl class="layui-nav-child">
+                            <dd>
+                                <a href="/admin/products" data-module="products">产品管理</a>
+                            </dd>
+                            <dd>
+                                <a href="/admin/categories" data-module="categories">产品分类</a>
+                            </dd>
+                            <dd>
+                                <a href="/admin/routes" data-module="routes">运输路线</a>
+                            </dd>
+                            <dd>
+                                <a href="/admin/partners" data-module="partners">合作企业</a>
+                            </dd>
+                        </dl>
+                    </li>
+                    <li class="layui-nav-item layui-nav-itemed" data-group="news">
+                        <a href="javascript:;" lay-tips="资讯管理" lay-direction="2"><i
+                                class="layui-icon layui-icon-app"></i><cite>资讯管理</cite></a>
+                        <dl class="layui-nav-child">
+                            <dd>
+                                <a href="/admin/news" data-module="news">公司动态</a>
+                            </dd>
+                            <dd>
+                                <a href="/admin/tags" data-module="tags">动态标签</a>
+                            </dd>
+                            <dd>
+                                <a href="/admin/consultations" data-module="consultations">咨询信息</a>
+                            </dd>
+                        </dl>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="layadmin-pagetabs" id="page-tabs">
+            <div class="layadmin-tabs-control layui-icon layui-icon-prev" id="tab-prev" title="向左滚动"></div>
+            <div class="layui-tab" lay-unauto lay-allowclose="true">
+                <ul class="layui-tab-title" id="LAY_app_tabsheader">
+                    <li class="layui-this"><span id="breadcrumb-title">产品管理</span></li>
+                </ul>
+            </div>
+            <div class="layadmin-tabs-control layui-icon layui-icon-next" id="tab-next" title="向右滚动"></div>
+        </div>
+        <div class="layui-body" id="workspace">
+            <div class="layadmin-loading"><i
+                    class="layui-icon layui-icon-loading layui-anim layui-anim-rotate layui-anim-loop"></i></div>
+        </div>
+    </div>
+</div>
+<div class="layadmin-body-shade" id="body-shade"></div>
+<div id="modal-root"></div>
+<script th:src="@{/admin/layui/layui.js}"></script>
+<script th:src="@{/admin/js/admin.js}"></script>
+</body>
+</html>

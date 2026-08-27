@@ -1,1 +1,38 @@
-<div class="layui-fluid module-page" data-module="tags"><div class="layui-card"><div class="layui-form layui-card-header layuiadmin-card-header-auto"><form data-filter><div class="layui-form-item"><div class="layui-inline"><label class="layui-form-label">标签搜索</label><div class="layui-input-inline"><input class="layui-input" name="keyword" placeholder="请输入标签名称"></div></div><div class="layui-inline"><button class="layui-btn" type="submit"><i class="layui-icon layui-icon-search"></i>查询</button><button class="layui-btn layui-btn-primary" type="reset" data-action="reset">重置</button></div></div></form></div><div class="layui-card-body"><div class="toolbar"><button class="layui-btn" data-action="create"><i class="layui-icon layui-icon-add-1"></i>添加标签</button></div><div class="table-wrap"><table class="layui-table"><thead><tr><th>图标</th><th>标签名称</th><th>创建时间</th><th class="align-right">操作</th></tr></thead><tbody data-list></tbody></table></div></div></div></div>
+<div class="layui-fluid module-page" data-module="tags">
+    <div class="layui-card">
+        <div class="layui-form layui-card-header layuiadmin-card-header-auto">
+            <form data-filter>
+                <div class="layui-form-item">
+                    <div class="layui-inline">
+                        <label class="layui-form-label">标签搜索</label>
+                        <div class="layui-input-inline"><input class="layui-input" name="keyword"
+                                                               placeholder="请输入标签名称"></div>
+                    </div>
+                    <div class="layui-inline">
+                        <button class="layui-btn" type="submit">查询</button>
+                        <button class="layui-btn layui-btn-primary" type="reset" data-action="reset">重置</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="layui-card-body">
+            <div class="toolbar">
+                <button class="layui-btn" data-action="create"><i class="layui-icon layui-icon-add-1"></i>添加标签
+                </button>
+            </div>
+            <div class="table-wrap">
+                <table class="layui-table">
+                    <thead>
+                    <tr>
+                        <th>图标</th>
+                        <th>标签名称</th>
+                        <th>创建时间</th>
+                        <th class="align-right">操作</th>
+                    </tr>
+                    </thead>
+                    <tbody data-list></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
