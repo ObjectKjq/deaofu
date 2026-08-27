@@ -72,6 +72,86 @@ html, body {
     min-width: 68px
 }
 
+/* 公司动态正文 wangEditor v5 富文本编辑器 */
+/* 主表单正文入口 */
+.content-entry {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 12px;
+    border: 1px dashed #d9d9d9;
+    border-radius: 4px;
+    background: #fafafa
+}
+
+.content-entry-text {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: #999;
+    font-size: 13px
+}
+
+/* 全屏富文本编辑层 */
+.rich-layer {
+    position: fixed;
+    inset: 0;
+    z-index: 199999999;
+    display: flex;
+    flex-direction: column;
+    background: #fff
+}
+
+.rich-layer-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 24px;
+    border-bottom: 1px solid #e6e6e6;
+    font-size: 16px;
+    font-weight: 600;
+    color: rgba(0, 0, 0, .88)
+}
+
+.rich-layer-body {
+    flex: 1;
+    overflow: auto;
+    width: 100%;
+    box-sizing: border-box
+}
+
+/* 全屏编辑层内编辑器铺满视口剩余高度（顶栏 57px + 工具栏约 85px） */
+.rich-layer-body [data-rich-editor] {
+    height: calc(100vh - 145px)
+}
+
+/* 限高弹窗内内容区内部滚动，取消/保存按钮始终可见 */
+.layui-layer-news .layui-layer-content {
+    overflow-y: auto
+}
+
+.rich-editor-box {
+    border: 1px solid #e6e6e6;
+    border-radius: 4px;
+    overflow: hidden;
+    z-index: 1;
+    background: #fff
+}
+
+.rich-editor-box [data-rich-toolbar] {
+    border-bottom: 1px solid #e6e6e6;
+    background: #fbfbfc
+}
+
+.rich-editor-box [data-rich-toolbar] .w-e-toolbar {
+    background: transparent
+}
+
+.rich-editor-box .w-e-text-container {
+    background: #fff
+}
+
 #workspace .table-wrap {
     overflow: auto
 }

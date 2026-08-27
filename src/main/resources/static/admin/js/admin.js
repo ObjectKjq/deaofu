@@ -59,7 +59,7 @@
         mask.addEventListener('click', () => mask.remove());
         document.body.appendChild(mask);
     };
-    const modal = (title, body, actions = '') => {
+    const modal = (title, body, actions = '', module = '') => {
         const content = `<div class="layui-form" style="padding:20px 24px 4px">${body}${actions ? `<div class="layui-form-item" style="margin-bottom:0"><div class="layui-input-block" style="margin-left:0;text-align:right;border-top:1px solid #f2f2f2;padding-top:15px;margin-top:15px;padding-bottom:20px">${actions}</div></div>` : ''}</div>`;
         let shadeObserver = null;
         const syncShadeHeight = () => {
@@ -67,10 +67,11 @@
             if (shade) shade.style.height = Math.max(document.documentElement.scrollHeight, document.body.scrollHeight) + 'px';
         };
         const isMobile = () => window.matchMedia('(max-width:768px)').matches;
-        const layerArea = isMobile() ? ['92vw', 'auto'] : ['650px', 'auto'];
+        // 公司动态弹窗加宽；正文编辑已移至全屏层，表单高度有限，弹窗高度自适应内容
+        const layerArea = isMobile() ? ['92vw', 'auto'] : [module === 'news' ? '820px' : '650px', 'auto'];
         if (layuiLayer) {
             layerIndex = layuiLayer.open({
-                type: 1, title, area: layerArea, shadeClose: false, content, success: layero => {
+                type: 1, title, area: layerArea, shadeClose: false, skin: module === 'news' ? 'layui-layer-news' : '', content, success: layero => {
                     const node = layero && layero[0] ? layero[0] : layero;
                     // 渲染完成后由 JS 计算水平位置，避免 layui 内联定位与 CSS 覆盖冲突导致闪动
                     if (node && node.style) {
@@ -130,6 +131,8 @@
         return panel;
     };
     const closeModal = () => {
+        closeRichLayer(false);
+        newsContentDraft = '';
         if (layuiLayer && layerIndex !== undefined) {
             layuiLayer.close(layerIndex);
             layerIndex = undefined;
@@ -419,6 +422,53 @@
         });
     };
     const fetchDetail = (module, id) => request(`${API}/${module === 'categories' ? 'product-categories' : module === 'tags' ? 'news-tags' : endpoints[module]}/${id}`);
+    // 公司动态正文：主表单仅显示入口，点击打开全屏富文本编辑层（wangEditor v5）
+    let newsContentDraft = '';
+    let richLayer = null;
+    const updateContentPreview = () => {
+        const text = newsContentDraft.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ').trim();
+        const preview = document.querySelector('[data-content-preview]');
+        if (preview) preview.textContent = text ? `已编辑正文（约 ${text.length} 字）` : '暂无正文，点击右侧按钮编辑';
+    };
+    const closeRichLayer = save => {
+        if (!richLayer) return;
+        if (save) {
+            newsContentDraft = richLayer.editor.getHtml();
+            updateContentPreview();
+        }
+        richLayer.editor.destroy();
+        richLayer.root.remove();
+        richLayer = null;
+    };
+    const openRichLayer = () => {
+        if (!window.wangEditor || richLayer) return;
+        const {createEditor, createToolbar} = window.wangEditor;
+        const root = document.createElement('div');
+        root.className = 'rich-layer';
+        root.innerHTML = `<header class="rich-layer-header"><span>编辑动态正文</span><button class="layui-btn layui-btn-sm" type="button" data-rich-done>完成</button></header><div class="rich-layer-body"><div class="rich-editor-box"><div data-rich-toolbar></div><div data-rich-editor></div></div></div>`;
+        document.body.appendChild(root);
+        const editor = createEditor({
+            selector: root.querySelector('[data-rich-editor]'),
+            html: newsContentDraft || '<p><br></p>',
+            config: {
+                placeholder: '请输入动态正文，支持图文混排...',
+                // 上传配置必须位于 MENU_CONF['uploadImage']：图片转 base64 内嵌正文，与既有存储格式保持一致
+                MENU_CONF: {
+                    uploadImage: {
+                        // wangEditor 逐张调用 customUpload：file 为单个 File 对象，转 base64 后插入正文
+                        customUpload: (file, insertFn) => {
+                            const reader = new FileReader();
+                            reader.onload = () => insertFn(reader.result, file.name, '');
+                            reader.readAsDataURL(file);
+                        }
+                    }
+                }
+            }
+        });
+        createToolbar({editor, selector: root.querySelector('[data-rich-toolbar]'), config: {excludeKeys: ['group-video', 'insertVideo', 'uploadVideo', 'fullScreen']}});
+        richLayer = {editor, root};
+        root.querySelector('[data-rich-done]').onclick = () => closeRichLayer(true);
+    };
     const openDetail = (module, x) => {
         let fields = [];
         if (module === 'products') fields = [['产品名称', x.title], ['所属分类', [x.parentCategoryName, x.categoryName].filter(Boolean).join(' / ')], ['产品简介', x.summary], ['产品参数', (x.parameters || []).map(p => `${p.label}：${p.value}`).join('\n')], ['创建时间', time(x.createTime)]];
@@ -429,15 +479,21 @@
         else if (module === 'tags') fields = [['标签名称', x.tagName], ['创建时间', time(x.createTime)]];
         else fields = [['联系人', x.contactName], ['邮箱', x.email], ['电话', x.phone || '-'], ['咨询主题', (x.subjects || []).join('、')], ['咨询内容', x.content], ['提交时间', time(x.createTime)]];
         const cover = module === 'products' ? image(x.coverUrl, 'detail-cover') : module === 'partners' ? image(x.logoUrl, 'detail-cover') : module === 'news' ? image(x.coverUrl, 'detail-cover') : module === 'tags' ? image(x.iconUrl, 'detail-cover') : '';
-        modal(`${moduleTitles[module]}详情`, `${cover}<dl class="detail-grid">${fields.map(([k, v]) => `<dt>${escapeHtml(k)}</dt><dd>${v ? escapeHtml(v).replace(/\n/g, '<br>') : '-'}</dd>`).join('')}</dl>`, '<button class="layui-btn" type="button" data-close>关闭</button>').querySelector('[data-close]')?.addEventListener('click', closeModal);
+        modal(`${moduleTitles[module]}详情`, `${cover}<dl class="detail-grid">${fields.map(([k, v]) => `<dt>${escapeHtml(k)}</dt><dd>${v ? escapeHtml(v).replace(/\n/g, '<br>') : '-'}</dd>`).join('')}</dl>`, '<button class="layui-btn" type="button" data-close>关闭</button>', module).querySelector('[data-close]')?.addEventListener('click', closeModal);
     };
     const openEditor = async (module, id) => {
         try {
             const data = id ? await fetchDetail(module, id) : {};
             const body = await editorForm(module, data);
-            const panel = modal(`${id ? '编辑' : '新增'}${moduleTitles[module]}`, body, '<button class="layui-btn layui-btn-primary" type="button" data-close>取消</button><button class="layui-btn" type="button" data-save>保存</button>');
+            const panel = modal(`${id ? '编辑' : '新增'}${moduleTitles[module]}`, body, '<button class="layui-btn layui-btn-primary" type="button" data-close>取消</button><button class="layui-btn" type="button" data-save>保存</button>', module);
             panel.querySelector('[data-close]')?.addEventListener('click', closeModal);
             bindEditor(module, data);
+            // 公司动态正文：初始化草稿、回显预览并绑定全屏编辑层入口
+            if (module === 'news') {
+                newsContentDraft = data.content || '';
+                updateContentPreview();
+                panel.querySelector('[data-edit-content]').onclick = openRichLayer;
+            }
             panel.querySelector('[data-save]').onclick = () => saveEditor(module, id, panel);
         } catch (error) {
             notify(error.message);
@@ -462,7 +518,13 @@
         }
         const tags = module === 'news' ? await request(`${API}/news-tags`) : [];
         const selected = new Set((data.tags || []).map(x => x.tagId));
-        return `<form lay-filter="editor-form" data-editor>${field('title', '动态标题', data.title)}${field('projectRegion', '项目地区', data.projectRegion)}${field('contactEmail', '咨询邮箱', data.contactEmail)}<div class="layui-form-item"><label class="layui-form-label">动态标签</label><div class="layui-input-block"><select name="tagIds" multiple size="4">${tags.map(x => `<option value="${x.tagId}" ${selected.has(x.tagId) ? 'selected' : ''}>${escapeHtml(x.tagName)}</option>`).join('')}</select></div></div>${singleUpload('动态封面', 'coverAccessName', data.coverAccessName, data.coverUrl, data.coverAccessName)}<div class="layui-form-item layui-form-text"><label class="layui-form-label">动态摘要</label><div class="layui-input-block"><textarea name="summary" placeholder="请输入动态摘要" class="layui-textarea">${escapeHtml(data.summary || '')}</textarea></div></div><div class="layui-form-item layui-form-text"><label class="layui-form-label">动态正文</label><div class="layui-input-block"><textarea name="content" placeholder="支持 HTML 正文" class="layui-textarea">${escapeHtml(data.content || '')}</textarea></div></div></form>`;
+        // 动态正文：富文本改为全屏编辑层入口，textarea 仅作降级
+        const contentField = module === 'news'
+            ? (window.wangEditor
+                ? `<div class="layui-form-item"><label class="layui-form-label">动态正文</label><div class="layui-input-block"><div class="content-entry"><span class="content-entry-text" data-content-preview></span><button class="layui-btn layui-btn-sm" type="button" data-edit-content>编辑正文</button></div></div></div>`
+                : `<div class="layui-form-item layui-form-text"><label class="layui-form-label">动态正文</label><div class="layui-input-block"><textarea name="content" placeholder="支持 HTML 正文" class="layui-textarea">${escapeHtml(data.content || '')}</textarea></div></div>`)
+            : '';
+        return `<form lay-filter="editor-form" data-editor>${field('title', '动态标题', data.title)}${field('projectRegion', '项目地区', data.projectRegion)}${field('contactEmail', '咨询邮箱', data.contactEmail)}<div class="layui-form-item"><label class="layui-form-label">动态标签</label><div class="layui-input-block"><select name="tagIds" multiple size="4">${tags.map(x => `<option value="${x.tagId}" ${selected.has(x.tagId) ? 'selected' : ''}>${escapeHtml(x.tagName)}</option>`).join('')}</select></div></div>${singleUpload('动态封面', 'coverAccessName', data.coverAccessName, data.coverUrl, data.coverAccessName)}<div class="layui-form-item layui-form-text"><label class="layui-form-label">动态摘要</label><div class="layui-input-block"><textarea name="summary" placeholder="请输入动态摘要" class="layui-textarea">${escapeHtml(data.summary || '')}</textarea></div></div>${contentField}</form>`;
     };
     // 上传组件图标（内联 SVG）
     const eyeIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>';
@@ -570,6 +632,7 @@
             }).filter(x => x.label && x.value);
         }
         if (module === 'news') data.tagIds = [...form.querySelector('[name="tagIds"]')?.selectedOptions || []].map(x => x.value);
+        if (module === 'news' && window.wangEditor) data.content = newsContentDraft;
         if (module === 'tags' && !data.iconBase64) delete data.iconBase64;
         const path = endpoints[module];
         try {
