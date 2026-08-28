@@ -18,7 +18,7 @@ import java.util.Set;
 public class AdminPageController {
 
     private static final Set<String> MODULES = Set.of("dashboard", "forms", "uploads", "products", "categories", "routes",
-            "partners", "news", "tags", "consultations");
+            "partners", "news", "tags", "consultations", "users");
 
     /** GET /admin/login：渲染登录页；该页面由鉴权切面白名单放行。 @return {@code admin/login} 模板名 */
     @GetMapping("/login")
@@ -38,7 +38,7 @@ public class AdminPageController {
      * @return {@code admin/index} 模板名
      */
     @GetMapping({"/dashboard", "/forms", "/uploads", "/products", "/categories", "/routes",
-            "/partners", "/news", "/tags", "/consultations"})
+            "/partners", "/news", "/tags", "/consultations", "/users"})
     public String directModulePage() {
         return "admin/index";
     }

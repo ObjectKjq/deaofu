@@ -13,17 +13,17 @@
 
 ### 关键依赖概览（详见 `pom.xml`）
 
-| 组件 | 版本 / 说明 |
-| --- | --- |
-| JDK | 17+ |
-| Spring Boot | 3.3.5 |
-| MyBatis-Plus | 3.5.9（`mybatis-plus-spring-boot3-starter`） |
-| Thymeleaf | 由 Spring Boot Starter 提供，模板位于 `src/main/resources/templates` |
-| MySQL 驱动 | `mysql-connector-j`（runtime） |
-| Lombok | 1.18.34（provided + Spring Boot Maven Plugin 已 exclude） |
-| Hutool | 5.8.32（`hutool-all`） |
-| Gson | 2.11.0 |
-| Validation | `spring-boot-starter-validation` |
+| 组件         | 版本 / 说明                                                          |
+| ------------ | -------------------------------------------------------------------- |
+| JDK          | 17+                                                                  |
+| Spring Boot  | 3.3.5                                                                |
+| MyBatis-Plus | 3.5.9（`mybatis-plus-spring-boot3-starter`）                         |
+| Thymeleaf    | 由 Spring Boot Starter 提供，模板位于 `src/main/resources/templates` |
+| MySQL 驱动   | `mysql-connector-j`（runtime）                                       |
+| Lombok       | 1.18.34（provided + Spring Boot Maven Plugin 已 exclude）            |
+| Hutool       | 5.8.32（`hutool-all`）                                               |
+| Gson         | 2.11.0                                                               |
+| Validation   | `spring-boot-starter-validation`                                     |
 
 ---
 
@@ -71,7 +71,7 @@ deaofu/
 │           ├── i18n/                          # （预留）国际化资源，后续再加
 │           └── templates/
 │               ├── admin/                     # （预留）后台页 Thymeleaf 模板
-│               └── portal/                    # （预留）官网前台页 Thymeleaf 模板      
+│               └── portal/                    # （预留）官网前台页 Thymeleaf 模板
 └── .gitignore
 ```
 
@@ -80,7 +80,7 @@ deaofu/
 - 根包：`com.deaofu`。
 - 子包遵循职责切分：`common / config / constants / enums / exception / controller / mapper / model / service / utils`。
 - `controller` 进一步按访问角色拆分为 `admin` 与 `portal` 两个子包。
-- `model` 进一步按数据流向拆分为 `dto`（入参：如*PageDto，*UpdateDto， *CreateDto）、`entity`（持久化）、`vo`（出参）。
+- `model` 进一步按数据流向拆分为 `dto`（入参：如*PageDto，*UpdateDto， \*CreateDto）、`entity`（持久化）、`vo`（出参）。
 
 ---
 
@@ -244,7 +244,6 @@ return ResultUtils.error(ErrorCode.PARAMS_ERROR, "用户名校验失败");
 
 ---
 
-
 ### 4.10 代码注释与字典枚举强制要求
 
 > ⚠️ **强制项**：以下条款为不可妥协的硬性要求，新建/修改任何代码都须遵守，
@@ -252,15 +251,15 @@ return ResultUtils.error(ErrorCode.PARAMS_ERROR, "用户名校验失败");
 
 #### 4.10.1 代码注释强制要求
 
-| 层 | 强制内容 |
-| --- | --- |
-| `model/entity/*` | 每个字段（**包括继承自 `BaseDo` 的字段以外的全部业务字段**）**必须** 写 JavaDoc `/** */`，说明字段含义、单位、取值范围、与数据库列的对应关系；与枚举关联的字段需 `@link` 到对应枚举。 |
-| `model/dto/*` | 每个入参字段 **必须** 写 JavaDoc，说明业务语义；Bean Validation 注解（`@NotBlank` 等）的 `message` **必须** 用中文且可读。 |
-| `model/vo/*` | 每个出参字段 **必须** 写 JavaDoc，说明字段含义、单位、时间格式；时间字段需注明使用 `yyyy-MM-dd HH:mm:ss`。 |
-| `controller/admin/*`、`controller/portal/*` | 每个对外方法（页面跳转 + JSON 接口）**必须** 写 JavaDoc，包含 HTTP 方法、请求路径语义、入参说明、返回结构与异常场景。 |
-| `service/IXxxService` | 每个业务方法 **必须** 写 JavaDoc，说明业务目的、入参约束、返回值、可能抛出的业务异常。 |
-| `service/impl/XxxServiceImpl` | 如果接口中存在了JavaDoc这里就不需要加JavaDoc，对私有方法可以加JavaDoc |
-| `mapper/XxxMapper` 接口 + XML | 每个自定义方法 **必须** 写 JavaDoc，说明查询目的与返回结构；XML 中每个 `<select>` / `<insert>` / `<update>` / `<delete>` 节点必须保留 `resultMap` 与列名对应说明。 |
+| 层                                          | 强制内容                                                                                                                                                                              |
+| ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `model/entity/*`                            | 每个字段（**包括继承自 `BaseDo` 的字段以外的全部业务字段**）**必须** 写 JavaDoc `/** */`，说明字段含义、单位、取值范围、与数据库列的对应关系；与枚举关联的字段需 `@link` 到对应枚举。 |
+| `model/dto/*`                               | 每个入参字段 **必须** 写 JavaDoc，说明业务语义；Bean Validation 注解（`@NotBlank` 等）的 `message` **必须** 用中文且可读。                                                            |
+| `model/vo/*`                                | 每个出参字段 **必须** 写 JavaDoc，说明字段含义、单位、时间格式；时间字段需注明使用 `yyyy-MM-dd HH:mm:ss`。                                                                            |
+| `controller/admin/*`、`controller/portal/*` | 每个对外方法（页面跳转 + JSON 接口）**必须** 写 JavaDoc，包含 HTTP 方法、请求路径语义、入参说明、返回结构与异常场景。                                                                 |
+| `service/IXxxService`                       | 每个业务方法 **必须** 写 JavaDoc，说明业务目的、入参约束、返回值、可能抛出的业务异常。                                                                                                |
+| `service/impl/XxxServiceImpl`               | 如果接口中存在了JavaDoc这里就不需要加JavaDoc，对私有方法可以加JavaDoc                                                                                                                 |
+| `mapper/XxxMapper` 接口 + XML               | 每个自定义方法 **必须** 写 JavaDoc，说明查询目的与返回结构；XML 中每个 `<select>` / `<insert>` / `<update>` / `<delete>` 节点必须保留 `resultMap` 与列名对应说明。                    |
 
 **反例（禁止）**：
 
@@ -337,11 +336,11 @@ String statusText = StatusEnum.getInfoByCode(user.getStatus());   // 暴露给�
 **基础路径**：`/admin/auth`
 **依赖**：`ISysUserService`；登录态写入 HTTP Session，key = `SessionUserUtils.SESSION_USER_KEY` = `"DEAOFU_LOGIN_USER"`
 
-| 方法 | 路径 | 说明 | 入参 | 响应 | 白名单 |
-| --- | --- | --- | --- | --- | --- |
-| `POST`   | `/admin/auth/login`  | 账号密码登录；成功后写入 Session | `@Valid @RequestBody LoginDto`（用户名 + 密码） | `BaseResponse<UserSessionVo>` | ✅ |
-| `POST`   | `/admin/auth/logout` | 销毁当前 Session | 无 | `BaseResponse<Boolean>` | ❌ |
-| `GET`    | `/admin/auth/me`     | 获取当前登录用户；未登录返回 `data: null` | 无 | `BaseResponse<UserSessionVo>` | ❌ |
+| 方法   | 路径                 | 说明                                      | 入参                                            | 响应                          | 白名单 |
+| ------ | -------------------- | ----------------------------------------- | ----------------------------------------------- | ----------------------------- | ------ |
+| `POST` | `/admin/auth/login`  | 账号密码登录；成功后写入 Session          | `@Valid @RequestBody LoginDto`（用户名 + 密码） | `BaseResponse<UserSessionVo>` | ✅     |
+| `POST` | `/admin/auth/logout` | 销毁当前 Session                          | 无                                              | `BaseResponse<Boolean>`       | ❌     |
+| `GET`  | `/admin/auth/me`     | 获取当前登录用户；未登录返回 `data: null` | 无                                              | `BaseResponse<UserSessionVo>` | ❌     |
 
 **注意事项**：
 
@@ -354,11 +353,11 @@ String statusText = StatusEnum.getInfoByCode(user.getStatus());   // 暴露给�
 **基础路径**：`/admin/sys-file`
 **依赖**：`ISysFileService`；文件二进制直接存放在数据库（`sys_file.file_data`），不落盘
 
-| 方法 | 路径 | 说明 | 入参 | 响应 | 白名单 |
-| --- | --- | --- | --- | --- | --- |
-| `POST`   | `/admin/sys-file/upload`             | 上传文件；返回元信息，不返回二进制 | `multipart/form-data` 字段 `file`（`MultipartFile`） | `BaseResponse<FileUploadVo>` | ❌ |
-| `GET`    | `/admin/sys-file/preview/{accessName}` | 预览文件流； | 路径变量 `accessName`（文件存储名） | `ResponseEntity<ByteArrayResource>`（二进制流） | ✅ |
-| `DELETE` | `/admin/sys-file/{fileId}`            | 物理删除（不可恢复）；不存在返回 `false` | 路径变量 `fileId`（文件主键） | `BaseResponse<Boolean>` | ❌ |
+| 方法     | 路径                                   | 说明                                     | 入参                                                 | 响应                                            | 白名单 |
+| -------- | -------------------------------------- | ---------------------------------------- | ---------------------------------------------------- | ----------------------------------------------- | ------ |
+| `POST`   | `/admin/sys-file/upload`               | 上传文件；返回元信息，不返回二进制       | `multipart/form-data` 字段 `file`（`MultipartFile`） | `BaseResponse<FileUploadVo>`                    | ❌     |
+| `GET`    | `/admin/sys-file/preview/{accessName}` | 预览文件流；                             | 路径变量 `accessName`（文件存储名）                  | `ResponseEntity<ByteArrayResource>`（二进制流） | ✅     |
+| `DELETE` | `/admin/sys-file/{fileId}`             | 物理删除（不可恢复）；不存在返回 `false` | 路径变量 `fileId`（文件主键）                        | `BaseResponse<Boolean>`                         | ❌     |
 
 **注意事项**：
 
@@ -374,53 +373,53 @@ String statusText = StatusEnum.getInfoByCode(user.getStatus());   // 暴露给�
 
 **基础路径**：`/admin`
 
-| 方法 | 路径 | 说明 | 响应 | 白名单 |
-| --- | --- | --- | --- | --- |
-| `GET` | `/admin/login` | 登录页 | `admin/login` | ✅ |
-| `GET` | `/admin`、`/admin/` | 后台主框架 | `admin/index` | ❌ |
-| `GET` | `/admin/pages/{module}` | 工作区模板；支持 `dashboard/forms/uploads/products/categories/routes/partners/news/tags/consultations` | `admin/dashboard` 或 `admin/module` | ❌ |
+| 方法  | 路径                    | 说明                                                                                                         | 响应                                | 白名单 |
+| ----- | ----------------------- | ------------------------------------------------------------------------------------------------------------ | ----------------------------------- | ------ |
+| `GET` | `/admin/login`          | 登录页                                                                                                       | `admin/login`                       | ✅     |
+| `GET` | `/admin`、`/admin/`     | 后台主框架                                                                                                   | `admin/index`                       | ❌     |
+| `GET` | `/admin/pages/{module}` | 工作区模板；支持 `dashboard/forms/uploads/products/categories/routes/partners/news/tags/consultations/users` | `admin/dashboard` 或 `admin/module` | ❌     |
 
 #### 4.11.4 仪表盘 — `AdminDashboardController`
 
-| 方法 | 路径 | 说明 | 响应 | 白名单 |
-| --- | --- | --- | --- | --- |
-| `GET` | `/admin/dashboard` | 核心业务数量与最近五条咨询 | `BaseResponse<AdminDashboardVo>` | ❌ |
+| 方法  | 路径               | 说明                       | 响应                             | 白名单 |
+| ----- | ------------------ | -------------------------- | -------------------------------- | ------ |
+| `GET` | `/admin/dashboard` | 核心业务数量与最近五条咨询 | `BaseResponse<AdminDashboardVo>` | ❌     |
 
 #### 4.11.5 产品 — `ProductController`
 
 **基础路径**：`/admin/products`
 
-| 方法 | 路径 | 说明 | 入参 | 响应 |
-| --- | --- | --- | --- | --- |
-| `GET` | `/admin/products/page` | 产品分页 | `AdminPageDto` | `BaseResponse<PageResult<ProductVo>>` |
-| `GET` | `/admin/products/{productId}` | 产品详情 | 产品ID | `BaseResponse<ProductVo>` |
-| `POST` | `/admin/products` | 新增产品 | `ProductSaveDto` | `BaseResponse<ProductVo>` |
-| `PUT` | `/admin/products/{productId}` | 修改产品 | 产品ID + `ProductSaveDto` | `BaseResponse<ProductVo>` |
-| `DELETE` | `/admin/products/{productId}` | 逻辑删除产品 | 产品ID | `BaseResponse<Boolean>` |
+| 方法     | 路径                          | 说明         | 入参                      | 响应                                  |
+| -------- | ----------------------------- | ------------ | ------------------------- | ------------------------------------- |
+| `GET`    | `/admin/products/page`        | 产品分页     | `AdminPageDto`            | `BaseResponse<PageResult<ProductVo>>` |
+| `GET`    | `/admin/products/{productId}` | 产品详情     | 产品ID                    | `BaseResponse<ProductVo>`             |
+| `POST`   | `/admin/products`             | 新增产品     | `ProductSaveDto`          | `BaseResponse<ProductVo>`             |
+| `PUT`    | `/admin/products/{productId}` | 修改产品     | 产品ID + `ProductSaveDto` | `BaseResponse<ProductVo>`             |
+| `DELETE` | `/admin/products/{productId}` | 逻辑删除产品 | 产品ID                    | `BaseResponse<Boolean>`               |
 
 #### 4.11.6 产品分类 — `ProductCategoryController`
 
 **基础路径**：`/admin/product-categories`
 
-| 方法 | 路径 | 说明 | 入参 | 响应 |
-| --- | --- | --- | --- | --- |
-| `GET` | `/admin/product-categories` | 查询全部一二级分类 | 无 | `BaseResponse<List<ProductCategoryVo>>` |
-| `GET` | `/admin/product-categories/{categoryId}` | 分类详情 | 分类ID | `BaseResponse<ProductCategoryVo>` |
-| `POST` | `/admin/product-categories` | 新增分类 | `ProductCategorySaveDto` | `BaseResponse<ProductCategoryVo>` |
-| `PUT` | `/admin/product-categories/{categoryId}` | 修改分类 | 分类ID + `ProductCategorySaveDto` | `BaseResponse<ProductCategoryVo>` |
-| `DELETE` | `/admin/product-categories/{categoryId}` | 删除空分类 | 分类ID | `BaseResponse<Boolean>` |
+| 方法     | 路径                                     | 说明               | 入参                              | 响应                                    |
+| -------- | ---------------------------------------- | ------------------ | --------------------------------- | --------------------------------------- |
+| `GET`    | `/admin/product-categories`              | 查询全部一二级分类 | 无                                | `BaseResponse<List<ProductCategoryVo>>` |
+| `GET`    | `/admin/product-categories/{categoryId}` | 分类详情           | 分类ID                            | `BaseResponse<ProductCategoryVo>`       |
+| `POST`   | `/admin/product-categories`              | 新增分类           | `ProductCategorySaveDto`          | `BaseResponse<ProductCategoryVo>`       |
+| `PUT`    | `/admin/product-categories/{categoryId}` | 修改分类           | 分类ID + `ProductCategorySaveDto` | `BaseResponse<ProductCategoryVo>`       |
+| `DELETE` | `/admin/product-categories/{categoryId}` | 删除空分类         | 分类ID                            | `BaseResponse<Boolean>`                 |
 
 #### 4.11.7 运输线路 — `TransportRouteController`
 
 **基础路径**：`/admin/transport-routes`
 
-| 方法 | 路径 | 说明 | 入参 | 响应 |
-| --- | --- | --- | --- | --- |
-| `GET` | `/admin/transport-routes/page` | 线路分页 | `AdminPageDto` | `BaseResponse<PageResult<TransportRouteVo>>` |
-| `GET` | `/admin/transport-routes/{routeId}` | 线路详情 | 线路ID | `BaseResponse<TransportRouteVo>` |
-| `POST` | `/admin/transport-routes` | 新增线路 | `TransportRouteSaveDto` | `BaseResponse<TransportRouteVo>` |
-| `PUT` | `/admin/transport-routes/{routeId}` | 修改线路 | 线路ID + DTO | `BaseResponse<TransportRouteVo>` |
-| `DELETE` | `/admin/transport-routes/{routeId}` | 逻辑删除线路 | 线路ID | `BaseResponse<Boolean>` |
+| 方法     | 路径                                | 说明         | 入参                    | 响应                                         |
+| -------- | ----------------------------------- | ------------ | ----------------------- | -------------------------------------------- |
+| `GET`    | `/admin/transport-routes/page`      | 线路分页     | `AdminPageDto`          | `BaseResponse<PageResult<TransportRouteVo>>` |
+| `GET`    | `/admin/transport-routes/{routeId}` | 线路详情     | 线路ID                  | `BaseResponse<TransportRouteVo>`             |
+| `POST`   | `/admin/transport-routes`           | 新增线路     | `TransportRouteSaveDto` | `BaseResponse<TransportRouteVo>`             |
+| `PUT`    | `/admin/transport-routes/{routeId}` | 修改线路     | 线路ID + DTO            | `BaseResponse<TransportRouteVo>`             |
+| `DELETE` | `/admin/transport-routes/{routeId}` | 逻辑删除线路 | 线路ID                  | `BaseResponse<Boolean>`                      |
 
 #### 4.11.7.1 国家字典 — `CountryController`
 
@@ -428,9 +427,9 @@ String statusText = StatusEnum.getInfoByCode(user.getStatus());   // 暴露给�
 **基础路径**：`/admin/countries`
 **依赖**：无；数据源为 `com.deaofu.enums.CountryEnum` 字典
 
-| 方法 | 路径 | 说明 | 入参 | 响应 |
-| --- | --- | --- | --- | --- |
-| `GET` | `/admin/countries` | 列出全部国家（仅 code + name） | 无 | `BaseResponse<List<CountryVo>>` |
+| 方法  | 路径               | 说明                           | 入参 | 响应                            |
+| ----- | ------------------ | ------------------------------ | ---- | ------------------------------- |
+| `GET` | `/admin/countries` | 列出全部国家（仅 code + name） | 无   | `BaseResponse<List<CountryVo>>` |
 
 **注意事项**：
 
@@ -442,52 +441,66 @@ String statusText = StatusEnum.getInfoByCode(user.getStatus());   // 暴露给�
 
 **基础路径**：`/admin/partner-companies`
 
-| 方法 | 路径 | 说明 | 入参 | 响应 |
-| --- | --- | --- | --- | --- |
-| `GET` | `/admin/partner-companies/page` | 合作企业分页 | `AdminPageDto` | `BaseResponse<PageResult<PartnerCompanyVo>>` |
-| `GET` | `/admin/partner-companies/{partnerId}` | 企业详情 | 企业ID | `BaseResponse<PartnerCompanyVo>` |
-| `POST` | `/admin/partner-companies` | 新增企业 | `PartnerCompanySaveDto` | `BaseResponse<PartnerCompanyVo>` |
-| `PUT` | `/admin/partner-companies/{partnerId}` | 修改企业 | 企业ID + DTO | `BaseResponse<PartnerCompanyVo>` |
-| `DELETE` | `/admin/partner-companies/{partnerId}` | 逻辑删除企业 | 企业ID | `BaseResponse<Boolean>` |
+| 方法     | 路径                                   | 说明         | 入参                    | 响应                                         |
+| -------- | -------------------------------------- | ------------ | ----------------------- | -------------------------------------------- |
+| `GET`    | `/admin/partner-companies/page`        | 合作企业分页 | `AdminPageDto`          | `BaseResponse<PageResult<PartnerCompanyVo>>` |
+| `GET`    | `/admin/partner-companies/{partnerId}` | 企业详情     | 企业ID                  | `BaseResponse<PartnerCompanyVo>`             |
+| `POST`   | `/admin/partner-companies`             | 新增企业     | `PartnerCompanySaveDto` | `BaseResponse<PartnerCompanyVo>`             |
+| `PUT`    | `/admin/partner-companies/{partnerId}` | 修改企业     | 企业ID + DTO            | `BaseResponse<PartnerCompanyVo>`             |
+| `DELETE` | `/admin/partner-companies/{partnerId}` | 逻辑删除企业 | 企业ID                  | `BaseResponse<Boolean>`                      |
 
 #### 4.11.9 公司动态 — `CompanyNewsController`
 
 **基础路径**：`/admin/news`
 
-| 方法 | 路径 | 说明 | 入参 | 响应 |
-| --- | --- | --- | --- | --- |
-| `GET` | `/admin/news/page` | 动态分页，可按标签筛选 | `AdminPageDto` | `BaseResponse<PageResult<CompanyNewsVo>>` |
-| `GET` | `/admin/news/{newsId}` | 动态详情 | 动态ID | `BaseResponse<CompanyNewsVo>` |
-| `POST` | `/admin/news` | 新增动态并保存标签关系 | `CompanyNewsSaveDto` | `BaseResponse<CompanyNewsVo>` |
-| `PUT` | `/admin/news/{newsId}` | 修改动态并重建标签关系 | 动态ID + DTO | `BaseResponse<CompanyNewsVo>` |
-| `DELETE` | `/admin/news/{newsId}` | 删除动态及标签关系 | 动态ID | `BaseResponse<Boolean>` |
+| 方法     | 路径                   | 说明                   | 入参                 | 响应                                      |
+| -------- | ---------------------- | ---------------------- | -------------------- | ----------------------------------------- |
+| `GET`    | `/admin/news/page`     | 动态分页，可按标签筛选 | `AdminPageDto`       | `BaseResponse<PageResult<CompanyNewsVo>>` |
+| `GET`    | `/admin/news/{newsId}` | 动态详情               | 动态ID               | `BaseResponse<CompanyNewsVo>`             |
+| `POST`   | `/admin/news`          | 新增动态并保存标签关系 | `CompanyNewsSaveDto` | `BaseResponse<CompanyNewsVo>`             |
+| `PUT`    | `/admin/news/{newsId}` | 修改动态并重建标签关系 | 动态ID + DTO         | `BaseResponse<CompanyNewsVo>`             |
+| `DELETE` | `/admin/news/{newsId}` | 删除动态及标签关系     | 动态ID               | `BaseResponse<Boolean>`                   |
 
 #### 4.11.10 动态标签 — `NewsTagController`
 
 **基础路径**：`/admin/news-tags`
 
-| 方法 | 路径 | 说明 | 入参 | 响应 |
-| --- | --- | --- | --- | --- |
-| `GET` | `/admin/news-tags` | 查询全部标签 | 无 | `BaseResponse<List<NewsTagVo>>` |
-| `GET` | `/admin/news-tags/{tagId}` | 标签详情 | 标签ID | `BaseResponse<NewsTagVo>` |
-| `GET` | `/admin/news-tags/{tagId}/icon` | 标签图标二进制流 | 标签ID | `ResponseEntity<ByteArrayResource>` |
-| `POST` | `/admin/news-tags` | 新增标签及Base64图标 | `NewsTagSaveDto` | `BaseResponse<NewsTagVo>` |
-| `PUT` | `/admin/news-tags/{tagId}` | 修改标签 | 标签ID + DTO | `BaseResponse<NewsTagVo>` |
-| `DELETE` | `/admin/news-tags/{tagId}` | 删除未使用标签 | 标签ID | `BaseResponse<Boolean>` |
+| 方法     | 路径                            | 说明                 | 入参             | 响应                                |
+| -------- | ------------------------------- | -------------------- | ---------------- | ----------------------------------- |
+| `GET`    | `/admin/news-tags`              | 查询全部标签         | 无               | `BaseResponse<List<NewsTagVo>>`     |
+| `GET`    | `/admin/news-tags/{tagId}`      | 标签详情             | 标签ID           | `BaseResponse<NewsTagVo>`           |
+| `GET`    | `/admin/news-tags/{tagId}/icon` | 标签图标二进制流     | 标签ID           | `ResponseEntity<ByteArrayResource>` |
+| `POST`   | `/admin/news-tags`              | 新增标签及Base64图标 | `NewsTagSaveDto` | `BaseResponse<NewsTagVo>`           |
+| `PUT`    | `/admin/news-tags/{tagId}`      | 修改标签             | 标签ID + DTO     | `BaseResponse<NewsTagVo>`           |
+| `DELETE` | `/admin/news-tags/{tagId}`      | 删除未使用标签       | 标签ID           | `BaseResponse<Boolean>`             |
 
-#### 4.11.11 咨询信息 — `ConsultationController`
+#### 4.11.11 用户管理 — `SysUserController`
+
+**类路径**：`src/main/java/com/deaofu/controller/admin/SysUserController.java`
+**基础路径**：`/admin/users`
+
+| 方法     | 路径                             | 说明                                 | 入参                          | 响应                                  |
+| -------- | -------------------------------- | ------------------------------------ | ----------------------------- | ------------------------------------- |
+| `GET`    | `/admin/users/page`              | 用户分页，支持用户名或显示名称搜索   | `AdminPageDto`                | `BaseResponse<PageResult<SysUserVo>>` |
+| `GET`    | `/admin/users/{userId}`          | 用户详情                             | 用户ID                        | `BaseResponse<SysUserVo>`             |
+| `POST`   | `/admin/users`                   | 新增用户，密码使用 BCrypt 加密       | `SysUserSaveDto`              | `BaseResponse<SysUserVo>`             |
+| `PUT`    | `/admin/users/{userId}`          | 修改用户基本信息，不修改密码         | 用户ID + `SysUserSaveDto`     | `BaseResponse<SysUserVo>`             |
+| `PUT`    | `/admin/users/{userId}/password` | 修改用户密码，校验原密码及两次新密码 | 用户ID + `SysUserPasswordDto` | `BaseResponse<Boolean>`               |
+| `DELETE` | `/admin/users/{userId}`          | 逻辑删除用户                         | 用户ID                        | `BaseResponse<Boolean>`               |
+
+#### 4.11.12 咨询信息 — `ConsultationController`
 
 **基础路径**：`/admin/consultations`
 
-| 方法 | 路径 | 说明 | 入参 | 响应 |
-| --- | --- | --- | --- | --- |
-| `GET` | `/admin/consultations/page` | 咨询分页 | `AdminPageDto` | `BaseResponse<PageResult<ConsultationVo>>` |
-| `GET` | `/admin/consultations/{consultationId}` | 咨询详情 | 咨询ID | `BaseResponse<ConsultationVo>` |
-| `POST` | `/admin/consultations` | 管理端录入咨询 | `ConsultationSaveDto` | `BaseResponse<ConsultationVo>` |
-| `PUT` | `/admin/consultations/{consultationId}` | 修改咨询 | 咨询ID + DTO | `BaseResponse<ConsultationVo>` |
-| `DELETE` | `/admin/consultations/{consultationId}` | 逻辑删除咨询 | 咨询ID | `BaseResponse<Boolean>` |
+| 方法     | 路径                                    | 说明           | 入参                  | 响应                                       |
+| -------- | --------------------------------------- | -------------- | --------------------- | ------------------------------------------ |
+| `GET`    | `/admin/consultations/page`             | 咨询分页       | `AdminPageDto`        | `BaseResponse<PageResult<ConsultationVo>>` |
+| `GET`    | `/admin/consultations/{consultationId}` | 咨询详情       | 咨询ID                | `BaseResponse<ConsultationVo>`             |
+| `POST`   | `/admin/consultations`                  | 管理端录入咨询 | `ConsultationSaveDto` | `BaseResponse<ConsultationVo>`             |
+| `PUT`    | `/admin/consultations/{consultationId}` | 修改咨询       | 咨询ID + DTO          | `BaseResponse<ConsultationVo>`             |
+| `DELETE` | `/admin/consultations/{consultationId}` | 逻辑删除咨询   | 咨询ID                | `BaseResponse<Boolean>`                    |
 
-> §4.11.3 至 §4.11.11 的接口除 `/admin/login` 外均需要管理端 Session 登录态。
+> §4.11.3 至 §4.11.12 的接口除 `/admin/login` 外均需要管理端 Session 登录态。
 
 ## 5. 新功能代码生成流程
 
@@ -523,23 +536,25 @@ CREATE TABLE `ai_model`  (
 ### 步骤 2：Entity（`model/entity/`）
 
 - 新建 `Xxx.java`，使用 `@Data` 与 MyBatis-Plus 注解：
+
   ```java
   @EqualsAndHashCode(callSuper = true)
   @TableName(value = "表名")
   @Data
   @ToString
   public class Xxx extends BaseDo implements Serializable {
-  
+
       @TableField(exist = false)
       private static final long serialVersionUID = 1L;
-  
+
       @TableId(type = IdType.ASSIGN_UUID)
       private String xxxId;  // 主键命名：实体名+Id
-  
+
       // 其他字段，JSON 类型字段无需特殊注解，MyBatis-Plus 自动处理
       // Date 类型字段加 @JsonFormat(pattern = NORM_DATETIME_PATTERN)
   }
   ```
+
 - 仅做字段映射，不要包含业务方法。
 - 基类选择：常规业务表继承 com.deaofu.common.BaseDo（含 del_flag / create_by / create_time / update_by / update_time + @TableLogic 逻辑删除）；存储型 / 只读型表继承 com.deaofu.common.BaseCreateDo（仅 create_by / create_time，删除走物理删除）。详见 [§5.1](#步骤-1数据库变更)。
 

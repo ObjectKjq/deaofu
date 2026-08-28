@@ -1,12 +1,11 @@
-<div class="layui-fluid module-page" data-module="consultations">
+<div class="layui-fluid module-page" data-module="users">
     <div class="layui-card">
         <div class="layui-form layui-card-header layuiadmin-card-header-auto">
             <form data-filter>
                 <div class="layui-form-item">
                     <div class="layui-inline">
-                        <label class="layui-form-label">信息搜索</label>
-                        <div class="layui-input-inline"><input class="layui-input" name="keyword"
-                                                               placeholder="联系人、邮箱或咨询内容"></div>
+                        <label class="layui-form-label">用户搜索</label>
+                        <div class="layui-input-inline"><input class="layui-input" name="keyword" placeholder="请输入用户名或显示名称"></div>
                     </div>
                     <div class="layui-inline">
                         <button class="layui-btn" type="submit">查询</button>
@@ -16,19 +15,12 @@
             </form>
         </div>
         <div class="layui-card-body">
+            <div class="toolbar">
+                <button class="layui-btn" data-action="create"><i class="layui-icon layui-icon-add-1"></i>添加用户</button>
+            </div>
             <div class="table-wrap">
                 <table class="layui-table">
-                    <thead>
-                    <tr>
-                        <th>联系人</th>
-                        <th>手机号</th>
-                        <th>邮箱</th>
-                        <th>咨询主题</th>
-                        <th>咨询摘要</th>
-                        <th>提交时间</th>
-                        <th>操作</th>
-                    </tr>
-                    </thead>
+                    <thead><tr><th>登录用户名</th><th>显示名称</th><th>状态</th><th>创建时间</th><th>更新时间</th><th>操作</th></tr></thead>
                     <tbody data-list></tbody>
                 </table>
             </div>

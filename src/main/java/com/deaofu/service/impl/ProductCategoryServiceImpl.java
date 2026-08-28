@@ -38,13 +38,12 @@ public class ProductCategoryServiceImpl extends ServiceImpl<ProductCategoryMappe
     @Override
     @Transactional(readOnly = true)
     public List<ProductCategoryVo> listCategories() {
-        List<ProductCategory> entities = lambdaQuery().orderByDesc(ProductCategory::getSortOrder)
-                .orderByAsc(ProductCategory::getCategoryName).list();
+        List<ProductCategory> entities = lambdaQuery().orderByDesc(ProductCategory::getCreateTime).list();
         Map<String, ProductCategory> byId = new HashMap<>();
         entities.forEach(item -> byId.put(item.getCategoryId(), item));
         return entities.stream().sorted(Comparator
                         .comparing((ProductCategory item) -> StrUtil.isNotBlank(item.getParentId()))
-                        .thenComparing(ProductCategory::getSortOrder, Comparator.reverseOrder()))
+                        .thenComparing(ProductCategory::getCreateTime, Comparator.reverseOrder()))
                 .map(item -> toVo(item, byId)).toList();
     }
 
@@ -61,15 +60,13 @@ public class ProductCategoryServiceImpl extends ServiceImpl<ProductCategoryMappe
                 .and(StrUtil.isNotBlank(dto.getKeyword()), wrapper -> wrapper
                         .like(ProductCategory::getCategoryName, dto.getKeyword())
                         .or().in(!matchedParentIds.isEmpty(), ProductCategory::getCategoryId, matchedParentIds))
-                .orderByDesc(ProductCategory::getSortOrder)
-                .orderByAsc(ProductCategory::getCategoryName)
+                .orderByDesc(ProductCategory::getCreateTime)
                 .page(new Page<>(dto.getPageNum(), dto.getPageSize()));
         // 批量查出当前页一级分类下的二级分类并分组
         List<String> parentIds = page.getRecords().stream().map(ProductCategory::getCategoryId).toList();
         Map<String, List<ProductCategory>> childMap = parentIds.isEmpty() ? Map.of()
                 : lambdaQuery().in(ProductCategory::getParentId, parentIds)
-                        .orderByDesc(ProductCategory::getSortOrder)
-                        .orderByAsc(ProductCategory::getCategoryName).list().stream()
+                        .orderByDesc(ProductCategory::getCreateTime).list().stream()
                         .collect(Collectors.groupingBy(ProductCategory::getParentId));
         List<ProductCategoryVo> list = page.getRecords().stream().map(item -> {
             ProductCategoryVo vo = toVo(item, Map.of());

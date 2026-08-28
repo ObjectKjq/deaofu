@@ -44,7 +44,7 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
         Page<Product> page = lambdaQuery()
                 .like(StrUtil.isNotBlank(dto.getKeyword()), Product::getTitle, dto.getKeyword())
                 .eq(StrUtil.isNotBlank(dto.getCategoryId()), Product::getCategoryId, dto.getCategoryId())
-                .orderByDesc(Product::getUpdateTime, Product::getCreateTime)
+                .orderByDesc(Product::getCreateTime)
                 .page(new Page<>(dto.getPageNum(), dto.getPageSize()));
         Map<String, ProductCategory> categories = loadCategoryMap();
         Map<String, SysUser> users = loadUserMap(page.getRecords().stream().map(Product::getCreateBy).filter(Objects::nonNull).distinct().toList());

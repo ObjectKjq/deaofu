@@ -35,7 +35,7 @@ public class NewsTagServiceImpl extends ServiceImpl<NewsTagMapper, NewsTag> impl
     @Transactional(readOnly = true)
     public List<NewsTagVo> listTags() {
         return lambdaQuery().select(NewsTag::getTagId, NewsTag::getTagName, NewsTag::getIconContentType,
-                        NewsTag::getCreateTime).orderByAsc(NewsTag::getTagName).list().stream()
+                        NewsTag::getCreateTime).orderByDesc(NewsTag::getCreateTime).list().stream()
                 .map(this::toVo).toList();
     }
 
@@ -45,7 +45,7 @@ public class NewsTagServiceImpl extends ServiceImpl<NewsTagMapper, NewsTag> impl
         Page<NewsTag> page = lambdaQuery()
                 .select(NewsTag::getTagId, NewsTag::getTagName, NewsTag::getIconContentType, NewsTag::getCreateTime)
                 .like(StrUtil.isNotBlank(dto.getKeyword()), NewsTag::getTagName, dto.getKeyword())
-                .orderByAsc(NewsTag::getTagName)
+                .orderByDesc(NewsTag::getCreateTime)
                 .page(new Page<>(dto.getPageNum(), dto.getPageSize()));
         List<NewsTagVo> list = page.getRecords().stream().map(this::toVo).toList();
         return new PageResult<>(list, page.getTotal());

@@ -9,7 +9,8 @@
         partners: '合作企业管理',
         news: '公司动态管理',
         tags: '动态标签管理',
-        consultations: '咨询信息管理'
+        consultations: '咨询信息管理',
+        users: '用户管理'
     };
     const pageState = {};
     const openTabs = new Map();
@@ -22,7 +23,8 @@
         routes: 'transport-routes',
         partners: 'partner-companies',
         news: 'news',
-        consultations: 'consultations'
+        consultations: 'consultations',
+        users: 'users'
     };
     // 分类页面处于展开状态的一级分类ID集合（翻页/搜索后保持）
     const expandedCategories = new Set();
@@ -342,7 +344,7 @@
             const page = await request(`${API}/${endpoints[module]}/page?${params}`);
             const list = page.list || [];
             const total = page.total || 0;
-            root.querySelector('[data-list]').innerHTML = list.length ? list.map(row => rowHtml(module, row)).join('') : `<tr><td class="empty-state" colspan="${module === 'products' ? 9 : module === 'news' ? 9 : 8}">暂无数据</td></tr>`;
+            root.querySelector('[data-list]').innerHTML = list.length ? list.map(row => rowHtml(module, row)).join('') : `<tr><td class="empty-state" colspan="${module === 'products' ? 9 : module === 'news' ? 9 : module === 'consultations' ? 7 : module === 'users' ? 6 : 8}">暂无数据</td></tr>`;
             bindRows(module, root, list);
             bindProductPreviews(module, root, list);
             bindCategoryToggle(module, root, list);
@@ -356,7 +358,7 @@
             const showView = module === 'consultations';
             const showContent = module === 'news';
             const showEditDelete = module !== 'consultations';
-            return `<div class="action-list">${showView ? button('view', '查看') : ''}${showContent ? button('view-content', '查看正文') : ''}${showEditDelete ? button('edit', '编辑') + button('delete', '删除', 'danger') : ''}</div>`;
+            return `<div class="action-list">${showView ? button('view', '查看') : ''}${showContent ? button('view-content', '查看正文') : ''}${module === 'users' ? button('change-password', '修改密码') : ''}${showEditDelete ? button('edit', '编辑') + button('delete', '删除', 'danger') : ''}</div>`;
         };
         if (module === 'products') {
             const params = x.parameters || [];
@@ -379,9 +381,13 @@
         if (module === 'partners') return `<tr data-id="${x.partnerId}"><td>${image(x.logoUrl, 'logo-thumb logo-zoomable')}</td><td>${escapeHtml(x.companyName)}</td><td>${time(x.createTime)}</td><td>${time(x.updateTime)}</td><td>${actions()}</td></tr>`;
         if (module === 'news') return `<tr data-id="${x.newsId}"><td>${image(x.coverUrl, 'thumb thumb-zoomable news-cover')}</td><td><div class="item-title"><span>${escapeHtml(x.title)}</span></div></td><td>${(x.tags || []).map(t => `<span class="tag">${escapeHtml(t.tagName)}</span>`).join('') || '-'}</td><td class="ellipsis">${escapeHtml(x.summary || '-')}</td><td>${escapeHtml(x.projectRegion || '-')}</td><td>${escapeHtml(x.contactEmail || '-')}</td><td>${escapeHtml(x.createBy || '-')}</td><td>${time(x.createTime)}</td><td>${actions()}</td></tr>`;
         if (module === 'tags') return `<tr data-id="${x.tagId}"><td>${image(x.iconUrl, 'tag-icon logo-zoomable')}</td><td><b>${escapeHtml(x.tagName)}</b></td><td>${time(x.createTime)}</td><td class="align-right">${actions()}</td></tr>`;
-        return `<tr data-id="${x.consultationId}"><td>${escapeHtml(x.contactName)}</td><td>${escapeHtml(x.email)}<br><span class="muted">${escapeHtml(x.phone || '-')}</span></td><td>${(x.subjects || []).map(s => `<span class="tag">${escapeHtml(s)}</span>`).join('')}</td><td class="ellipsis">${escapeHtml(x.content)}</td><td>${time(x.createTime)}</td><td>${actions()}</td></tr>`;
+        if (module === 'users') return `<tr data-id="${x.userId}"><td>${escapeHtml(x.username)}</td><td>${escapeHtml(x.displayName || '-')}</td><td><span class="status-badge ${x.status === '0' ? 'is-enabled' : 'is-disabled'}">${escapeHtml(x.statusText || '-')}</span></td><td>${time(x.createTime)}</td><td>${time(x.updateTime)}</td><td class="align-right">${actions()}</td></tr>`;
+        return `<tr data-id="${x.consultationId}"><td>${escapeHtml(x.contactName)}</td><td>${escapeHtml(x.phone || '-')}</td><td>${escapeHtml(x.email || '-')}</td><td>${(x.subjects || []).map(s => `<span class="tag">${escapeHtml(s)}</span>`).join('')}</td><td class="ellipsis">${escapeHtml(x.content)}</td><td>${time(x.createTime)}</td><td>${actions()}</td></tr>`;
     };
-    const bindRows = (module, root, list, rows) => (rows || root.querySelectorAll('[data-row-action]')).forEach(node => node.addEventListener('click', async () => {
+    // rows 支持传 tr 行数组（如分类展开时动态插入的二级行），内部统一解析为行内的操作按钮再绑定
+    const bindRows = (module, root, list, rows) => {
+        const buttons = rows ? rows.flatMap(row => [...row.querySelectorAll('[data-row-action]')]) : [...root.querySelectorAll('[data-row-action]')];
+        buttons.forEach(node => node.addEventListener('click', async () => {
         const row = node.closest('tr');
         const id = row.dataset.id;
         const action = node.dataset.rowAction;
@@ -399,15 +405,20 @@
             openEditor(module, id);
             return;
         }
+        if (action === 'change-password') {
+            openPasswordEditor(id);
+            return;
+        }
         if (action === 'view-content') {
             const data = list.find(x => x.newsId === id) || await fetchDetail(module, id);
             openNewsContent(data);
             return;
         }
-        const idField = module === 'categories' ? 'categoryId' : module === 'tags' ? 'tagId' : module === 'consultations' ? 'consultationId' : module === 'products' ? 'productId' : module === 'routes' ? 'routeId' : module === 'partners' ? 'partnerId' : 'newsId';
+        const idField = module === 'categories' ? 'categoryId' : module === 'tags' ? 'tagId' : module === 'consultations' ? 'consultationId' : module === 'products' ? 'productId' : module === 'routes' ? 'routeId' : module === 'partners' ? 'partnerId' : module === 'users' ? 'userId' : 'newsId';
         const data = list.find(x => x[idField] === id) || await fetchDetail(module, id);
         openDetail(module, data);
-    }));
+        }));
+    };
     // 分类折叠/展开：局部插入/移除二级行并播放渐入渐出动画，避免整表重绘的生硬感
     const bindProductPreviews = (module, root, list) => {
         // 全屏灯箱：直接展示图片，无弹窗外壳
@@ -609,9 +620,119 @@
         richLayer = {editor, root};
         root.querySelector('[data-rich-done]').onclick = () => closeRichLayer(true);
     };
+    // 从本地 layui.css 文件解析全部字体图标（class 名 + unicode 字符）：直接 fetch 文本正则解析，比遍历 styleSheets 可靠
+    const collectLayuiIcons = async () => {
+        const link = document.querySelector('link[href*="layui.css"]');
+        if (!link) return [];
+        const response = await fetch(link.href, {credentials: 'same-origin'});
+        if (!response.ok) throw new Error('layui.css 加载失败');
+        const css = await response.text();
+        const icons = [];
+        const pattern = /\.layui-icon-([\w-]+):before\s*\{\s*content:\s*"\\([0-9a-fA-F]+)"/g;
+        let match;
+        while ((match = pattern.exec(css)) !== null) {
+            icons.push({cls: match[1], char: String.fromCharCode(parseInt(match[2], 16))});
+        }
+        return icons;
+    };
+    // 把字体字形绘制成 128x128 PNG（base64），走既有 iconBase64 链路由后端转二进制入库
+    const renderIconToPng = async (char, fontSize = 96) => {
+        await document.fonts.load(`${fontSize}px layui-icon`, char);
+        const canvas = document.createElement('canvas');
+        canvas.width = 128;
+        canvas.height = 128;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#565656';
+        ctx.font = `${fontSize}px layui-icon`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(char, 64, 68);
+        return canvas.toDataURL('image/png');
+    };
+    // 字形渲染检测：字体缺失该码点时 canvas 画不出任何像素，据此过滤掉空白图标
+    const isIconRenderable = char => {
+        const canvas = document.createElement('canvas');
+        canvas.width = 40;
+        canvas.height = 40;
+        const ctx = canvas.getContext('2d');
+        ctx.font = '32px layui-icon';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(char, 20, 22);
+        const data = ctx.getImageData(0, 0, 40, 40).data;
+        for (let i = 3; i < data.length; i += 4) {
+            if (data[i] > 10) return true;
+        }
+        return false;
+    };
+    // 字体图标选择面板：全屏遮罩 + 搜索 + 网格，点击图标即选用
+    const openIconPicker = async () => {
+        if (document.querySelector('.icon-picker-layer')) return;
+        let icons;
+        try {
+            icons = await collectLayuiIcons();
+        } catch (error) {
+            notify('图标库加载失败：' + error.message);
+            return;
+        }
+        if (!icons.length) {
+            notify('未在 layui.css 中解析到字体图标');
+            return;
+        }
+        // 先确保图标字体就绪，再过滤掉字体缺失导致的空白图标
+        await document.fonts.load('32px layui-icon', '\ue600');
+        icons = icons.filter(ic => isIconRenderable(ic.char));
+        if (!icons.length) {
+            notify('图标字体未加载，请刷新后重试');
+            return;
+        }
+        const layer = document.createElement('div');
+        layer.className = 'icon-picker-layer';
+        layer.innerHTML = `<div class="icon-picker-box"><div class="icon-picker-header"><b>选择标签图标</b><span class="icon-picker-count">共 ${icons.length} 个</span><button type="button" class="layui-btn layui-btn-primary layui-btn-sm" data-icon-picker-close>关闭</button></div><div class="icon-picker-searchbar"><input type="text" class="layui-input" placeholder="输入图标名称搜索，如 smile / heart" autocomplete="off"><span class="icon-picker-tip">点击图标即选用，将以 PNG 图片形式随标签保存</span></div><div class="icon-picker-grid">${icons.map(ic => `<button type="button" class="icon-picker-item" data-icon-char="${escapeHtml(ic.char)}" data-icon-name="${ic.cls}" title="${ic.cls}"><i class="layui-icon layui-icon-${ic.cls}"></i><span>${ic.cls}</span></button>`).join('')}</div></div>`;
+        document.body.appendChild(layer);
+        const close = () => {
+            document.removeEventListener('keydown', onKey);
+            layer.remove();
+        };
+        const onKey = event => {
+            if (event.key === 'Escape') close();
+        };
+        const applyIcon = async (char, name) => {
+            try {
+                const dataUrl = await renderIconToPng(char);
+                const hidden = document.querySelector('[name="iconBase64"]');
+                if (!hidden) return;
+                hidden.value = dataUrl;
+                const preview = hidden.closest('.layui-input-block')?.querySelector('.tag-icon-preview');
+                if (preview) {
+                    preview.src = dataUrl;
+                    preview.hidden = false;
+                }
+                close();
+            } catch (error) {
+                notify('图标生成失败：' + error.message);
+            }
+        };
+        layer.addEventListener('click', event => {
+            const item = event.target.closest('.icon-picker-item');
+            if (item) {
+                applyIcon(item.dataset.iconChar, item.dataset.iconName);
+                return;
+            }
+            if (event.target.closest('[data-icon-picker-close]') || event.target === layer) close();
+        });
+        layer.querySelector('.icon-picker-searchbar input').addEventListener('input', event => {
+            const keyword = event.target.value.trim().toLowerCase();
+            layer.querySelectorAll('.icon-picker-item').forEach(item => {
+                item.style.display = !keyword || item.dataset.iconName.includes(keyword) ? '' : 'none';
+            });
+        });
+        document.addEventListener('keydown', onKey);
+    };
     const openDetail = (module, x) => {
         let fields = [];
         if (module === 'news') fields = [['动态标题', x.title], ['动态摘要', x.summary], ['动态标签', (x.tags || []).map(t => t.tagName).join('、') || '-'], ['项目地区', x.projectRegion || '-'], ['咨询邮箱', x.contactEmail || '-'], ['创建人', x.createBy || '-'], ['创建时间', time(x.createTime)]];
+        else if (module === 'users') fields = [['登录用户名', x.username], ['显示名称', x.displayName || '-'], ['用户状态', x.statusText || '-'], ['创建人', x.createBy || '-'], ['创建时间', time(x.createTime)], ['更新时间', time(x.updateTime)]];
         else fields = [['联系人', x.contactName], ['邮箱', x.email], ['电话', x.phone || '-'], ['咨询主题', (x.subjects || []).join('、')], ['咨询内容', x.content], ['提交时间', time(x.createTime)]];
         const cover = module === 'products' ? image(x.coverUrl, 'detail-cover') : module === 'partners' ? image(x.logoUrl, 'detail-cover') : module === 'news' ? image(x.coverUrl, 'detail-cover') : module === 'tags' ? image(x.iconUrl, 'detail-cover') : '';
         modal(`${moduleTitles[module]}详情`, `${cover}<dl class="detail-grid">${fields.map(([k, v]) => `<dt>${escapeHtml(k)}</dt><dd>${v ? escapeHtml(v).replace(/\n/g, '<br>') : '-'}</dd>`).join('')}</dl>`, '<button class="layui-btn" type="button" data-close>关闭</button>', module).querySelector('[data-close]')?.addEventListener('click', closeModal);
@@ -621,6 +742,27 @@
         const title = `动态正文 - ${escapeHtml(x.title || '')}`;
         const body = `<div class="news-content-viewer">${x.content || '<div class="empty-state">暂无正文</div>'}</div>`;
         modal(title, body, '<button class="layui-btn" type="button" data-close>关闭</button>', 'news').querySelector('[data-close]')?.addEventListener('click', closeModal);
+    };
+    const openPasswordEditor = userId => {
+        const passwordField = (label, name, autocomplete) => `<div class="layui-form-item"><label class="layui-form-label">${label}</label><div class="layui-input-block"><input type="password" name="${name}" autocomplete="${autocomplete}" class="layui-input"></div></div>`;
+        const body = `<form data-password-editor>${passwordField('原始密码', 'oldPassword', 'current-password')}${passwordField('现在的密码', 'newPassword', 'new-password')}${passwordField('确认密码', 'confirmPassword', 'new-password')}</form>`;
+        const panel = modal('修改密码', body, '<button class="layui-btn layui-btn-primary" type="button" data-close>取消</button><button class="layui-btn" type="button" data-save-password>保存</button>', 'users');
+        panel.querySelector('[data-close]')?.addEventListener('click', closeModal);
+        panel.querySelector('[data-save-password]').onclick = async () => {
+            const form = panel.querySelector('[data-password-editor]');
+            const data = Object.fromEntries(new FormData(form).entries());
+            if (data.newPassword !== data.confirmPassword) {
+                notify('现在的密码和确认密码不一致');
+                return;
+            }
+            try {
+                await request(`${API}/users/${userId}/password`, {method: 'PUT', body: JSON.stringify(data)});
+                closeModal();
+                notify('密码修改成功');
+            } catch (error) {
+                notify(error.message);
+            }
+        };
     };
     const openEditor = async (module, id) => {
         try {
@@ -650,6 +792,11 @@
         };
         const item = (label, control) => `<div class="layui-form-item"><label class="layui-form-label">${label}</label><div class="layui-input-block">${control}</div></div>`;
         const field = (name, label, value = '', placeholder = '') => item(label, input(name, value, placeholder));
+        if (module === 'users') {
+            const status = data.status || '0';
+            const password = data.userId ? '' : item('初始密码', `<input type="password" name="password" placeholder="请输入初始密码" autocomplete="new-password" class="layui-input">`);
+            return `<form lay-filter="editor-form" data-editor>${field('username', '登录用户名', data.username, '请输入登录用户名')}${field('displayName', '显示名称', data.displayName, '请输入显示名称')}${password}${item('用户状态', select('status', `<option value="0" ${status === '0' ? 'selected' : ''}>启用</option><option value="1" ${status === '1' ? 'selected' : ''}>禁用</option>`))}</form>`;
+        }
         if (module === 'categories') {
             const categories = await request(`${API}/product-categories`);
             return `<form lay-filter="editor-form" data-editor>${field('categoryName', '分类名称', data.categoryName)}${field('sortOrder', '排序值', data.sortOrder ?? 0)}${item('所属一级分类', select('parentId', categories.filter(x => x.level === 1 && x.categoryId !== data.categoryId).map(x => `<option value="${x.categoryId}" ${x.categoryId === data.parentId ? 'selected' : ''}>${escapeHtml(x.categoryName)}</option>`).join('')))}</form>`;
@@ -661,7 +808,7 @@
             return `<form lay-filter="editor-form" data-editor>${searchableCountry('始发地', 'sourceAddress', countries, source)}${searchableCountry('目的地', 'targetAddress', countries, target)}</form>`;
         }
         if (module === 'partners') return `<form lay-filter="editor-form" data-editor>${field('companyName', '企业名称', data.companyName)}${singleUpload('企业 Logo', 'logoAccessName', data.logoAccessName, data.logoUrl, data.logoAccessName)}</form>`;
-        if (module === 'tags') return `<form lay-filter="editor-form" data-editor>${field('tagName', '标签名称', data.tagName)}${singleUpload('标签图标', 'iconBase64', '', data.iconUrl, '')}</form>`;
+        if (module === 'tags') return `<form lay-filter="editor-form" data-editor>${field('tagName', '标签名称', data.tagName)}<div class="layui-form-item"><label class="layui-form-label">标签图标</label><div class="layui-input-block"><div class="tag-icon-pick"><img class="tag-icon-preview" alt="标签图标"${data.iconUrl ? ` src="${escapeHtml(data.iconUrl)}" onerror="this.hidden=true"` : ' hidden'}><button type="button" class="layui-btn layui-btn-primary" data-open-icon-picker><i class="layui-icon layui-icon-face-smile"></i> 从图标库选择</button><span class="upload-help" style="margin-left:10px">点击从内置字体图标库中挑选图标</span></div><input type="hidden" name="iconBase64" value=""></div></div></form>`;
         if (module === 'products') {
             const categories = await request(`${API}/product-categories`);
             const options = categories.filter(x => x.level === 2).map(x => `<option value="${x.categoryId}" ${x.categoryId === data.categoryId ? 'selected' : ''}>${escapeHtml(`${x.parentName || ''}${x.parentName ? ' / ' : ''}${x.categoryName}`)}</option>`).join('');
@@ -780,20 +927,8 @@
                 }
             }
         }));
-        // 标签图标 Base64 上传
-        document.querySelectorAll('[data-base64]').forEach(input => input.addEventListener('change', event => {
-            const file = event.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = () => {
-                document.querySelector('[name="iconBase64"]').value = reader.result;
-                const area = input.closest('.upload-area');
-                area.querySelector('.image-tile')?.remove();
-                area.querySelector('.upload-help').insertAdjacentHTML('beforebegin', imageTile(reader.result, file.name));
-                area.classList.add('has-image');
-            };
-            reader.readAsDataURL(file);
-        }));
+        // 字体图标库选择：打开全屏图标面板，点选后以 PNG base64 填入标签图标
+        document.querySelector('[data-open-icon-picker]')?.addEventListener('click', openIconPicker);
         document.querySelector('[data-add-parameter]')?.addEventListener('click', () => document.querySelector('[data-parameters]').insertAdjacentHTML('beforeend', parameterRow()));
         document.querySelector('[data-parameters]')?.addEventListener('click', event => {
             const removeBtn = event.target.closest('[data-remove-parameter]');
