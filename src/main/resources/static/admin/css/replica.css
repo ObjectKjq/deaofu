@@ -93,54 +93,73 @@ html, body {
     font-size: 13px
 }
 
-/* 全屏富文本编辑层 */
+/* 全屏富文本编辑层：上下撑满视口，左右留白居中，模拟沉浸式写作体验 */
 .rich-layer {
     position: fixed;
-    inset: 0;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: min(960px, calc(100vw - 80px));
+    height: 100vh;
     z-index: 199999999;
     display: flex;
     flex-direction: column;
-    background: #fff
+    background: #fff;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, .12);
+    box-sizing: border-box
 }
 
 .rich-layer-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 12px 24px;
-    border-bottom: 1px solid #e6e6e6;
+    flex: 0 0 56px;
+    padding: 0 28px;
+    border-bottom: 1px solid #ececec;
+    background: #fff;
     font-size: 16px;
     font-weight: 600;
     color: rgba(0, 0, 0, .88)
 }
 
+.rich-layer-header > span {
+    display: flex;
+    align-items: center;
+    gap: 10px
+}
+
+.rich-layer-header > span::before {
+    content: "";
+    display: inline-block;
+    width: 3px;
+    height: 14px;
+    border-radius: 2px;
+    background: #e4522b
+}
+
+/* 编辑器主体：占满 header 与 footer 之间的剩余空间 */
 .rich-layer-body {
     flex: 1;
-    overflow: auto;
-    width: 100%;
-    box-sizing: border-box
-}
-
-/* 全屏编辑层内编辑器铺满视口剩余高度（顶栏 57px + 工具栏约 85px） */
-.rich-layer-body [data-rich-editor] {
-    height: calc(100vh - 145px)
-}
-
-/* 限高弹窗内内容区内部滚动，取消/保存按钮始终可见 */
-.layui-layer-news .layui-layer-content {
-    overflow-y: auto
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    padding: 16px 28px 0
 }
 
 .rich-editor-box {
-    border: 1px solid #e6e6e6;
-    border-radius: 4px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid #ececec;
+    border-radius: 6px;
     overflow: hidden;
-    z-index: 1;
-    background: #fff
+    background: #fff;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, .02)
 }
 
 .rich-editor-box [data-rich-toolbar] {
-    border-bottom: 1px solid #e6e6e6;
+    flex: 0 0 auto;
+    border-bottom: 1px solid #ececec;
     background: #fbfbfc
 }
 
@@ -148,8 +167,25 @@ html, body {
     background: transparent
 }
 
+.rich-editor-box [data-rich-editor] {
+    flex: 1;
+    overflow-y: auto;
+    background: #fff
+}
+
 .rich-editor-box .w-e-text-container {
     background: #fff
+}
+
+/* 底部状态栏：字数统计 + 操作提示 */
+.rich-layer-footer {
+    flex: 0 0 44px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 28px;
+    color: #999;
+    font-size: 12px
 }
 
 #workspace .table-wrap {
@@ -175,7 +211,7 @@ html, body {
     background: #fafafa;
     font-size: 14px;
     color: rgba(0, 0, 0, .88);
-    font-weight: 600;
+    font-weight: 400;
     border: 0;
     border-bottom: 1px solid #f0f0f0
 }
@@ -183,21 +219,25 @@ html, body {
 #workspace .table-wrap td {
     padding: 15px 16px;
     color: rgba(0, 0, 0, .88);
+    font-weight: 400;
     border: 0;
     border-bottom: 1px solid #f0f0f0
+}
+
+#workspace .table-wrap td *,
+#workspace .item-title,
+#workspace .item-title *,
+#workspace .tree-name {
+    font-weight: 400 !important
 }
 
 #workspace .table-wrap tbody tr:hover {
     background: #fafafa
 }
 
-#workspace .align-right {
-    text-align: right !important
-}
-
 #workspace .action-list {
     display: flex;
-    justify-content: flex-end;
+    justify-content: flex-start;
     gap: 16px;
     white-space: nowrap
 }
@@ -240,12 +280,258 @@ html, body {
     height: 30px;
     object-fit: contain;
     border: 0;
-    background: #f2f2f2
+    background: transparent
 }
 
 #workspace .tag-icon {
     width: 24px;
     height: 24px
+}
+
+/* 表格缩略图可点击放大（产品封面、合作企业 Logo） */
+#workspace .thumb-zoomable,
+#workspace .logo-zoomable {
+    cursor: zoom-in;
+    border-radius: 2px;
+    transition: transform .2s
+}
+
+#workspace .thumb-zoomable:hover,
+#workspace .logo-zoomable:hover {
+    transform: scale(1.06);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, .15)
+}
+
+/* 产品表格：参数悬浮展示 */
+#workspace .param-summary {
+    display: inline-block;
+    padding: 3px 10px;
+    font-size: 12px;
+    color: #e4522b;
+    background: #fff3ee;
+    border-radius: 12px;
+    cursor: help;
+    position: relative
+}
+
+#workspace .param-summary:hover {
+    background: #ffe6dc
+}
+
+/* 公司动态正文查看弹窗：直接渲染富文本（含 base64 图片） */
+.news-content-viewer {
+    padding: 4px 2px;
+    font-size: 14px;
+    line-height: 1.8;
+    color: #333;
+    word-break: break-word
+}
+
+.news-content-viewer::-webkit-scrollbar {
+    display: none
+}
+
+.news-content-viewer img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 12px auto
+}
+
+.news-content-viewer p {
+    margin: 10px 0
+}
+
+/* 运输路线：可搜索国家下拉 */
+.country-searchable {
+    position: relative
+}
+
+.country-searchable-input {
+    cursor: pointer
+}
+
+.country-searchable-panel {
+    position: absolute;
+    top: 38px;
+    left: 0;
+    right: 0;
+    max-height: 260px;
+    overflow-y: auto;
+    background: #fff;
+    border: 1px solid #e8e8e8;
+    border-radius: 4px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, .08);
+    z-index: 99
+}
+
+.country-searchable-panel::-webkit-scrollbar {
+    width: 6px
+}
+
+.country-searchable-list {
+    margin: 0;
+    padding: 4px 0;
+    list-style: none
+}
+
+.country-searchable-list .country-option {
+    padding: 8px 14px;
+    font-size: 13px;
+    color: #333;
+    cursor: pointer
+}
+
+.country-searchable-list .country-option:hover {
+    background: #f5f7fa;
+    color: #e4522b
+}
+
+.country-searchable-empty {
+    padding: 14px;
+    color: #999;
+    font-size: 13px;
+    text-align: center
+}
+
+/* 产品参数弹窗：label 左对齐、值右对齐的分隔行列表 */
+.param-modal-list {
+    display: flex;
+    flex-direction: column
+}
+
+.param-modal-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 20px;
+    padding: 10px 2px;
+    border-bottom: 1px dashed #f0f0f0;
+    font-size: 13px
+}
+
+.param-modal-row:last-child {
+    border-bottom: 0
+}
+
+.param-modal-label {
+    color: #999;
+    flex-shrink: 0
+}
+
+.param-modal-value {
+    color: #333;
+    font-weight: 600;
+    text-align: right;
+    word-break: break-all
+}
+
+/* 产品表格：详情图摘要 */
+#workspace .image-summary {
+    display: inline-block;
+    padding: 3px 10px;
+    font-size: 12px;
+    color: #16a085;
+    background: #e8f8f3;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background .2s
+}
+
+#workspace .image-summary:hover {
+    background: #d2efe4
+}
+
+/* 产品图片灯箱：全屏半透明遮罩 + 图片居中，无弹窗外壳 */
+.image-lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, .78);
+    animation: lightbox-fade .2s ease
+}
+
+@keyframes lightbox-fade {
+    from {
+        opacity: 0
+    }
+
+    to {
+        opacity: 1
+    }
+}
+
+.image-lightbox > img {
+    display: block;
+    max-width: 90vw;
+    max-height: 84vh;
+    object-fit: contain;
+    box-shadow: 0 12px 48px rgba(0, 0, 0, .45)
+}
+
+.image-lightbox-close {
+    position: absolute;
+    top: 20px;
+    right: 24px;
+    width: 40px;
+    height: 40px;
+    border: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, .12);
+    color: #fff;
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background .2s
+}
+
+.image-lightbox-close:hover {
+    background: rgba(255, 255, 255, .28)
+}
+
+.image-lightbox-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 48px;
+    height: 48px;
+    border: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, .12);
+    color: #fff;
+    font-size: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background .2s
+}
+
+.image-lightbox-nav:hover {
+    background: #e4522b
+}
+
+.image-lightbox-prev {
+    left: 32px
+}
+
+.image-lightbox-next {
+    right: 32px
+}
+
+.image-lightbox-counter {
+    margin-top: 14px;
+    padding: 3px 14px;
+    background: rgba(255, 255, 255, .16);
+    color: #fff;
+    border-radius: 12px;
+    font-size: 12px
 }
 
 #workspace .muted {
@@ -733,11 +1019,14 @@ html.modal-page-scroll::-webkit-scrollbar {
 }
 
 /* === 侧边栏折叠增强：折叠后图标方向 / Logo 缩略 / 悬停提示 === */
+/* Logo 区：flex 垂直水平居中，覆盖 layui 的 line-height 定位 */
 .layui-layout-admin .layui-logo {
     display: flex;
     align-items: center;
-    justify-content: flex-start;
-    padding: 0 15px;
+    justify-content: center;
+    line-height: 1;
+    text-align: center;
+    box-sizing: border-box;
     letter-spacing: .5px
 }
 
@@ -761,8 +1050,8 @@ html.modal-page-scroll::-webkit-scrollbar {
 }
 
 .layadmin-side-shrink .layui-layout-admin .layui-logo {
-    padding: 0;
-    justify-content: center
+    width: 60px;
+    padding: 0
 }
 
 .layadmin-side-shrink .layui-layout-admin .layui-logo .layui-logo-text {
@@ -805,18 +1094,28 @@ html.modal-page-scroll::-webkit-scrollbar {
     background: transparent
 }
 
-/* 折叠状态下：菜单图标居中，并隐藏右侧的上下箭头指示器 */
+/* 折叠状态下：菜单图标垂直水平完全居中，隐藏文字与右侧的上下箭头指示器 */
 .layadmin-side-shrink .layui-side-menu .layui-nav .layui-nav-item > a {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
     padding-left: 0;
     padding-right: 0;
-    justify-content: center;
+    line-height: 1;
     position: relative
 }
 
 .layadmin-side-shrink .layui-side-menu .layui-nav .layui-nav-item > a .layui-icon {
     position: static;
     margin: 0;
-    display: inline-block
+    display: inline-block;
+    line-height: 1
+}
+
+/* 折叠后隐藏菜单文字，避免影响图标居中 */
+.layadmin-side-shrink .layui-side-menu .layui-nav .layui-nav-item > a > span,
+.layadmin-side-shrink .layui-side-menu .layui-nav .layui-nav-item > a > cite {
+    display: none
 }
 
 .layadmin-side-shrink .layui-side-menu .layui-nav .layui-nav-item {

@@ -8,10 +8,12 @@ import com.deaofu.common.PageResult;
 import com.deaofu.exception.BusinessException;
 import com.deaofu.mapper.ProductCategoryMapper;
 import com.deaofu.mapper.ProductMapper;
+import com.deaofu.mapper.SysUserMapper;
 import com.deaofu.model.dto.AdminPageDto;
 import com.deaofu.model.dto.ProductSaveDto;
 import com.deaofu.model.entity.Product;
 import com.deaofu.model.entity.ProductCategory;
+import com.deaofu.model.entity.SysUser;
 import com.deaofu.model.vo.ProductParameterVo;
 import com.deaofu.model.vo.ProductVo;
 import com.deaofu.service.IProductService;
@@ -24,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /** 产品管理业务实现。 */
 @Slf4j
@@ -32,6 +35,7 @@ import java.util.Map;
 public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> implements IProductService {
 
     private final ProductCategoryMapper productCategoryMapper;
+    private final SysUserMapper sysUserMapper;
     private final FileReferenceValidator fileReferenceValidator;
 
     @Override
@@ -40,17 +44,20 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
         Page<Product> page = lambdaQuery()
                 .like(StrUtil.isNotBlank(dto.getKeyword()), Product::getTitle, dto.getKeyword())
                 .eq(StrUtil.isNotBlank(dto.getCategoryId()), Product::getCategoryId, dto.getCategoryId())
-                .orderByDesc(Product::getCreateTime)
+                .orderByDesc(Product::getUpdateTime, Product::getCreateTime)
                 .page(new Page<>(dto.getPageNum(), dto.getPageSize()));
         Map<String, ProductCategory> categories = loadCategoryMap();
-        List<ProductVo> list = page.getRecords().stream().map(item -> toVo(item, categories)).toList();
+        Map<String, SysUser> users = loadUserMap(page.getRecords().stream().map(Product::getCreateBy).filter(Objects::nonNull).distinct().toList());
+        List<ProductVo> list = page.getRecords().stream().map(item -> toVo(item, categories, users)).toList();
         return new PageResult<>(list, page.getTotal());
     }
 
     @Override
     @Transactional(readOnly = true)
     public ProductVo getProduct(String productId) {
-        return toVo(requireProduct(productId), loadCategoryMap());
+        Product entity = requireProduct(productId);
+        Map<String, SysUser> users = loadUserMap(List.of(entity.getCreateBy()));
+        return toVo(entity, loadCategoryMap(), users);
     }
 
     @Override
@@ -112,7 +119,17 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
         return result;
     }
 
-    private ProductVo toVo(Product entity, Map<String, ProductCategory> categories) {
+    /** 批量加载操作人用户信息，key 为 userId。 */
+    private Map<String, SysUser> loadUserMap(List<String> userIds) {
+        Map<String, SysUser> result = new HashMap<>();
+        if (userIds == null || userIds.isEmpty()) {
+            return result;
+        }
+        sysUserMapper.selectBatchIds(userIds).forEach(user -> result.put(user.getUserId(), user));
+        return result;
+    }
+
+    private ProductVo toVo(Product entity, Map<String, ProductCategory> categories, Map<String, SysUser> users) {
         ProductVo vo = new ProductVo();
         vo.setProductId(entity.getProductId());
         vo.setCategoryId(entity.getCategoryId());
@@ -122,10 +139,14 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
         vo.setParentCategoryName(parent == null ? null : parent.getCategoryName());
         vo.setCoverAccessName(entity.getCoverAccessName());
         vo.setCoverUrl("/admin/sys-file/preview/" + entity.getCoverAccessName());
-        vo.setDetailImages(GsonUtils.fromJsonList(entity.getDetailImages(), String.class));
+        List<String> detailImages = GsonUtils.fromJsonList(entity.getDetailImages(), String.class);
+        vo.setDetailImages(detailImages == null ? null : detailImages.stream().map(name -> "/admin/sys-file/preview/" + name).toList());
         vo.setTitle(entity.getTitle());
         vo.setSummary(entity.getSummary());
         vo.setParameters(GsonUtils.fromJsonList(entity.getSpecs(), ProductParameterVo.class));
+        SysUser creator = users.get(entity.getCreateBy());
+        // createBy 库中存的是 userId，对外展示为用户名
+        vo.setCreateBy(creator == null ? entity.getCreateBy() : creator.getUsername());
         vo.setCreateTime(entity.getCreateTime());
         vo.setUpdateTime(entity.getUpdateTime());
         return vo;

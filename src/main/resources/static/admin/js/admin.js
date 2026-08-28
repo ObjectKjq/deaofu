@@ -71,10 +71,21 @@
         const layerArea = isMobile() ? ['92vw', 'auto'] : [module === 'news' ? '820px' : '650px', 'auto'];
         if (layuiLayer) {
             layerIndex = layuiLayer.open({
-                type: 1, title, area: layerArea, shadeClose: false, skin: module === 'news' ? 'layui-layer-news' : '', content, success: layero => {
+                type: 1,
+                title,
+                area: layerArea,
+                shadeClose: false,
+                skin: module === 'news' ? 'layui-layer-news' : '',
+                content,
+                success: layero => {
                     const node = layero && layero[0] ? layero[0] : layero;
                     // 渲染完成后由 JS 计算水平位置，避免 layui 内联定位与 CSS 覆盖冲突导致闪动
                     if (node && node.style) {
+                        // 强制高度自适应内容：layui 默认会把高度限制在视口内，
+                        // 配合 overflow:visible 会导致超出部分没有白色背景
+                        node.style.height = 'auto';
+                        const contentNode = node.querySelector?.('.layui-layer-content');
+                        if (contentNode) contentNode.style.height = 'auto';
                         const width = node.offsetWidth || 0;
                         const vw = document.documentElement.clientWidth;
                         const left = isMobile() ? Math.max((vw - width) / 2, 10) : Math.max((vw - width) / 2, 20);
@@ -155,25 +166,25 @@
         };
         toggleBtn?.addEventListener('mousedown', event => event.preventDefault());
         toggleBtn?.addEventListener('click', event => {
-          const isMobile = window.matchMedia('(max-width:992px)').matches;
-          if (isMobile) {
-            document.body.classList.toggle('layadmin-side-spread-sm');
-            document.body.classList.remove('layadmin-side-shrink');
-            const shade = document.getElementById('body-shade');
-            if (shade) shade.style.display = document.body.classList.contains('layadmin-side-spread-sm') ? 'block' : 'none';
-          } else {
-            document.body.classList.toggle('layadmin-side-shrink');
-          }
-          syncToggleState();
-          toggleBtn.blur();
-          document.activeElement?.blur && document.activeElement !== document.body && document.activeElement.blur();
+            const isMobile = window.matchMedia('(max-width:992px)').matches;
+            if (isMobile) {
+                document.body.classList.toggle('layadmin-side-spread-sm');
+                document.body.classList.remove('layadmin-side-shrink');
+                const shade = document.getElementById('body-shade');
+                if (shade) shade.style.display = document.body.classList.contains('layadmin-side-spread-sm') ? 'block' : 'none';
+            } else {
+                document.body.classList.toggle('layadmin-side-shrink');
+            }
+            syncToggleState();
+            toggleBtn.blur();
+            document.activeElement?.blur && document.activeElement !== document.body && document.activeElement.blur();
         });
         document.getElementById('body-shade')?.addEventListener('click', () => {
-          document.body.classList.remove('layadmin-side-spread-sm');
-          document.body.classList.remove('layadmin-side-shrink');
-          const shade = document.getElementById('body-shade');
-          if (shade) shade.style.display = 'none';
-          syncToggleState();
+            document.body.classList.remove('layadmin-side-spread-sm');
+            document.body.classList.remove('layadmin-side-shrink');
+            const shade = document.getElementById('body-shade');
+            if (shade) shade.style.display = 'none';
+            syncToggleState();
         });
         syncToggleState();
         initCollapsedMenu();
@@ -321,13 +332,19 @@
     };
     const renderModule = async (module, root) => {
         try {
+            // 运输路线需要展示国家中文名：进入页面时构建一次 code→name 映射
+            if (module === 'routes' && !window.countryMap) {
+                const countries = await request(`${API}/countries`);
+                window.countryMap = new Map(countries.map(c => [c.code, c.name]));
+            }
             const state = pageState[module];
             const params = new URLSearchParams(Object.entries(state).filter(([, v]) => v !== ''));
             const page = await request(`${API}/${endpoints[module]}/page?${params}`);
             const list = page.list || [];
             const total = page.total || 0;
-            root.querySelector('[data-list]').innerHTML = list.length ? list.map(row => rowHtml(module, row)).join('') : '<tr><td class="empty-state" colspan="8">暂无数据</td></tr>';
+            root.querySelector('[data-list]').innerHTML = list.length ? list.map(row => rowHtml(module, row)).join('') : `<tr><td class="empty-state" colspan="${module === 'products' ? 9 : module === 'news' ? 9 : 8}">暂无数据</td></tr>`;
             bindRows(module, root, list);
+            bindProductPreviews(module, root, list);
             bindCategoryToggle(module, root, list);
             renderPagination(module, root, total);
         } catch (error) {
@@ -335,21 +352,34 @@
         }
     };
     const rowHtml = (module, x) => {
-        const actions = id => `<div class="action-list">${button('view', '查看')}${module !== 'consultations' ? button('edit', '编辑') + button('delete', '删除', 'danger') : ''}</div>`;
-        if (module === 'products') return `<tr data-id="${x.productId}"><td><div class="item-title">${image(x.coverUrl)}<span>${escapeHtml(x.title)}</span></div></td><td>${escapeHtml([x.parentCategoryName, x.categoryName].filter(Boolean).join(' / ') || '-')}</td><td class="ellipsis">${escapeHtml(x.summary || '-')}</td><td>${time(x.updateTime)}</td><td class="align-right">${actions()}</td></tr>`;
+        const actions = id => {
+            const showView = module === 'consultations';
+            const showContent = module === 'news';
+            const showEditDelete = module !== 'consultations';
+            return `<div class="action-list">${showView ? button('view', '查看') : ''}${showContent ? button('view-content', '查看正文') : ''}${showEditDelete ? button('edit', '编辑') + button('delete', '删除', 'danger') : ''}</div>`;
+        };
+        if (module === 'products') {
+            const params = x.parameters || [];
+            const detailImages = x.detailImages || [];
+            const creator = x.createBy || '-';
+            return `<tr data-id="${x.productId}"><td><div class="item-title"><span>${escapeHtml(x.title)}</span></div></td><td>${escapeHtml([x.parentCategoryName, x.categoryName].filter(Boolean).join(' / ') || '-')}</td><td>${image(x.coverUrl, 'thumb thumb-zoomable')}</td><td class="ellipsis">${escapeHtml(x.summary || '-')}</td><td>${params.length ? `<span class="param-summary" title="点击查看全部参数">查看参数（${params.length}）</span>` : '-'}</td><td>${detailImages.length ? `<span class="image-summary">查看图片（${detailImages.length}）</span>` : '-'}</td><td>${escapeHtml(creator)}</td><td>${time(x.createTime)}</td><td class="align-right">${actions()}</td></tr>`;
+        }
         if (module === 'categories') {
-            if (x.level === 2) return `<tr data-id="${x.categoryId}" class="category-child-row"><td><div class="cell-collapse"><span class="tree-name"><i class="tree-indent">└</i>${escapeHtml(x.categoryName)}</span></div></td><td><div class="cell-collapse"><span class="level-badge">${escapeHtml(x.level === 1 ? '一级分类' : '二级分类')}</span></div></td><td><div class="cell-collapse">${escapeHtml(x.parentName || '-')}</div></td><td><div class="cell-collapse">${x.sortOrder ?? 0}</div></td><td><div class="cell-collapse">${time(x.createTime)}</div></td><td class="align-right"><div class="cell-collapse">${actions()}</div></td></tr>`;
+            if (x.level === 2) return `<tr data-id="${x.categoryId}" class="category-child-row"><td><div class="cell-collapse"><span class="tree-name"><i class="tree-indent">└</i>${escapeHtml(x.categoryName)}</span></div></td><td><div class="cell-collapse"><span class="level-badge">${escapeHtml(x.level === 1 ? '一级分类' : '二级分类')}</span></div></td><td><div class="cell-collapse">${escapeHtml(x.parentName || '-')}</div></td><td><div class="cell-collapse">${x.sortOrder ?? 0}</div></td><td><div class="cell-collapse">${time(x.createTime)}</div></td><td><div class="cell-collapse">${actions()}</div></td></tr>`;
             const children = x.children || [];
             const expanded = expandedCategories.has(x.categoryId);
             const toggle = children.length ? `<span class="tree-toggle ${expanded ? '' : 'is-collapsed'}" data-toggle-category="${x.categoryId}" title="${expanded ? '收起' : '展开'}"><i class="layui-icon layui-icon-down"></i></span>` : '<span class="tree-toggle is-empty"></span>';
             const childRows = expanded ? children.map(child => rowHtml('categories', child)).join('') : '';
-            return `<tr data-id="${x.categoryId}"><td><span class="tree-name">${toggle}${escapeHtml(x.categoryName)}${children.length ? `<span class="tree-count">${children.length}</span>` : ''}</span></td><td><span class="level-badge">一级分类</span></td><td>-</td><td>${x.sortOrder ?? 0}</td><td>${time(x.createTime)}</td><td class="align-right">${actions()}</td></tr>${childRows}`;
+            return `<tr data-id="${x.categoryId}"><td><span class="tree-name">${toggle}${escapeHtml(x.categoryName)}${children.length ? `<span class="tree-count">${children.length}</span>` : ''}</span></td><td><span class="level-badge">一级分类</span></td><td>-</td><td>${x.sortOrder ?? 0}</td><td>${time(x.createTime)}</td><td>${actions()}</td></tr>${childRows}`;
         }
-        if (module === 'routes') return `<tr data-id="${x.routeId}"><td>${escapeHtml(x.sourceAddress)}</td><td class="route-arrow">&#8594;</td><td>${escapeHtml(x.targetAddress)}</td><td>${time(x.updateTime)}</td><td class="align-right">${actions()}</td></tr>`;
-        if (module === 'partners') return `<tr data-id="${x.partnerId}"><td>${image(x.logoUrl, 'logo-thumb')}</td><td><b>${escapeHtml(x.companyName)}</b></td><td>${time(x.createTime)}</td><td>${time(x.updateTime)}</td><td class="align-right">${actions()}</td></tr>`;
-        if (module === 'news') return `<tr data-id="${x.newsId}"><td>${image(x.coverUrl)}</td><td><div class="item-title">${escapeHtml(x.title)}</div><span class="muted ellipsis">${escapeHtml(x.summary || '')}</span></td><td>${(x.tags || []).map(t => `<span class="tag">${escapeHtml(t.tagName)}</span>`).join('') || '-'}</td><td>${escapeHtml(x.projectRegion || '-')}</td><td>${time(x.updateTime)}</td><td class="align-right">${actions()}</td></tr>`;
-        if (module === 'tags') return `<tr data-id="${x.tagId}"><td>${image(x.iconUrl, 'tag-icon')}</td><td><b>${escapeHtml(x.tagName)}</b></td><td>${time(x.createTime)}</td><td class="align-right">${actions()}</td></tr>`;
-        return `<tr data-id="${x.consultationId}"><td><b>${escapeHtml(x.contactName)}</b></td><td>${escapeHtml(x.email)}<br><span class="muted">${escapeHtml(x.phone || '-')}</span></td><td>${(x.subjects || []).map(s => `<span class="tag">${escapeHtml(s)}</span>`).join('')}</td><td class="ellipsis">${escapeHtml(x.content)}</td><td>${time(x.createTime)}</td><td class="align-right">${actions()}</td></tr>`;
+        if (module === 'routes') {
+            const country = (code) => window.countryMap?.get(code) || code || '-';
+            return `<tr data-id="${x.routeId}"><td>${escapeHtml(country(x.sourceAddress))}</td><td class="route-arrow">&#8594;</td><td>${escapeHtml(country(x.targetAddress))}</td><td>${time(x.updateTime)}</td><td>${actions()}</td></tr>`;
+        }
+        if (module === 'partners') return `<tr data-id="${x.partnerId}"><td>${image(x.logoUrl, 'logo-thumb logo-zoomable')}</td><td>${escapeHtml(x.companyName)}</td><td>${time(x.createTime)}</td><td>${time(x.updateTime)}</td><td>${actions()}</td></tr>`;
+        if (module === 'news') return `<tr data-id="${x.newsId}"><td>${image(x.coverUrl, 'thumb thumb-zoomable news-cover')}</td><td><div class="item-title"><span>${escapeHtml(x.title)}</span></div></td><td>${(x.tags || []).map(t => `<span class="tag">${escapeHtml(t.tagName)}</span>`).join('') || '-'}</td><td class="ellipsis">${escapeHtml(x.summary || '-')}</td><td>${escapeHtml(x.projectRegion || '-')}</td><td>${escapeHtml(x.contactEmail || '-')}</td><td>${escapeHtml(x.createBy || '-')}</td><td>${time(x.createTime)}</td><td>${actions()}</td></tr>`;
+        if (module === 'tags') return `<tr data-id="${x.tagId}"><td>${image(x.iconUrl, 'tag-icon logo-zoomable')}</td><td><b>${escapeHtml(x.tagName)}</b></td><td>${time(x.createTime)}</td><td class="align-right">${actions()}</td></tr>`;
+        return `<tr data-id="${x.consultationId}"><td>${escapeHtml(x.contactName)}</td><td>${escapeHtml(x.email)}<br><span class="muted">${escapeHtml(x.phone || '-')}</span></td><td>${(x.subjects || []).map(s => `<span class="tag">${escapeHtml(s)}</span>`).join('')}</td><td class="ellipsis">${escapeHtml(x.content)}</td><td>${time(x.createTime)}</td><td>${actions()}</td></tr>`;
     };
     const bindRows = (module, root, list, rows) => (rows || root.querySelectorAll('[data-row-action]')).forEach(node => node.addEventListener('click', async () => {
         const row = node.closest('tr');
@@ -369,11 +399,103 @@
             openEditor(module, id);
             return;
         }
+        if (action === 'view-content') {
+            const data = list.find(x => x.newsId === id) || await fetchDetail(module, id);
+            openNewsContent(data);
+            return;
+        }
         const idField = module === 'categories' ? 'categoryId' : module === 'tags' ? 'tagId' : module === 'consultations' ? 'consultationId' : module === 'products' ? 'productId' : module === 'routes' ? 'routeId' : module === 'partners' ? 'partnerId' : 'newsId';
         const data = list.find(x => x[idField] === id) || await fetchDetail(module, id);
         openDetail(module, data);
     }));
     // 分类折叠/展开：局部插入/移除二级行并播放渐入渐出动画，避免整表重绘的生硬感
+    const bindProductPreviews = (module, root, list) => {
+        // 全屏灯箱：直接展示图片，无弹窗外壳
+        const openLightbox = (images, productTitle) => {
+            if (!images || !images.length) return;
+            const single = images.length === 1;
+            const box = document.createElement('div');
+            box.className = 'image-lightbox';
+            box.innerHTML = `<button class="image-lightbox-close" type="button"><i class="layui-icon layui-icon-close"></i></button>${single ? '' : '<button class="image-lightbox-nav image-lightbox-prev" type="button"><i class="layui-icon layui-icon-left"></i></button>'}<img src="${escapeHtml(images[0])}" alt="${escapeHtml(productTitle || '')}">${single ? '' : `<button class="image-lightbox-nav image-lightbox-next" type="button"><i class="layui-icon layui-icon-right"></i></button><div class="image-lightbox-counter">1 / ${images.length}</div>`}`;
+            const img = box.querySelector('img');
+            const counter = box.querySelector('.image-lightbox-counter');
+            let index = 0;
+            const show = i => {
+                index = (i + images.length) % images.length;
+                img.src = images[index];
+                if (counter) counter.textContent = `${index + 1} / ${images.length}`;
+            };
+            const close = () => {
+                document.removeEventListener('keydown', onKey);
+                box.remove();
+            };
+            const onKey = event => {
+                if (event.key === 'Escape') close();
+                if (!single && event.key === 'ArrowLeft') show(index - 1);
+                if (!single && event.key === 'ArrowRight') show(index + 1);
+            };
+            box.addEventListener('click', event => {
+                if (event.target === box || event.target === img) close();
+            });
+            box.querySelector('.image-lightbox-close').onclick = close;
+            const prevBtn = box.querySelector('.image-lightbox-prev');
+            const nextBtn = box.querySelector('.image-lightbox-next');
+            if (prevBtn) prevBtn.onclick = event => {
+                event.stopPropagation();
+                show(index - 1);
+            };
+            if (nextBtn) nextBtn.onclick = event => {
+                event.stopPropagation();
+                show(index + 1);
+            };
+            document.addEventListener('keydown', onKey);
+            document.body.appendChild(box);
+        };
+        const openCover = (coverUrl, productTitle) => {
+            if (!coverUrl) return;
+            openLightbox([coverUrl], productTitle);
+        };
+        const openGallery = (images, productTitle) => openLightbox(images, productTitle);
+        // 合作企业 Logo / 动态封面 / 标签图标 点击查看大图
+        const zoomField = module === 'partners' ? 'logoUrl' : module === 'news' ? 'coverUrl' : module === 'tags' ? 'iconUrl' : null;
+        const zoomIdField = module === 'partners' ? 'partnerId' : module === 'news' ? 'newsId' : 'tagId';
+        const zoomNameField = module === 'partners' ? 'companyName' : 'tagName';
+        if (zoomField) {
+            const zoomMap = new Map((list || []).map(x => [x[zoomIdField], x]));
+            root.querySelectorAll('tr[data-id]').forEach(row => {
+                const data = zoomMap.get(row.dataset.id);
+                const img = row.querySelector('.logo-zoomable, .thumb-zoomable');
+                if (data && img && data[zoomField]) img.style.cursor = 'zoom-in', img.onclick = event => {
+                    event.stopPropagation();
+                    openLightbox([data[zoomField]], data[zoomNameField]);
+                };
+            });
+            return;
+        }
+        const products = list || [];
+        const map = new Map(products.map(x => [x.productId, x]));
+        root.querySelectorAll('tr[data-id]').forEach(row => {
+            const id = row.dataset.id;
+            const data = map.get(id);
+            if (!data) return;
+            const cover = row.querySelector('.thumb-zoomable');
+            if (cover) cover.style.cursor = 'zoom-in', cover.onclick = event => {
+                event.stopPropagation();
+                openCover(cover.src, data.title);
+            };
+            const paramBadge = row.querySelector('.param-summary');
+            if (paramBadge) paramBadge.style.cursor = 'pointer', paramBadge.onclick = event => {
+                event.stopPropagation();
+                const rows = (data.parameters || []).map(p => `<div class="param-modal-row"><span class="param-modal-label">${escapeHtml(p.label || '-')}</span><span class="param-modal-value">${escapeHtml(p.value || '-')}</span></div>`).join('');
+                modal(`产品参数 - ${escapeHtml(data.title || '')}`, `<div class="param-modal-list">${rows || '<div class="empty-state">暂无参数</div>'}</div>`, '', module);
+            };
+            const summary = row.querySelector('.image-summary');
+            if (summary) summary.style.cursor = 'pointer', summary.onclick = event => {
+                event.stopPropagation();
+                openGallery(data.detailImages || [], data.title);
+            };
+        });
+    };
     const bindCategoryToggle = (module, root, list) => {
         if (module !== 'categories') return;
         root.querySelectorAll('[data-toggle-category]').forEach(node => node.addEventListener('click', event => {
@@ -386,7 +508,10 @@
             node.title = expanding ? '收起' : '展开';
             const childRows = [];
             let sibling = parentRow.nextElementSibling;
-            while (sibling?.classList.contains('category-child-row')) { childRows.push(sibling); sibling = sibling.nextElementSibling; }
+            while (sibling?.classList.contains('category-child-row')) {
+                childRows.push(sibling);
+                sibling = sibling.nextElementSibling;
+            }
             if (expanding) {
                 const children = (list || []).find(x => x.categoryId === id)?.children || [];
                 parentRow.insertAdjacentHTML('afterend', children.map(child => rowHtml('categories', child)).join(''));
@@ -445,8 +570,9 @@
         const {createEditor, createToolbar} = window.wangEditor;
         const root = document.createElement('div');
         root.className = 'rich-layer';
-        root.innerHTML = `<header class="rich-layer-header"><span>编辑动态正文</span><button class="layui-btn layui-btn-sm" type="button" data-rich-done>完成</button></header><div class="rich-layer-body"><div class="rich-editor-box"><div data-rich-toolbar></div><div data-rich-editor></div></div></div>`;
+        root.innerHTML = `<header class="rich-layer-header"><span>编辑动态正文</span><button class="layui-btn layui-btn-sm" type="button" data-rich-done>完成编辑</button></header><div class="rich-layer-body"><div class="rich-editor-box"><div data-rich-toolbar></div><div data-rich-editor></div></div></div><footer class="rich-layer-footer"><span data-rich-stat>当前 0 字</span><span class="muted">编辑完成后请点击右上角「完成编辑」保存草稿</span></footer>`;
         document.body.appendChild(root);
+        const stat = root.querySelector('[data-rich-stat]');
         const editor = createEditor({
             selector: root.querySelector('[data-rich-editor]'),
             html: newsContentDraft || '<p><br></p>',
@@ -462,24 +588,39 @@
                             reader.readAsDataURL(file);
                         }
                     }
+                },
+                onChange: () => {
+                    if (!stat) return;
+                    const text = (editor.getHtml() || '').replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ').trim();
+                    stat.textContent = `当前 ${text.length} 字`;
                 }
             }
         });
-        createToolbar({editor, selector: root.querySelector('[data-rich-toolbar]'), config: {excludeKeys: ['group-video', 'insertVideo', 'uploadVideo', 'fullScreen']}});
+        createToolbar({
+            editor,
+            selector: root.querySelector('[data-rich-toolbar]'),
+            config: {excludeKeys: ['group-video', 'insertVideo', 'uploadVideo', 'fullScreen']}
+        });
+        // 首次渲染完成后立刻更新一次字数
+        if (stat && editor.getHtml) {
+            const text = (editor.getHtml() || '').replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ').trim();
+            stat.textContent = `当前 ${text.length} 字`;
+        }
         richLayer = {editor, root};
         root.querySelector('[data-rich-done]').onclick = () => closeRichLayer(true);
     };
     const openDetail = (module, x) => {
         let fields = [];
-        if (module === 'products') fields = [['产品名称', x.title], ['所属分类', [x.parentCategoryName, x.categoryName].filter(Boolean).join(' / ')], ['产品简介', x.summary], ['产品参数', (x.parameters || []).map(p => `${p.label}：${p.value}`).join('\n')], ['创建时间', time(x.createTime)]];
-        else if (module === 'categories') fields = [['分类名称', x.categoryName], ['分类层级', x.level === 1 ? '一级分类' : '二级分类'], ['所属一级分类', x.parentName || '-'], ['排序值', x.sortOrder], ['创建时间', time(x.createTime)]];
-        else if (module === 'routes') fields = [['始发地', x.sourceAddress], ['目的地', x.targetAddress], ['创建时间', time(x.createTime)], ['更新时间', time(x.updateTime)]];
-        else if (module === 'partners') fields = [['企业名称', x.companyName], ['创建时间', time(x.createTime)], ['更新时间', time(x.updateTime)]];
-        else if (module === 'news') fields = [['动态标题', x.title], ['动态摘要', x.summary], ['动态标签', (x.tags || []).map(t => t.tagName).join('、') || '-'], ['项目地区', x.projectRegion || '-'], ['咨询邮箱', x.contactEmail || '-'], ['正文', x.content], ['创建时间', time(x.createTime)]];
-        else if (module === 'tags') fields = [['标签名称', x.tagName], ['创建时间', time(x.createTime)]];
+        if (module === 'news') fields = [['动态标题', x.title], ['动态摘要', x.summary], ['动态标签', (x.tags || []).map(t => t.tagName).join('、') || '-'], ['项目地区', x.projectRegion || '-'], ['咨询邮箱', x.contactEmail || '-'], ['创建人', x.createBy || '-'], ['创建时间', time(x.createTime)]];
         else fields = [['联系人', x.contactName], ['邮箱', x.email], ['电话', x.phone || '-'], ['咨询主题', (x.subjects || []).join('、')], ['咨询内容', x.content], ['提交时间', time(x.createTime)]];
         const cover = module === 'products' ? image(x.coverUrl, 'detail-cover') : module === 'partners' ? image(x.logoUrl, 'detail-cover') : module === 'news' ? image(x.coverUrl, 'detail-cover') : module === 'tags' ? image(x.iconUrl, 'detail-cover') : '';
         modal(`${moduleTitles[module]}详情`, `${cover}<dl class="detail-grid">${fields.map(([k, v]) => `<dt>${escapeHtml(k)}</dt><dd>${v ? escapeHtml(v).replace(/\n/g, '<br>') : '-'}</dd>`).join('')}</dl>`, '<button class="layui-btn" type="button" data-close>关闭</button>', module).querySelector('[data-close]')?.addEventListener('click', closeModal);
+    };
+    // 公司动态正文查看：直接渲染 HTML（含 base64 图片）到弹窗
+    const openNewsContent = x => {
+        const title = `动态正文 - ${escapeHtml(x.title || '')}`;
+        const body = `<div class="news-content-viewer">${x.content || '<div class="empty-state">暂无正文</div>'}</div>`;
+        modal(title, body, '<button class="layui-btn" type="button" data-close>关闭</button>', 'news').querySelector('[data-close]')?.addEventListener('click', closeModal);
     };
     const openEditor = async (module, id) => {
         try {
@@ -502,19 +643,29 @@
     const editorForm = async (module, data) => {
         const input = (name, value = '', placeholder = '') => `<input type="text" name="${name}" value="${escapeHtml(value || '')}" placeholder="${escapeHtml(placeholder)}" autocomplete="off" class="layui-input">`;
         const select = (name, options, extra = '') => `<select name="${name}"${extra}><option value=""></option>${options}</select>`;
+        // 可搜索国家下拉：用户输入搜索词筛选，展示中文名，提交时携带 ISO code 到隐藏字段
+        const searchableCountry = (label, name, list, currentCode) => {
+            const items = (list || []).map(c => `<li class="country-option" data-code="${escapeHtml(c.code)}" data-name="${escapeHtml(c.name)}">${escapeHtml(c.name)}</li>`).join('');
+            return `<div class="layui-form-item"><label class="layui-form-label">${label}</label><div class="layui-input-block"><div class="country-searchable" data-country-searchable><input type="text" class="layui-input country-searchable-input" placeholder="输入国家名称搜索" autocomplete="off"><input type="hidden" name="${name}" value="${escapeHtml(currentCode || '')}"><div class="country-searchable-panel" hidden><ul class="country-searchable-list">${items}</ul><div class="country-searchable-empty" hidden>无匹配国家</div></div></div></div></div>`;
+        };
         const item = (label, control) => `<div class="layui-form-item"><label class="layui-form-label">${label}</label><div class="layui-input-block">${control}</div></div>`;
         const field = (name, label, value = '', placeholder = '') => item(label, input(name, value, placeholder));
         if (module === 'categories') {
             const categories = await request(`${API}/product-categories`);
             return `<form lay-filter="editor-form" data-editor>${field('categoryName', '分类名称', data.categoryName)}${field('sortOrder', '排序值', data.sortOrder ?? 0)}${item('所属一级分类', select('parentId', categories.filter(x => x.level === 1 && x.categoryId !== data.categoryId).map(x => `<option value="${x.categoryId}" ${x.categoryId === data.parentId ? 'selected' : ''}>${escapeHtml(x.categoryName)}</option>`).join('')))}</form>`;
         }
-        if (module === 'routes') return `<form lay-filter="editor-form" data-editor>${field('sourceAddress', '始发地', data.sourceAddress)}${field('targetAddress', '目的地', data.targetAddress)}</form>`;
+        if (module === 'routes') {
+            const countries = await request(`${API}/countries`);
+            const source = data.sourceAddress || '';
+            const target = data.targetAddress || '';
+            return `<form lay-filter="editor-form" data-editor>${searchableCountry('始发地', 'sourceAddress', countries, source)}${searchableCountry('目的地', 'targetAddress', countries, target)}</form>`;
+        }
         if (module === 'partners') return `<form lay-filter="editor-form" data-editor>${field('companyName', '企业名称', data.companyName)}${singleUpload('企业 Logo', 'logoAccessName', data.logoAccessName, data.logoUrl, data.logoAccessName)}</form>`;
         if (module === 'tags') return `<form lay-filter="editor-form" data-editor>${field('tagName', '标签名称', data.tagName)}${singleUpload('标签图标', 'iconBase64', '', data.iconUrl, '')}</form>`;
         if (module === 'products') {
             const categories = await request(`${API}/product-categories`);
             const options = categories.filter(x => x.level === 2).map(x => `<option value="${x.categoryId}" ${x.categoryId === data.categoryId ? 'selected' : ''}>${escapeHtml(`${x.parentName || ''}${x.parentName ? ' / ' : ''}${x.categoryName}`)}</option>`).join('');
-            return `<form lay-filter="editor-form" data-editor>${field('title', '产品名称', data.title)}${item('所属分类', select('categoryId', options))}<div class="layui-form-item layui-form-text"><label class="layui-form-label">产品简介</label><div class="layui-input-block"><textarea name="summary" placeholder="请输入产品简介" class="layui-textarea">${escapeHtml(data.summary || '')}</textarea></div></div>${singleUpload('产品封面', 'coverAccessName', data.coverAccessName, data.coverUrl, data.coverAccessName)}<div class="layui-form-item"><label class="layui-form-label">详情图片</label><div class="layui-input-block"><div class="upload-area" data-image-list>${uploadTile('upload-list', 'detailImages', true)}${(data.detailImages || []).map(n => imageTile(`${API}/sys-file/preview/${escapeHtml(n)}`, n, n)).join('')}<span class="upload-help">请选择图片文件，可批量上传</span></div></div></div><div class="layui-form-item"><label class="layui-form-label">产品参数</label><div class="layui-input-block"><div data-parameters>${(data.parameters || []).map(p => parameterRow(p)).join('') || parameterRow()}</div><button class="layui-btn layui-btn-primary layui-btn-sm" type="button" data-add-parameter>+ 添加参数</button></div></div></form>`;
+            return `<form lay-filter="editor-form" data-editor>${field('title', '产品名称', data.title)}${item('所属分类', select('categoryId', options))}<div class="layui-form-item layui-form-text"><label class="layui-form-label">产品简介</label><div class="layui-input-block"><textarea name="summary" placeholder="请输入产品简介" class="layui-textarea">${escapeHtml(data.summary || '')}</textarea></div></div>${singleUpload('产品封面', 'coverAccessName', data.coverAccessName, data.coverUrl, data.coverAccessName)}<div class="layui-form-item"><label class="layui-form-label">详情图片</label><div class="layui-input-block"><div class="upload-area" data-image-list>${uploadTile('upload-list', 'detailImages', true)}${(data.detailImages || []).map(n => imageTile(n, n.substring(n.lastIndexOf('/') + 1), n)).join('')}<span class="upload-help">请选择图片文件，可批量上传</span></div></div></div><div class="layui-form-item"><label class="layui-form-label">产品参数</label><div class="layui-input-block"><div data-parameters>${(data.parameters || []).map(p => parameterRow(p)).join('') || parameterRow()}</div><button class="layui-btn layui-btn-primary layui-btn-sm" type="button" data-add-parameter>+ 添加参数</button></div></div></form>`;
         }
         const tags = module === 'news' ? await request(`${API}/news-tags`) : [];
         const selected = new Set((data.tags || []).map(x => x.tagId));
@@ -537,6 +688,54 @@
     const singleUpload = (label, hiddenName, accessName, previewUrl, fileName) => `<div class="layui-form-item"><label class="layui-form-label">${label}</label><div class="layui-input-block"><div class="upload-area${previewUrl ? ' has-image' : ''}" data-single-upload>${uploadTile('upload', hiddenName, false)}${previewUrl ? imageTile(previewUrl, fileName, accessName) : ''}<span class="upload-help">请选择单张图片文件上传</span><input type="hidden" name="${hiddenName}" value="${escapeHtml(accessName || '')}"></div></div></div>`;
     const parameterRow = p => `<div class="parameter-row"><div class="parameter-grid"><input placeholder="参数名称" value="${escapeHtml(p?.label || '')}" autocomplete="off" class="layui-input"><input placeholder="参数值" value="${escapeHtml(p?.value || '')}" autocomplete="off" class="layui-input"><button type="button" data-remove-parameter class="layui-btn parameter-remove" title="删除"><i class="layui-icon layui-icon-close"></i></button></div></div>`;
     const bindEditor = module => {
+        // 可搜索国家下拉：输入搜索词筛选、点击/回车选中；外部点击关闭面板
+        const bindCountrySearchable = () => {
+            document.querySelectorAll('[data-country-searchable]').forEach(root => {
+                const input = root.querySelector('.country-searchable-input');
+                const panel = root.querySelector('.country-searchable-panel');
+                const list = root.querySelector('.country-searchable-list');
+                const empty = root.querySelector('.country-searchable-empty');
+                const hidden = root.querySelector('input[type=hidden]');
+                const close = () => { panel.hidden = true; };
+                const open = () => { panel.hidden = false; };
+                // 回显：根据隐藏字段初值填充展示文本
+                const presetCode = hidden.value;
+                if (presetCode) {
+                    const match = list.querySelector(`[data-code="${presetCode}"]`);
+                    if (match) input.value = match.dataset.name;
+                }
+                const filter = () => {
+                    const keyword = input.value.trim().toLowerCase();
+                    let visible = 0;
+                    list.querySelectorAll('.country-option').forEach(li => {
+                        const hit = !keyword || li.dataset.name.toLowerCase().includes(keyword) || li.dataset.code.toLowerCase().includes(keyword);
+                        li.hidden = !hit;
+                        if (hit) visible++;
+                    });
+                    empty.hidden = visible > 0;
+                    if (visible > 0) open(); else close();
+                };
+                input.addEventListener('focus', filter);
+                input.addEventListener('input', () => {
+                    // 用户输入即清空已选 code（防止显示文字与 value 不一致）
+                    hidden.value = '';
+                    filter();
+                });
+                list.addEventListener('click', event => {
+                    const li = event.target.closest('.country-option');
+                    if (!li) return;
+                    input.value = li.dataset.name;
+                    hidden.value = li.dataset.code;
+                    close();
+                });
+                // 防止表单提交时把搜索文本误当作值：使用 readonly input 不参与表单；这里表单只提交 hidden
+                input.setAttribute('autocomplete', 'off');
+                document.addEventListener('click', event => {
+                    if (!root.contains(event.target)) close();
+                });
+            });
+        };
+        if (module === 'routes') bindCountrySearchable();
         // 单图上传：成功后填充缩略图块并隐藏占位方块
         document.querySelectorAll('[data-upload]').forEach(input => input.addEventListener('change', async event => {
             const file = event.target.files[0];
@@ -625,7 +824,9 @@
         const fields = new FormData(form);
         const data = Object.fromEntries(fields.entries());
         if (module === 'products') {
-            data.detailImages = [...form.querySelectorAll('[data-image-list] [data-access]')].map(x => x.dataset.access);
+            // data-access 可能是完整预览 URL，提交前剥离前缀还原为文件 accessName
+            const previewPrefix = `${API}/sys-file/preview/`;
+            data.detailImages = [...form.querySelectorAll('[data-image-list] [data-access]')].map(x => x.dataset.access.startsWith(previewPrefix) ? x.dataset.access.slice(previewPrefix.length) : x.dataset.access);
             data.parameters = [...form.querySelectorAll('.parameter-row')].map(row => {
                 const inputs = row.querySelectorAll('input');
                 return {label: inputs[0]?.value.trim() || '', value: inputs[1]?.value.trim() || ''};

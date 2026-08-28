@@ -11,11 +11,15 @@ import com.deaofu.exception.BusinessException;
 import com.deaofu.mapper.CompanyNewsMapper;
 import com.deaofu.mapper.CompanyNewsTagMapper;
 import com.deaofu.mapper.NewsTagMapper;
+import com.deaofu.mapper.SysUserMapper;
+import com.deaofu.model.entity.SysUser;
 import com.deaofu.model.dto.AdminPageDto;
 import com.deaofu.model.dto.CompanyNewsSaveDto;
 import com.deaofu.model.entity.CompanyNews;
 import com.deaofu.model.entity.CompanyNewsTag;
 import com.deaofu.model.entity.NewsTag;
+import java.util.Objects;
+
 import com.deaofu.model.vo.CompanyNewsVo;
 import com.deaofu.model.vo.NewsTagVo;
 import com.deaofu.service.ICompanyNewsService;
@@ -41,6 +45,7 @@ public class CompanyNewsServiceImpl extends ServiceImpl<CompanyNewsMapper, Compa
 
     private final CompanyNewsTagMapper companyNewsTagMapper;
     private final NewsTagMapper newsTagMapper;
+    private final SysUserMapper sysUserMapper;
     private final FileReferenceValidator fileReferenceValidator;
 
     @Override
@@ -64,8 +69,10 @@ public class CompanyNewsServiceImpl extends ServiceImpl<CompanyNewsMapper, Compa
                 .page(new Page<>(dto.getPageNum(), dto.getPageSize()));
         Map<String, List<NewsTagVo>> tagsByNews = loadTags(page.getRecords().stream()
                 .map(CompanyNews::getNewsId).toList());
+        Map<String, SysUser> users = loadUserMap(page.getRecords().stream()
+                .map(CompanyNews::getCreateBy).filter(Objects::nonNull).distinct().toList());
         List<CompanyNewsVo> list = page.getRecords().stream()
-                .map(item -> toVo(item, tagsByNews.getOrDefault(item.getNewsId(), Collections.emptyList())))
+                .map(item -> toVo(item, tagsByNews.getOrDefault(item.getNewsId(), Collections.emptyList()), users))
                 .toList();
         return new PageResult<>(list, page.getTotal());
     }
@@ -74,7 +81,18 @@ public class CompanyNewsServiceImpl extends ServiceImpl<CompanyNewsMapper, Compa
     @Transactional(readOnly = true)
     public CompanyNewsVo getNews(String newsId) {
         CompanyNews entity = requireNews(newsId);
-        return toVo(entity, loadTags(List.of(newsId)).getOrDefault(newsId, Collections.emptyList()));
+        Map<String, SysUser> users = loadUserMap(List.of(entity.getCreateBy()));
+        return toVo(entity, loadTags(List.of(newsId)).getOrDefault(newsId, Collections.emptyList()), users);
+    }
+
+    /** 批量加载创建人用户信息，key 为 userId。 */
+    private Map<String, SysUser> loadUserMap(List<String> userIds) {
+        Map<String, SysUser> result = new HashMap<>();
+        if (userIds == null || userIds.isEmpty()) {
+            return result;
+        }
+        sysUserMapper.selectBatchIds(userIds).forEach(user -> result.put(user.getUserId(), user));
+        return result;
     }
 
     @Override
@@ -188,7 +206,7 @@ public class CompanyNewsServiceImpl extends ServiceImpl<CompanyNewsMapper, Compa
         return vo;
     }
 
-    private CompanyNewsVo toVo(CompanyNews entity, List<NewsTagVo> tags) {
+    private CompanyNewsVo toVo(CompanyNews entity, List<NewsTagVo> tags, Map<String, SysUser> users) {
         CompanyNewsVo vo = new CompanyNewsVo();
         vo.setNewsId(entity.getNewsId());
         vo.setCoverAccessName(entity.getCoverAccessName());
@@ -199,6 +217,9 @@ public class CompanyNewsServiceImpl extends ServiceImpl<CompanyNewsMapper, Compa
         vo.setProjectRegion(entity.getProjectRegion());
         vo.setContactEmail(entity.getContactEmail());
         vo.setTags(tags);
+        SysUser creator = users.get(entity.getCreateBy());
+        // createBy 库中存的是 userId，对外展示为用户名
+        vo.setCreateBy(creator == null ? entity.getCreateBy() : creator.getUsername());
         vo.setCreateTime(entity.getCreateTime());
         vo.setUpdateTime(entity.getUpdateTime());
         return vo;

@@ -422,6 +422,22 @@ String statusText = StatusEnum.getInfoByCode(user.getStatus());   // 暴露给�
 | `PUT` | `/admin/transport-routes/{routeId}` | 修改线路 | 线路ID + DTO | `BaseResponse<TransportRouteVo>` |
 | `DELETE` | `/admin/transport-routes/{routeId}` | 逻辑删除线路 | 线路ID | `BaseResponse<Boolean>` |
 
+#### 4.11.7.1 国家字典 — `CountryController`
+
+**类路径**：`src/main/java/com/deaofu/controller/admin/CountryController.java`
+**基础路径**：`/admin/countries`
+**依赖**：无；数据源为 `com.deaofu.enums.CountryEnum` 字典
+
+| 方法 | 路径 | 说明 | 入参 | 响应 |
+| --- | --- | --- | --- | --- |
+| `GET` | `/admin/countries` | 列出全部国家（仅 code + name） | 无 | `BaseResponse<List<CountryVo>>` |
+
+**注意事项**：
+
+- 本 Controller 位于 `controller.admin` 包下，由 `AdminAuthAspect` 自动校验管理端 Session 登录态。
+- 返回字段：`code`（ISO 二字代码，用于持久化与下拉 value）+ `name`（中文名，用于下拉显示）。
+- 主要消费方：运输路线编辑（始发地 / 目的地）、世界地图销售点位编辑（来源地 / 目标地）。
+
 #### 4.11.8 合作企业 — `PartnerCompanyController`
 
 **基础路径**：`/admin/partner-companies`
