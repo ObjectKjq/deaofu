@@ -6,9 +6,7 @@
   <meta name="description" content="德奥福汽车玻璃厂有限公司，专业制造公交车、客车及商用车玻璃和汽车配件，产品远销全球60多个国家。" />
   <meta name="keywords" content="公交车玻璃,客车挡风玻璃,商用车玻璃,汽车配件,DEAOFU,德奥福" />
   <title>DEAOFU 德奥福 | 全球公交玻璃制造商</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" th:href="@{/portal/vendor/fonts/fonts.css}" />
   <link rel="stylesheet" th:href="@{/portal/css/styles.css}" />
   <link rel="stylesheet" th:href="@{/portal/css/overrides.css}" />
 </head>
@@ -202,8 +200,8 @@
     </section>
   </main>
   <div th:replace="~{portal/fragments :: footer}"></div>
-  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+  <script th:src="@{/portal/vendor/gsap/gsap.min.js}"></script>
+  <script th:src="@{/portal/vendor/gsap/ScrollTrigger.min.js}"></script>
   <script th:src="@{/portal/js/world-countries.js}"></script>
   <script th:src="@{/portal/js/main.js}"></script>
 </body>
