@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="description" content="德奥福安全玻璃有限公司，专业制造公交、客车及商用车层压玻璃和汽车配件。" />
+  <title>关于我们 | DEAOFU 德奥福</title>
+  <link rel="stylesheet" th:href="@{/portal/css/styles.css}" />
+  <link rel="stylesheet" th:href="@{/portal/css/about.css}" />
+</head>
+<body class="about-page">
+  <div class="progress" aria-hidden="true"></div>
+  <div th:replace="~{portal/fragments :: header('about')}"></div>
+  <main>
+    <section class="about-story section">
+      <span class="hairline hairline--top" aria-hidden="true"></span>
+      <div class="container about-story-content">
+        <div class="about-story-copy">
+          <p class="kicker">WHO WE ARE</p>
+          <h2>专业生产客车前挡风玻璃，<br /><em>服务全球每一段旅程。</em></h2>
+          <p class="lead">德奥福（DEAOFU）是专业生产客车前挡风玻璃的制造企业。公司自成立以来发展迅猛，现已成为中国规模最大的汽车安全玻璃生产商之一，95% 的产品销往全球各地。</p>
+          <p>生产基地坐落于中国河南省，厂区面积超 10000 平方米，可适配 2000 余种客车挡风玻璃型号。产品已取得欧洲 ECE R43、美国 DOT、中国 3C 及南非 SABS 认证。企业严格依照 ISO9001 标准建立管理体系，配备独立质检部门，确保每一片玻璃都符合高标准。</p>
+        </div>
+        <aside class="about-audience">
+          <p class="kicker">OUR AUDIENCE</p>
+          <h3>我们的目标受众</h3>
+          <ul>
+            <li><b>公交车制造商</b><span>为公交车制造商提供耐用、高品质且符合安全法规的 OEM 玻璃解决方案。</span></li>
+            <li><b>公交零部件分销商</b><span>玻璃产品可批发销售，为公交服务中心和维修店提供可靠库存。</span></li>
+            <li><b>工厂与行业伙伴</b><span>专注公交挡风玻璃、长途汽车玻璃及定制玻璃制造，支持复杂车型开发与批量交付。</span></li>
+          </ul>
+        </aside>
+      </div>
+    </section>
+
+    <section class="about-capabilities section">
+      <div class="container">
+        <div class="section-head">
+          <div>
+            <p class="kicker">FROM FACTORY TO ROAD</p>
+            <h2>每一道工序，<br /><em>都为真实道路负责。</em></h2>
+          </div>
+          <p class="section-note">先进设备、稳定工艺与国际认证共同构成我们的制造底座，支持复杂车型玻璃的定制开发和批量交付。</p>
+        </div>
+        <div class="process-grid">
+          <figure>
+            <img th:src="@{/portal/images/factory/原始玻璃作坊.jpg}" alt="原始玻璃作坊" loading="lazy" />
+            <figcaption><b>01 / RAW GLASS</b><span>原片入库与检验</span></figcaption>
+          </figure>
+          <figure>
+            <img th:src="@{/portal/images/factory/切割机.jpg}" alt="玻璃切割机" loading="lazy" />
+            <figcaption><b>02 / CUTTING</b><span>精准切割成型</span></figcaption>
+          </figure>
+          <figure>
+            <img th:src="@{/portal/images/factory/印刷机.jpg}" alt="玻璃印刷机" loading="lazy" />
+            <figcaption><b>03 / PRINTING</b><span>边缘丝印处理</span></figcaption>
+          </figure>
+          <figure>
+            <img th:src="@{/portal/images/factory/热弯机.jpg}" alt="玻璃热弯机" loading="lazy" />
+            <figcaption><b>04 / BENDING</b><span>复杂弧面热弯</span></figcaption>
+          </figure>
+          <figure>
+            <img th:src="@{/portal/images/factory/洗衣机.jpg}" alt="玻璃清洗设备" loading="lazy" />
+            <figcaption><b>05 / WASHING</b><span>深度清洗准备</span></figcaption>
+          </figure>
+          <figure>
+            <img th:src="@{/portal/images/factory/玻璃作坊.jpg}" alt="玻璃生产车间" loading="lazy" />
+            <figcaption><b>06 / LAMINATION</b><span>层压与成品检验</span></figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="about-cert section">
+      <span class="hairline hairline--top" aria-hidden="true"></span>
+      <div class="container">
+        <div class="section-head">
+          <div>
+            <p class="kicker">QUALITY &amp; COMPLIANCE</p>
+            <h2>被标准认可，<br /><em>也经得起路况检验。</em></h2>
+          </div>
+          <p class="section-note">产品符合 ECE R43、DOT、CCC、ISO9001 与 IATF 16949 等标准，为全球合作伙伴提供可追溯的质量保障。</p>
+        </div>
+        <div class="cert-grid">
+          <figure>
+            <img th:src="@{/portal/images/certs/美国交通部认证.png}" alt="美国交通部认证" loading="lazy" />
+            <figcaption>美国交通部认证<br /><small>DOT</small></figcaption>
+          </figure>
+          <figure>
+            <img th:src="@{/portal/images/certs/欧盟ECE R43 E24认证.jpg}" alt="欧盟 ECE R43 E24 认证" loading="lazy" />
+            <figcaption>欧盟 ECE R43 E24 认证<br /><small>ECE R43</small></figcaption>
+          </figure>
+          <figure>
+            <img th:src="@{/portal/images/certs/ISO9001 CCC认证.jpg}" alt="ISO9001 CCC 认证" loading="lazy" />
+            <figcaption>ISO9001 · CCC 认证<br /><small>QUALITY SYSTEM</small></figcaption>
+          </figure>
+          <figure>
+            <img th:src="@{/portal/images/certs/IATF 16949认证.jpg}" alt="IATF 16949 认证" loading="lazy" />
+            <figcaption>IATF 16949 认证<br /><small>AUTOMOTIVE QUALITY</small></figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+  </main>
+  <div th:replace="~{portal/fragments :: footer}"></div>
+  <script th:src="@{/portal/js/main.js}"></script>
+</body>
+</html>

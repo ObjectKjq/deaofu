@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="description" th:content="${newsItem.summary}" />
+  <title th:text="${newsItem.title + ' | DEAOFU 德奥福'}">公司动态详情 | DEAOFU 德奥福</title>
+  <link rel="stylesheet" th:href="@{/portal/css/styles.css}" />
+  <link rel="stylesheet" th:href="@{/portal/css/product-pages.css}" />
+  <link rel="stylesheet" th:href="@{/portal/css/news-pages.css}" />
+</head>
+<body class="news-page">
+  <div th:replace="~{portal/fragments :: header('news')}"></div>
+  <main class="page-main news-detail-main">
+    <div class="news-detail-wrap">
+      <nav class="news-detail-breadcrumb" aria-label="面包屑导航">
+        <a th:href="@{/}">首页</a><span>/</span><a th:href="@{/news}">公司动态</a><span>/</span>
+        <span th:text="${#lists.isEmpty(newsItem.tags) ? '公司动态' : newsItem.tags[0].tagName}">公司动态</span>
+      </nav>
+      <div class="news-article-layout">
+        <div class="news-article-content">
+          <h1 th:text="${newsItem.title}"></h1>
+          <p class="news-article-lede" th:text="${newsItem.summary}"></p>
+          <div th:utext="${newsItem.content}"></div>
+        </div>
+        <aside class="news-article-aside">
+          <div class="news-article-meta">
+            <span th:text="${#lists.isEmpty(newsItem.tags) ? '公司动态' : newsItem.tags[0].tagName}">公司动态</span>
+            <time th:attr="datetime=${#dates.format(newsItem.createTime, 'yyyy-MM-dd')}" th:text="${#dates.format(newsItem.createTime, 'yyyy.MM.dd')}"></time>
+          </div>
+          <b>项目信息</b>
+          <dl>
+            <div th:if="${newsItem.projectRegion != null}">
+              <dt>项目地区</dt>
+              <dd th:text="${newsItem.projectRegion}"></dd>
+            </div>
+            <div th:if="${newsItem.contactEmail != null}">
+              <dt>咨询邮箱</dt>
+              <dd th:text="${newsItem.contactEmail}"></dd>
+            </div>
+          </dl>
+          <a class="text-link" th:href="@{/contact}">咨询合作 <span>→</span></a>
+        </aside>
+      </div>
+    </div>
+  </main>
+  <div th:replace="~{portal/fragments :: footer}"></div>
+  <script th:src="@{/portal/js/main.js}"></script>
+</body>
+</html>

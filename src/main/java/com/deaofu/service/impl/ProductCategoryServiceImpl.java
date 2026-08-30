@@ -38,13 +38,23 @@ public class ProductCategoryServiceImpl extends ServiceImpl<ProductCategoryMappe
     @Override
     @Transactional(readOnly = true)
     public List<ProductCategoryVo> listCategories() {
-        List<ProductCategory> entities = lambdaQuery().orderByDesc(ProductCategory::getCreateTime).list();
+        List<ProductCategory> entities = lambdaQuery()
+                .orderByAsc(ProductCategory::getSortOrder)
+                .orderByDesc(ProductCategory::getCreateTime).list();
         Map<String, ProductCategory> byId = new HashMap<>();
         entities.forEach(item -> byId.put(item.getCategoryId(), item));
-        return entities.stream().sorted(Comparator
+        List<ProductCategoryVo> result = entities.stream().sorted(Comparator
                         .comparing((ProductCategory item) -> StrUtil.isNotBlank(item.getParentId()))
+                        .thenComparing(ProductCategory::getSortOrder)
                         .thenComparing(ProductCategory::getCreateTime, Comparator.reverseOrder()))
                 .map(item -> toVo(item, byId)).toList();
+        Map<String, List<ProductCategoryVo>> children = result.stream()
+                .filter(item -> StrUtil.isNotBlank(item.getParentId()))
+                .collect(Collectors.groupingBy(ProductCategoryVo::getParentId));
+        result.stream()
+                .filter(item -> item.getLevel() == 1)
+                .forEach(item -> item.setChildren(children.getOrDefault(item.getCategoryId(), List.of())));
+        return result;
     }
 
     @Override
@@ -60,12 +70,14 @@ public class ProductCategoryServiceImpl extends ServiceImpl<ProductCategoryMappe
                 .and(StrUtil.isNotBlank(dto.getKeyword()), wrapper -> wrapper
                         .like(ProductCategory::getCategoryName, dto.getKeyword())
                         .or().in(!matchedParentIds.isEmpty(), ProductCategory::getCategoryId, matchedParentIds))
+                .orderByAsc(ProductCategory::getSortOrder)
                 .orderByDesc(ProductCategory::getCreateTime)
                 .page(new Page<>(dto.getPageNum(), dto.getPageSize()));
         // 批量查出当前页一级分类下的二级分类并分组
         List<String> parentIds = page.getRecords().stream().map(ProductCategory::getCategoryId).toList();
         Map<String, List<ProductCategory>> childMap = parentIds.isEmpty() ? Map.of()
                 : lambdaQuery().in(ProductCategory::getParentId, parentIds)
+                        .orderByAsc(ProductCategory::getSortOrder)
                         .orderByDesc(ProductCategory::getCreateTime).list().stream()
                         .collect(Collectors.groupingBy(ProductCategory::getParentId));
         List<ProductCategoryVo> list = page.getRecords().stream().map(item -> {
