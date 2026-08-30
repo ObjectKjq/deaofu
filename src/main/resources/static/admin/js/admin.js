@@ -628,10 +628,13 @@
         if (!response.ok) throw new Error('layui.css 加载失败');
         const css = await response.text();
         const icons = [];
-        const pattern = /\.layui-icon-([\w-]+):before\s*\{\s*content:\s*"\\([0-9a-fA-F]+)"/g;
+        const names = new Set();
+        const pattern = /\.layui-icon-([\w-]+)\s*::?before\s*\{[^}]*?content\s*:\s*["']\\([0-9a-fA-F]{4,6})["']/g;
         let match;
         while ((match = pattern.exec(css)) !== null) {
-            icons.push({cls: match[1], char: String.fromCharCode(parseInt(match[2], 16))});
+            if (names.has(match[1])) continue;
+            names.add(match[1]);
+            icons.push({cls: match[1], char: String.fromCodePoint(parseInt(match[2], 16))});
         }
         return icons;
     };
