@@ -45,52 +45,129 @@
     function initProductMedia() {
         const media = document.querySelector('.detail-media');
         if (!media) return;
-
+        const stage = media.querySelector('.detail-media-stage');
         const image = media.querySelector('.detail-media-image:not(.detail-media-image-next)');
         const nextImage = media.querySelector('.detail-media-image-next');
         const thumbs = Array.from(media.querySelectorAll('.detail-media-thumb'));
+        const prevBtn = media.querySelector('.detail-media-prev');
+        const nextBtn = media.querySelector('.detail-media-next');
+        const counter = media.querySelector('[data-media-counter]');
+        const counterCurrent = media.querySelector('[data-media-current]');
+        const counterTotal = media.querySelector('[data-media-total]');
+        if (!thumbs.length) return;
+        /* 单图：隐藏切换控件 + 计数器，仅保留缩略图（一张缩略图也无须保留激活态） */
+        if (thumbs.length <= 1) {
+            if (prevBtn) prevBtn.hidden = true;
+            if (nextBtn) nextBtn.hidden = true;
+            if (counter) counter.hidden = true;
+        } else {
+            if (counterTotal) counterTotal.textContent = String(thumbs.length);
+        }
         let activeIndex = 0;
+        let busy = false;
+
+        function updateCounter() {
+            if (counterCurrent) counterCurrent.textContent = String(activeIndex + 1);
+        }
 
         function showMedia(index) {
+            if (busy || thumbs.length <= 1) return;
+            const targetIndex = (index + thumbs.length) % thumbs.length;
+            if (targetIndex === activeIndex) return;
             const previousIndex = activeIndex;
-            const nextIndex = (index + thumbs.length) % thumbs.length;
-            const nextThumb = thumbs[nextIndex];
+            const nextThumb = thumbs[targetIndex];
             const nextSrc = nextThumb.dataset.image;
-            const direction = nextIndex > previousIndex || (previousIndex === thumbs.length - 1 && nextIndex === 0) ? 1 : -1;
+            /* 方向：前进时新图从右侧入场、后退时从左侧入场，用于控制 scale/xPercent 的方向 */
+            const direction = targetIndex > previousIndex || (previousIndex === thumbs.length - 1 && targetIndex === 0) ? 1 : -1;
+            busy = true;
             const preloaded = new Image();
             preloaded.onload = () => {
-                activeIndex = nextIndex;
+                activeIndex = targetIndex;
+                updateCounter();
+                /* 标记新激活的缩略图，并把旧的标记去掉 */
+                thumbs.forEach((thumb, thumbIndex) => thumb.classList.toggle('is-active', thumbIndex === activeIndex));
                 if (!nextImage) {
                     image.src = nextSrc;
-                    thumbs.forEach((thumb, thumbIndex) => thumb.classList.toggle('is-active', thumbIndex === activeIndex));
+                    busy = false;
                     return;
                 }
                 nextImage.src = nextSrc;
                 if (window.gsap) {
-                    gsap.set(nextImage, { xPercent: direction * 100, autoAlpha: 1, visibility: 'visible' });
-                    gsap.timeline({ onComplete: () => {
-                        image.src = nextSrc;
-                        gsap.set(image, { xPercent: 0, autoAlpha: 1 });
-                        gsap.set(nextImage, { xPercent: 0, autoAlpha: 0, visibility: 'hidden' });
-                    } })
-                        .to(image, { duration: .42, xPercent: direction * -100, ease: 'power3.inOut' }, 0)
-                        .to(nextImage, { duration: .42, xPercent: 0, ease: 'power3.inOut' }, 0);
+                    /* 柔和 crossfade + 缩放：旧图向方向外淡出并轻微缩小，新图从方向外淡入并轻微放大，
+                     * 两者时长略有错位，避免两张图横向对穿造成生硬的"翻页"感。*/
+                    const tl = gsap.timeline({
+                        onComplete: () => {
+                            image.src = nextSrc;
+                            gsap.set(image, { clearProps: 'transform,opacity' });
+                            gsap.set(nextImage, { clearProps: 'transform,opacity' });
+                            nextImage.style.visibility = 'hidden';
+                            busy = false;
+                        }
+                    });
+                    tl.to(image, {
+                        duration: .42,
+                        xPercent: direction * -10,
+                        opacity: 0,
+                        scale: .96,
+                        ease: 'power3.inOut'
+                    }, 0);
+                    tl.fromTo(nextImage,
+                        { xPercent: direction * 14, opacity: 0, scale: 1.06, visibility: 'visible' },
+                        { duration: .5, xPercent: 0, opacity: 1, scale: 1, ease: 'power3.out' },
+                        0
+                    );
+                    /* 激活的缩略图一圈柔光提示，呼应按钮风格 */
                     gsap.fromTo(nextThumb,
-                        { boxShadow: '0 0 0 0 rgba(28, 105, 125, 0)' },
-                        { duration: .45, boxShadow: '0 0 0 5px rgba(28, 105, 125, .2)', ease: 'power2.out', clearProps: 'boxShadow' }
+                        { boxShadow: '0 0 0 0 rgba(6, 59, 89, 0)' },
+                        { duration: .5, boxShadow: '0 0 0 5px rgba(6, 59, 89, .22)', ease: 'power2.out', clearProps: 'boxShadow' }
                     );
                 } else {
                     image.src = nextSrc;
                     nextImage.src = nextSrc;
+                    busy = false;
                 }
+            };
+            preloaded.onerror = () => {
+                /* 图片加载失败时仍切到目标帧，避免一直卡在 busy */
+                image.src = nextSrc;
+                activeIndex = targetIndex;
+                updateCounter();
                 thumbs.forEach((thumb, thumbIndex) => thumb.classList.toggle('is-active', thumbIndex === activeIndex));
+                busy = false;
             };
             preloaded.src = nextSrc;
         }
 
         thumbs.forEach((thumb, index) => thumb.addEventListener('click', () => showMedia(index)));
-        media.querySelector('.detail-media-prev').addEventListener('click', () => showMedia(activeIndex - 1));
-        media.querySelector('.detail-media-next').addEventListener('click', () => showMedia(activeIndex + 1));
+        if (prevBtn) prevBtn.addEventListener('click', () => showMedia(activeIndex - 1));
+        if (nextBtn) nextBtn.addEventListener('click', () => showMedia(activeIndex + 1));
+
+        /* 键盘左右键切图：focus 到 media 容器后可用，避开表单控件 */
+        media.tabIndex = 0;
+        media.addEventListener('keydown', (e) => {
+            if (e.target.closest('input, textarea, select, [contenteditable="true"]')) return;
+            if (e.key === 'ArrowLeft') { e.preventDefault(); showMedia(activeIndex - 1); }
+            else if (e.key === 'ArrowRight') { e.preventDefault(); showMedia(activeIndex + 1); }
+        });
+
+        /* 移动端左右滑动切图：仅当横向位移显著大于纵向时触发，避免误触竖向滚动 */
+        if (stage) {
+            let touchStartX = 0;
+            let touchStartY = 0;
+            stage.addEventListener('touchstart', (e) => {
+                touchStartX = e.touches[0].clientX;
+                touchStartY = e.touches[0].clientY;
+            }, { passive: true });
+            stage.addEventListener('touchend', (e) => {
+                const dx = e.changedTouches[0].clientX - touchStartX;
+                const dy = e.changedTouches[0].clientY - touchStartY;
+                if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.4) {
+                    showMedia(activeIndex + (dx < 0 ? 1 : -1));
+                }
+            }, { passive: true });
+        }
+
+        updateCounter();
     }
 
     function initProductFilters() {

@@ -1,223 +1,327 @@
 /* Homepage enhancements: map interaction, customer logo marquee, mobile layout. */
 .world-map {
-  isolation: isolate;
+    isolation: isolate;
 }
 
 .world-map svg {
-  min-height: 360px;
+    min-height: 360px;
 }
 
 .map-point {
-  cursor: help;
-  transition: r 0.2s, fill 0.2s;
+    cursor: help;
+    transition: r 0.2s, fill 0.2s;
 }
 
 .map-point:hover {
-  fill: var(--blue2);
+    fill: var(--blue2);
 }
 
 .map-tooltip {
-  position: absolute;
-  left: 0;
-  top: 0;
-  z-index: 3;
-  padding: 9px 13px;
-  color: #fff;
-  background: #003b5c;
-  box-shadow: 0 8px 20px rgba(0, 59, 92, 0.22);
-  font-size: 12px;
-  pointer-events: none;
-  white-space: nowrap;
-  font-weight: 500;
-  letter-spacing: 0.02em;
-  opacity: 0;
-  visibility: hidden;
-  will-change: opacity, transform;
-  /* GSAP 未加载时的回退定位 */
-  transform: translate(-50%, -130%);
+    position: absolute;
+    left: 0;
+    top: 0;
+    z-index: 3;
+    padding: 9px 13px;
+    color: #fff;
+    background: #003b5c;
+    box-shadow: 0 8px 20px rgba(0, 59, 92, 0.22);
+    font-size: 12px;
+    pointer-events: none;
+    white-space: nowrap;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    opacity: 0;
+    visibility: hidden;
+    will-change: opacity, transform;
+    /* GSAP 未加载时的回退定位 */
+    transform: translate(-50%, -130%);
 }
 
 .no-gsap .map-tooltip {
-  transform: translate(-50%, -130%);
+    transform: translate(-50%, -130%);
 }
 
 .map-tooltip.is-visible {
-  visibility: visible;
+    visibility: visible;
 }
 
 .map-tooltip::after {
-  content: "";
-  position: absolute;
-  left: 50%;
-  bottom: -5px;
-  transform: translateX(-50%);
-  border: 5px solid transparent;
-  border-top-color: #003b5c;
-  border-bottom: 0;
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: -5px;
+    transform: translateX(-50%);
+    border: 5px solid transparent;
+    border-top-color: #003b5c;
+    border-bottom: 0;
 }
 
 .map-tip-hint {
-  color: var(--muted);
+    color: var(--muted);
 }
 
 /* 真实国家轮廓样式（颜色与动画均由 GSAP 接管） */
 .country-paths .country {
-  cursor: pointer;
+    cursor: pointer;
 }
 
 .country-paths .country path {
-  fill: #c3d1d3;
-  stroke: #ffffff;
-  stroke-width: 0.6;
-  stroke-linejoin: round;
-  vector-effect: non-scaling-stroke;
+    fill: #c3d1d3;
+    stroke: #ffffff;
+    stroke-width: 0.6;
+    stroke-linejoin: round;
+    vector-effect: non-scaling-stroke;
 }
 
 /* 客户 logo 墙 - 两排同方向流动 */
 .logo-marquee {
-  position: relative;
-  overflow: hidden;
-  border-top: 1px solid var(--line);
-  border-bottom: 1px solid var(--line);
-  background: #fafcfc;
+    position: relative;
+    overflow: hidden;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+    background: #fafcfc;
 }
 
 .logo-fade {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 140px;
-  z-index: 2;
-  pointer-events: none;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 140px;
+    z-index: 2;
+    pointer-events: none;
 }
 
 .logo-fade-left {
-  left: 0;
-  background: linear-gradient(90deg, #fafcfc 0%, rgba(250, 252, 252, 0.95) 40%, rgba(250, 252, 252, 0) 100%);
+    left: 0;
+    background: linear-gradient(90deg, #fafcfc 0%, rgba(250, 252, 252, 0.95) 40%, rgba(250, 252, 252, 0) 100%);
 }
 
 .logo-fade-right {
-  right: 0;
-  background: linear-gradient(270deg, #fafcfc 0%, rgba(250, 252, 252, 0.95) 40%, rgba(250, 252, 252, 0) 100%);
+    right: 0;
+    background: linear-gradient(270deg, #fafcfc 0%, rgba(250, 252, 252, 0.95) 40%, rgba(250, 252, 252, 0) 100%);
 }
 
 .logo-rows {
-  display: flex;
-  flex-direction: column;
+    display: flex;
+    flex-direction: column;
 }
 
 .logo-row {
-  position: relative;
-  overflow: hidden;
-  border-bottom: 1px solid var(--line);
+    position: relative;
+    overflow: hidden;
+    border-bottom: 1px solid var(--line);
 }
 
 .logo-row:last-child {
-  border-bottom: 0;
+    border-bottom: 0;
 }
 
 .logo-row:nth-child(even) .logo-track {
-  animation-duration: 50s;
+    animation-duration: 50s;
 }
 
 .logo-track {
-  display: flex;
-  width: max-content;
-  animation: logoForward 38s linear infinite;
+    display: flex;
+    width: max-content;
+    animation: logoForward 38s linear infinite;
 }
 
 .logo-grid {
-  display: flex;
-  flex: none;
-  width: max-content;
-  border: 0;
+    display: flex;
+    flex: none;
+    width: max-content;
+    border: 0;
 }
 
 .logo-grid img {
-  width: 190px;
-  height: 96px;
-  padding: 18px 36px;
-  object-fit: contain;
-  border-right: 1px solid var(--line);
-  transition: opacity .35s, transform .35s;
+    width: 190px;
+    height: 96px;
+    padding: 18px 36px;
+    object-fit: contain;
+    border-right: 1px solid var(--line);
+    transition: opacity .35s, transform .35s;
 }
 
 .logo-grid img:hover {
-  opacity: .9;
-  transform: scale(1.04);
+    opacity: .9;
+    transform: scale(1.04);
 }
 
 @keyframes logoForward {
-  to { transform: translateX(-50%); }
+    to {
+        transform: translateX(-50%);
+    }
 }
 
 .logo-row:hover .logo-track {
-  animation-play-state: paused;
+    animation-play-state: paused;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .logo-track,
-  .routes { animation-play-state: paused; }
+    .logo-track,
+    .routes {
+        animation-play-state: paused;
+    }
 
-  /* reveal 标记本身无视觉影响；动画由 GSAP initRevealAnimations 检测偏好后跳过 */
-  .glass-spot { animation: none; }
+    /* reveal 标记本身无视觉影响；动画由 GSAP initRevealAnimations 检测偏好后跳过 */
+    .glass-spot {
+        animation: none;
+    }
 }
 
 @media (max-width: 560px) {
-  .section { padding: 88px 0; }
-  .site-header,
-  .header-inner { height: 68px; }
-  .mobile-nav { top: 68px; }
-  .hero {
-    height: 100svh;
-    min-height: 640px;
-    max-height: none;
-    align-items: flex-start;
-  }
-  .hero-content { padding-top: 145px; }
-  .hero h1 { font-size: 52px; }
-  .hero-copy { font-size: 15px; }
-  .hero-bottom { bottom: 25px; }
-  .hero-bottom span:last-child { display: none; }
-  .world-map { overflow: auto; }
-  .world-map svg { width: 820px; min-width: 820px; }
-  .map-legend {
-    position: relative;
-    left: auto;
-    bottom: auto;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px 18px;
-  }
-  .map-tip-hint { width: 100%; }
-  .logo-grid img {
-    width: 130px;
-    height: 72px;
-    padding: 12px 18px;
-  }
-  .logo-fade { width: 60px; }
-  .logo-track { animation-duration: 26s; }
+    .section {
+        padding: 88px 0;
+    }
+
+    .site-header,
+    .header-inner {
+        height: 68px;
+    }
+
+    .mobile-nav {
+        top: 68px;
+    }
+
+    .hero {
+        height: 100svh;
+        min-height: 640px;
+        max-height: none;
+        align-items: flex-start;
+    }
+
+    .hero-content {
+        padding-top: 145px;
+    }
+
+    .hero h1 {
+        font-size: 52px;
+    }
+
+    .hero-copy {
+        font-size: 15px;
+    }
+
+    .hero-bottom {
+        bottom: 25px;
+    }
+
+    .hero-bottom span:last-child {
+        display: none;
+    }
+
+    .world-map {
+        overflow: auto;
+    }
+
+    .world-map svg {
+        width: 820px;
+        min-width: 820px;
+    }
+
+    .map-legend {
+        position: relative;
+        left: auto;
+        bottom: auto;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px 18px;
+    }
+
+    .map-tip-hint {
+        width: 100%;
+    }
+
+    .logo-grid img {
+        width: 130px;
+        height: 72px;
+        padding: 12px 18px;
+    }
+
+    .logo-fade {
+        width: 60px;
+    }
+
+    .logo-track {
+        animation-duration: 26s;
+    }
 }
 
 /* Company news cards: one consistent, image-led layout. */
-.news-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-.news-card {
-  display: flex;
-  flex-direction: column;
-  min-height: 440px;
-  border: 0;
-  color: inherit;
-  text-decoration: none;
-  transition: none;
+.news-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
 }
-.news-card:hover { border: 0; transform: none; box-shadow: none; }
-.news-card .news-photo { height: 220px; flex: none; }
-.news-card .news-photo { border: 0; outline: 0; box-shadow: none; }
-.news-photo--uk { background-image: url('https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=1000&q=85'); }
-.news-photo--factory { background-image: url('https://images.unsplash.com/photo-1565610222536-ef125c59da2e?auto=format&fit=crop&w=1000&q=85'); }
-.news-photo--product { background-image: url('https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&w=1000&q=85'); }
-.news-card-body { position: relative; flex: 1; padding: 25px 28px 54px; }
-.news-card-body h3 { margin: 13px 0 11px; }
-.news-card-body span { right: 28px; bottom: 20px; }
-@media (max-width: 900px) { .news-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .news-card { min-height: 410px; } }
-@media (max-width: 560px) { .news-grid { grid-template-columns: 1fr; } .news-card { min-height: 0; } }
+
+.news-card {
+    display: flex;
+    flex-direction: column;
+    min-height: 440px;
+    border: 0;
+    color: inherit;
+    text-decoration: none;
+    transition: none;
+}
+
+.news-card:hover {
+    border: 0;
+    transform: none;
+    box-shadow: none;
+}
+
+.news-card .news-photo {
+    height: 220px;
+    flex: none;
+}
+
+.news-card .news-photo {
+    border: 0;
+    outline: 0;
+    box-shadow: none;
+}
+
+.news-photo--uk {
+    background-image: url('https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=1000&q=85');
+}
+
+.news-photo--factory {
+    background-image: url('https://images.unsplash.com/photo-1565610222536-ef125c59da2e?auto=format&fit=crop&w=1000&q=85');
+}
+
+.news-photo--product {
+    background-image: url('https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&w=1000&q=85');
+}
+
+.news-card-body {
+    position: relative;
+    flex: 1;
+    padding: 25px 28px 54px;
+}
+
+.news-card-body h3 {
+    margin: 13px 0 11px;
+}
+
+.news-card-body span {
+    right: 28px;
+    bottom: 20px;
+}
+
+@media (max-width: 900px) {
+    .news-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .news-card {
+        min-height: 410px;
+    }
+}
+
+@media (max-width: 560px) {
+    .news-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .news-card {
+        min-height: 0;
+    }
+}

@@ -28,8 +28,21 @@
                     <img class="detail-media-image" th:src="${product.detailImageUrls[0]}" th:alt="${product.title}"/>
                     <img class="detail-media-image detail-media-image-next" th:src="${product.detailImageUrls[0]}"
                          th:alt="${product.title}" aria-hidden="true"/>
-                    <button class="detail-media-prev" type="button" aria-label="上一张详情图片"><span>‹</span></button>
-                    <button class="detail-media-next" type="button" aria-label="下一张详情图片"><span>›</span></button>
+                    <button class="detail-media-prev" type="button" aria-label="上一张详情图片">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <polyline points="15 6 9 12 15 18"></polyline>
+                        </svg>
+                    </button>
+                    <button class="detail-media-next" type="button" aria-label="下一张详情图片">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <polyline points="9 6 15 12 9 18"></polyline>
+                        </svg>
+                    </button>
+                    <div class="detail-media-counter" data-media-counter aria-live="polite">
+                        <span data-media-current>1</span>
+                        <i></i>
+                        <span data-media-total>1</span>
+                    </div>
                 </div>
                 <div class="detail-media-thumbs" role="tablist" aria-label="产品详情图片">
                     <button class="detail-media-thumb" th:each="image, stat : ${product.detailImageUrls}" type="button"
