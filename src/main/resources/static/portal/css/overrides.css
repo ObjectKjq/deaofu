@@ -8,7 +8,7 @@
 }
 
 .map-point {
-    cursor: help;
+    cursor: pointer;
     transition: r 0.2s, fill 0.2s;
 }
 
