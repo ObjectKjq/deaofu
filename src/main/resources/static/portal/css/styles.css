@@ -944,6 +944,10 @@ img, svg {
     color: #8fa2a8
 }
 
+.footer-col a {
+    width: fit-content
+}
+
 .footer-social {
     margin-top: 28px
 }

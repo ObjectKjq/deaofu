@@ -1,208 +1,234 @@
 <!doctype html>
 <html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <meta name="description" content="德奥福汽车玻璃厂有限公司，专业制造公交车、客车及商用车玻璃和汽车配件，产品远销全球60多个国家。" />
-  <meta name="keywords" content="公交车玻璃,客车挡风玻璃,商用车玻璃,汽车配件,DEAOFU,德奥福" />
-  <title>DEAOFU 德奥福 | 全球公交玻璃制造商</title>
-  <link rel="stylesheet" th:href="@{/portal/vendor/fonts/fonts.css}" />
-  <link rel="stylesheet" th:href="@{/portal/css/styles.css}" />
-  <link rel="stylesheet" th:href="@{/portal/css/overrides.css}" />
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta name="description"
+          content="德奥福汽车玻璃厂有限公司，专业制造公交车、客车及商用车玻璃和汽车配件，产品远销全球60多个国家。"/>
+    <meta name="keywords" content="公交车玻璃,客车挡风玻璃,商用车玻璃,汽车配件,DEAOFU,德奥福"/>
+    <title>DEAOFU 德奥福 | 全球公交玻璃制造商</title>
+    <link rel="stylesheet" th:href="@{/portal/vendor/fonts/fonts.css}"/>
+    <link rel="stylesheet" th:href="@{/portal/css/styles.css}"/>
+    <link rel="stylesheet" th:href="@{/portal/css/overrides.css}"/>
 </head>
 <body class="home-page">
-  <div class="progress"></div>
-  <div th:replace="~{portal/fragments :: header('home')}"></div>
-  <main>
+<div class="progress"></div>
+<div th:replace="~{portal/fragments :: header('home')}"></div>
+<main>
     <section class="hero" id="home">
-      <div class="hero-image"></div>
-      <div class="hero-overlay"></div>
-      <i class="glass-spot glass-spot--hero" aria-hidden="true"></i>
-      <div class="hero-content">
-        <p class="kicker light">DEAOFU · BUS GLASS MANUFACTURER</p>
-        <h1>让每一次出发<br /><em>清晰而安全</em></h1>
-        <p class="hero-copy">高品质商用车与工业车辆层压玻璃<br />从中国工厂，服务全球每一段旅程。</p>
-        <div class="hero-buttons">
-          <a class="button button-primary" th:href="@{/products}">探索产品 <span>↗</span></a>
-          <a class="button button-light" th:href="@{/contact}">联系我们</a>
+        <div class="hero-image"></div>
+        <div class="hero-overlay"></div>
+        <i class="glass-spot glass-spot--hero" aria-hidden="true"></i>
+        <div class="hero-content">
+            <p class="kicker light">DEAOFU · BUS GLASS MANUFACTURER</p>
+            <h1>让每一次出发<br/><em>清晰而安全</em></h1>
+            <p class="hero-copy">高品质商用车与工业车辆层压玻璃<br/>从中国工厂，服务全球每一段旅程。</p>
+            <div class="hero-buttons">
+                <a class="button button-primary" th:href="@{/products}">探索产品 <span>↗</span></a>
+                <a class="button button-light" th:href="@{/contact}">联系我们</a>
+            </div>
         </div>
-      </div>
-      <div class="hero-bottom"><span>SCROLL TO EXPLORE</span><i></i><span>全球公交玻璃供应商</span></div>
+        <div class="hero-bottom"><span>SCROLL TO EXPLORE</span><i></i><span>全球公交玻璃供应商</span></div>
     </section>
 
     <section class="intro section" id="about">
-      <span class="hairline hairline--top" aria-hidden="true"></span>
-      <div class="container intro-grid">
-        <div class="section-label"><span>01</span><i></i><b>关于德奥福</b></div>
-        <div>
-          <p class="kicker">ABOUT DEAOFU</p>
-          <h2>专注一片玻璃，<br /><em>守护更多远方。</em></h2>
-          <p class="lead">德奥福汽车玻璃厂有限公司专注于为全球市场制造高品质公交挡风玻璃及汽车配件。我们亲自设计、制造每一块玻璃，以严格的质量控制、精准的工艺和可靠的交付，成为全球客户值得信赖的长期伙伴。</p>
-          <a class="text-link" th:href="@{/about}">了解我们的工厂 <span>→</span></a>
+        <span class="hairline hairline--top" aria-hidden="true"></span>
+        <div class="container intro-grid">
+            <div class="section-label"><span>01</span><i></i><b>关于德奥福</b></div>
+            <div>
+                <p class="kicker">ABOUT DEAOFU</p>
+                <h2>专注一片玻璃，<br/><em>守护更多远方。</em></h2>
+                <p class="lead">
+                    德奥福汽车玻璃厂有限公司专注于为全球市场制造高品质公交挡风玻璃及汽车配件。我们亲自设计、制造每一块玻璃，以严格的质量控制、精准的工艺和可靠的交付，成为全球客户值得信赖的长期伙伴。</p>
+                <a class="text-link" th:href="@{/about}">了解我们的工厂 <span>→</span></a>
+            </div>
+            <div class="intro-stats">
+                <div><strong data-count="60">0</strong><span>+</span>
+                    <p>出口国家</p></div>
+                <div><strong data-count="15">0</strong><span>年</span>
+                    <p>行业经验</p></div>
+                <div><strong data-count="24">0</strong><span>h</span>
+                    <p>快速响应</p></div>
+            </div>
         </div>
-        <div class="intro-stats">
-          <div><strong data-count="60">0</strong><span>+</span><p>出口国家</p></div>
-          <div><strong data-count="15">0</strong><span>年</span><p>行业经验</p></div>
-          <div><strong data-count="24">0</strong><span>h</span><p>快速响应</p></div>
-        </div>
-      </div>
     </section>
 
     <section class="products section" id="products">
-      <span class="hairline hairline--top" aria-hidden="true"></span>
-      <div class="container">
-        <div class="section-head">
-          <div><p class="kicker">PRODUCT CENTER</p><h2>为移动出行而生的<br /><em>完整玻璃方案。</em></h2></div>
-          <a class="text-link" th:href="@{/products}">查看全部产品 <span>→</span></a>
-        </div>
-        <div class="product-grid">
-          <a class="product-card" th:each="item, stat : ${products}" th:classappend="${stat.first} ? ' product-large'" th:href="@{/product/{id}(id=${item.productId})}">
-            <div class="product-photo" role="img" th:aria-label="${item.title}" th:style="${item.coverUrl != null} ? 'background-image:url(' + ${item.coverUrl} + ')'"></div>
-            <div class="product-info">
-              <span th:text="${#numbers.formatInteger(stat.count, 2, 'NONE') + ' / ' + (item.parentCategoryName != null ? item.parentCategoryName : item.categoryName)}"></span>
-              <h3 th:text="${item.title}"></h3>
-              <p th:text="${item.summary}"></p>
-              <b>了解产品 ↗</b>
+        <span class="hairline hairline--top" aria-hidden="true"></span>
+        <div class="container">
+            <div class="section-head">
+                <div><p class="kicker">PRODUCT CENTER</p>
+                    <h2>为移动出行而生的<br/><em>完整玻璃方案。</em></h2></div>
+                <a class="text-link" th:href="@{/products}">查看全部产品 <span>→</span></a>
             </div>
-          </a>
+            <div class="product-grid">
+                <a class="product-card" th:each="item, stat : ${products}"
+                   th:classappend="${stat.first} ? ' product-large'" th:href="@{/product/{id}(id=${item.productId})}">
+                    <div class="product-photo" role="img" th:aria-label="${item.title}"
+                         th:style="${item.coverUrl != null} ? 'background-image:url(' + ${item.coverUrl} + ')'"></div>
+                    <div class="product-info">
+                        <span th:text="${#numbers.formatInteger(stat.count, 2, 'NONE') + ' / ' + (item.parentCategoryName != null ? item.parentCategoryName : item.categoryName)}"></span>
+                        <h3 th:text="${item.title}"></h3>
+                        <p th:text="${item.summary}"></p>
+                        <b>了解产品 ↗</b>
+                    </div>
+                </a>
+            </div>
         </div>
-      </div>
     </section>
 
     <section class="capability section">
-      <i class="glass-spot glass-spot--capability" aria-hidden="true"></i>
-      <div class="container capability-grid">
-        <div>
-          <p class="kicker">WHY DEAOFU</p>
-          <h2>从设计到交付，<br /><em>每个细节都重要。</em></h2>
-          <p class="lead">我们直接从工厂为客户提供服务，没有中间商。先进设备、成熟工艺与国际认证，让每一块玻璃都经得起真实道路的检验。</p>
-          <div class="feature-list">
-            <div><span>01</span><p><b>定制开发</b><small>支持复杂弧形及不同车型的 OEM 定制。</small></p></div>
-            <div><span>02</span><p><b>严格质检</b><small>符合 ECE R43、DOT、CCC 等国际标准。</small></p></div>
-            <div><span>03</span><p><b>全球交付</b><small>稳定包装与运输，准时抵达客户工厂。</small></p></div>
-          </div>
+        <i class="glass-spot glass-spot--capability" aria-hidden="true"></i>
+        <div class="container capability-grid">
+            <div>
+                <p class="kicker">WHY DEAOFU</p>
+                <h2>从设计到交付，<br/><em>每个细节都重要。</em></h2>
+                <p class="lead">
+                    我们直接从工厂为客户提供服务，没有中间商。先进设备、成熟工艺与国际认证，让每一块玻璃都经得起真实道路的检验。</p>
+                <div class="feature-list">
+                    <div><span>01</span>
+                        <p><b>定制开发</b><small>支持复杂弧形及不同车型的 OEM 定制。</small></p></div>
+                    <div><span>02</span>
+                        <p><b>严格质检</b><small>符合 ECE R43、DOT、CCC 等国际标准。</small></p></div>
+                    <div><span>03</span>
+                        <p><b>全球交付</b><small>稳定包装与运输，准时抵达客户工厂。</small></p></div>
+                </div>
+            </div>
+            <div class="factory-image">
+                <div class="image-caption"><b>FACTORY TO ROAD</b><span>河南 · 中国 / 生产现场</span></div>
+            </div>
         </div>
-        <div class="factory-image">
-          <div class="image-caption"><b>FACTORY TO ROAD</b><span>河南 · 中国 / 生产现场</span></div>
-        </div>
-      </div>
     </section>
 
     <section class="logistics section" id="global-delivery">
-      <span class="hairline hairline--top" aria-hidden="true"></span>
-      <div class="container">
-        <div class="section-head">
-          <div><p class="kicker">GLOBAL DELIVERY</p><h2>从中国出发，<br /><em>连接世界。</em></h2></div>
-          <p class="section-note">我们的公交玻璃正在服务欧洲、南美、亚洲、中东及更多地区的公交制造商与零部件分销商。</p>
+        <span class="hairline hairline--top" aria-hidden="true"></span>
+        <div class="container">
+            <div class="section-head">
+                <div><p class="kicker">GLOBAL DELIVERY</p>
+                    <h2>从中国出发，<br/><em>连接世界。</em></h2></div>
+                <p class="section-note">
+                    我们的公交玻璃正在服务欧洲、南美、亚洲、中东及更多地区的公交制造商与零部件分销商。</p>
+            </div>
+            <div class="world-map" id="worldMap">
+                <div class="map-tooltip" id="mapTooltip" role="status"></div>
+                <svg viewBox="0 0 1200 460" aria-label="德奥福全球运输路线图">
+                    <defs>
+                        <pattern id="gridPattern" width="40" height="40" patternUnits="userSpaceOnUse">
+                            <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#e7eef0" stroke-width="0.5"/>
+                        </pattern>
+                        <radialGradient id="dotGradient" cx="50%" cy="50%" r="50%">
+                            <stop offset="0%" stop-color="#d9a767"/>
+                            <stop offset="100%" stop-color="#c79c5b"/>
+                        </radialGradient>
+                        <radialGradient id="originGradient" cx="50%" cy="50%" r="50%">
+                            <stop offset="0%" stop-color="#0d5d83"/>
+                            <stop offset="100%" stop-color="#063b59"/>
+                        </radialGradient>
+                    </defs>
+                    <rect width="1200" height="460" fill="url(#gridPattern)"/>
+                    <!-- 国家轮廓（由 main.js 注入 world-countries.js 数据） -->
+                    <g class="countries" id="countryPaths"></g>
+                    <!-- 物流路线（服务端按 transport_route 与国家坐标预计算） -->
+                    <g class="routes">
+                        <path th:each="route : ${routes}" th:attr="d=${route.pathD}"
+                              th:aria-label="${route.sourceName + ' → ' + route.targetName}"/>
+                    </g>
+                    <!-- 国家位置标记 -->
+                    <g class="map-points">
+                        <circle class="map-point origin-point" th:attr="data-country=${mapOrigin.name}"
+                                th:cx="${mapOrigin.x}" th:cy="${mapOrigin.y}" r="9"/>
+                        <circle class="map-point" th:each="point : ${mapTargets}" th:attr="data-country=${point.name}"
+                                th:cx="${point.x}" th:cy="${point.y}" r="6"/>
+                    </g>
+                    <!-- 国家名称标签 -->
+                    <g class="map-labels">
+                        <text th:x="${mapOrigin.labelX}" th:y="${mapOrigin.labelY}" th:text="${mapOrigin.name}"></text>
+                        <text th:each="point : ${mapTargets}" th:x="${point.labelX}" th:y="${point.labelY}"
+                              th:text="${point.name}"></text>
+                    </g>
+                </svg>
+                <div class="map-legend">
+                    <span><i class="dot origin"></i>生产基地</span><span><i
+                        class="dot destination"></i>服务国家</span><span class="map-tip-hint">悬停热点查看国家</span>
+                </div>
+            </div>
         </div>
-        <div class="world-map" id="worldMap">
-          <div class="map-tooltip" id="mapTooltip" role="status"></div>
-          <svg viewBox="0 0 1200 460" aria-label="德奥福全球运输路线图">
-            <defs>
-              <pattern id="gridPattern" width="40" height="40" patternUnits="userSpaceOnUse">
-                <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#e7eef0" stroke-width="0.5" />
-              </pattern>
-              <radialGradient id="dotGradient" cx="50%" cy="50%" r="50%">
-                <stop offset="0%" stop-color="#d9a767" />
-                <stop offset="100%" stop-color="#c79c5b" />
-              </radialGradient>
-              <radialGradient id="originGradient" cx="50%" cy="50%" r="50%">
-                <stop offset="0%" stop-color="#0d5d83" />
-                <stop offset="100%" stop-color="#063b59" />
-              </radialGradient>
-            </defs>
-            <rect width="1200" height="460" fill="url(#gridPattern)" />
-            <!-- 国家轮廓（由 main.js 注入 world-countries.js 数据） -->
-            <g class="countries" id="countryPaths"></g>
-            <!-- 物流路线（服务端按 transport_route 与国家坐标预计算） -->
-            <g class="routes">
-              <path th:each="route : ${routes}" th:attr="d=${route.pathD}" th:aria-label="${route.sourceName + ' → ' + route.targetName}" />
-            </g>
-            <!-- 国家位置标记 -->
-            <g class="map-points">
-              <circle class="map-point origin-point" th:attr="data-country=${mapOrigin.name}" th:cx="${mapOrigin.x}" th:cy="${mapOrigin.y}" r="9" />
-              <circle class="map-point" th:each="point : ${mapTargets}" th:attr="data-country=${point.name}" th:cx="${point.x}" th:cy="${point.y}" r="6" />
-            </g>
-            <!-- 国家名称标签 -->
-            <g class="map-labels">
-              <text th:x="${mapOrigin.labelX}" th:y="${mapOrigin.labelY}" th:text="${mapOrigin.name}"></text>
-              <text th:each="point : ${mapTargets}" th:x="${point.labelX}" th:y="${point.labelY}" th:text="${point.name}"></text>
-            </g>
-          </svg>
-          <div class="map-legend">
-            <span><i class="dot origin"></i>生产基地</span><span><i class="dot destination"></i>服务国家</span><span class="map-tip-hint">悬停热点查看国家</span>
-          </div>
-        </div>
-      </div>
     </section>
 
     <section class="trust section">
-      <span class="hairline hairline--top" aria-hidden="true"></span>
-      <div class="container">
-        <p class="kicker center">TRUSTED PARTNERS</p>
-        <h2 class="center-title">被全球伙伴信赖</h2>
-        <div class="logo-marquee">
-          <div class="logo-fade logo-fade-left" aria-hidden="true"></div>
-          <div class="logo-fade logo-fade-right" aria-hidden="true"></div>
-          <div class="logo-rows">
-            <div class="logo-row" th:if="${!#lists.isEmpty(partnerRowTop)}">
-              <div class="logo-track">
-                <div class="logo-grid">
-                  <img th:each="partner : ${partnerRowTop}" th:src="${partner.logoUrl}" th:alt="${partner.companyName}" loading="lazy" />
+        <span class="hairline hairline--top" aria-hidden="true"></span>
+        <div class="container">
+            <p class="kicker center">TRUSTED PARTNERS</p>
+            <h2 class="center-title">被全球伙伴信赖</h2>
+            <div class="logo-marquee">
+                <div class="logo-fade logo-fade-left" aria-hidden="true"></div>
+                <div class="logo-fade logo-fade-right" aria-hidden="true"></div>
+                <div class="logo-rows">
+                    <div class="logo-row" th:if="${!#lists.isEmpty(partnerRowTop)}">
+                        <div class="logo-track">
+                            <div class="logo-grid">
+                                <img th:each="partner : ${partnerRowTop}" th:src="${partner.logoUrl}"
+                                     th:alt="${partner.companyName}" loading="lazy"/>
+                            </div>
+                            <div class="logo-grid" aria-hidden="true">
+                                <img th:each="partner : ${partnerRowTop}" th:src="${partner.logoUrl}" alt=""
+                                     loading="lazy"/>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="logo-row" th:if="${!#lists.isEmpty(partnerRowBottom)}">
+                        <div class="logo-track">
+                            <div class="logo-grid">
+                                <img th:each="partner : ${partnerRowBottom}" th:src="${partner.logoUrl}"
+                                     th:alt="${partner.companyName}" loading="lazy"/>
+                            </div>
+                            <div class="logo-grid" aria-hidden="true">
+                                <img th:each="partner : ${partnerRowBottom}" th:src="${partner.logoUrl}" alt=""
+                                     loading="lazy"/>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="logo-grid" aria-hidden="true">
-                  <img th:each="partner : ${partnerRowTop}" th:src="${partner.logoUrl}" alt="" loading="lazy" />
-                </div>
-              </div>
             </div>
-            <div class="logo-row" th:if="${!#lists.isEmpty(partnerRowBottom)}">
-              <div class="logo-track">
-                <div class="logo-grid">
-                  <img th:each="partner : ${partnerRowBottom}" th:src="${partner.logoUrl}" th:alt="${partner.companyName}" loading="lazy" />
-                </div>
-                <div class="logo-grid" aria-hidden="true">
-                  <img th:each="partner : ${partnerRowBottom}" th:src="${partner.logoUrl}" alt="" loading="lazy" />
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
-      </div>
     </section>
 
     <section class="news section" id="news">
-      <div class="container">
-        <div class="section-head">
-          <div><p class="kicker">LATEST NEWS</p><h2>公司动态</h2></div>
-          <a class="text-link" th:href="@{/news}">查看全部动态 <span>→</span></a>
-        </div>
-        <div class="news-grid">
-          <a class="news-item news-card" th:each="item, stat : ${news}" th:classappend="${stat.first} ? ' news-feature'" th:href="@{/news/{id}(id=${item.newsId})}">
-            <div class="news-photo" role="img" th:aria-label="${item.title}" th:style="${item.coverUrl != null} ? 'background-image:url(' + ${item.coverUrl} + ')'"></div>
-            <div class="news-card-body">
-              <small th:text="${(#lists.isEmpty(item.tags) ? '公司动态' : item.tags[0].tagName) + ' · ' + #dates.format(item.createTime, 'yyyy.MM')}"></small>
-              <h3 th:text="${item.title}"></h3>
-              <p th:text="${item.summary}"></p>
+        <div class="container">
+            <div class="section-head">
+                <div><p class="kicker">LATEST NEWS</p>
+                    <h2>公司动态</h2></div>
+                <a class="text-link" th:href="@{/news}">查看全部动态 <span>→</span></a>
             </div>
-          </a>
+            <div class="news-grid">
+                <a class="news-item news-card" th:each="item, stat : ${news}"
+                   th:classappend="${stat.first} ? ' news-feature'" th:href="@{/news/{id}(id=${item.newsId})}">
+                    <div class="news-photo" role="img" th:aria-label="${item.title}"
+                         th:style="${item.coverUrl != null} ? 'background-image:url(' + ${item.coverUrl} + ')'"></div>
+                    <div class="news-card-body">
+                        <small th:text="${(#lists.isEmpty(item.tags) ? '公司动态' : item.tags[0].tagName) + ' · ' + #dates.format(item.createTime, 'yyyy.MM')}"></small>
+                        <h3 th:text="${item.title}"></h3>
+                        <p th:text="${item.summary}"></p>
+                    </div>
+                </a>
+            </div>
         </div>
-      </div>
     </section>
 
     <section class="contact-banner" id="contact">
-      <div class="container contact-inner">
-        <div>
-          <p class="kicker light">LET'S WORK TOGETHER</p>
-          <h2>准备好为您的下一段旅程<br /><em>选择更好的玻璃了吗？</em></h2>
+        <div class="container contact-inner">
+            <div>
+                <p class="kicker light">LET'S WORK TOGETHER</p>
+                <h2>准备好为您的下一段旅程<br/><em>选择更好的玻璃了吗？</em></h2>
+            </div>
+            <a class="button button-primary" th:href="@{/contact}">联系我们 <span>↗</span></a>
         </div>
-        <a class="button button-primary" th:href="@{/contact}">联系我们 <span>↗</span></a>
-      </div>
     </section>
-  </main>
-  <div th:replace="~{portal/fragments :: footer}"></div>
-  <script th:src="@{/portal/vendor/gsap/gsap.min.js}"></script>
-  <script th:src="@{/portal/vendor/gsap/ScrollTrigger.min.js}"></script>
-  <script th:src="@{/portal/js/world-countries.js}"></script>
-  <script th:src="@{/portal/js/main.js}"></script>
+</main>
+<div th:replace="~{portal/fragments :: footer}"></div>
+<script th:src="@{/portal/vendor/gsap/gsap.min.js}"></script>
+<script th:src="@{/portal/vendor/gsap/ScrollTrigger.min.js}"></script>
+<script th:src="@{/portal/js/world-countries.js}"></script>
+<script th:src="@{/portal/js/main.js}"></script>
 </body>
 </html>

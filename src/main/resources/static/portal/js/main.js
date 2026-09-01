@@ -142,6 +142,18 @@
                 document.querySelectorAll('.product-filter a').forEach((a) => {
                     a.classList.toggle('is-active', a.getAttribute('href') === targetKey);
                 });
+                // 同步懒加载需要的筛选属性（grid.innerHTML 只换子节点，自身属性不会自动更新）。
+                // 不刷新这些属性，lazy-load.js 仍会按旧 categoryId/keyword/tagId 请求下一页。
+                ['data-lazy-category-id', 'data-lazy-keyword', 'data-lazy-tag-id', 'data-lazy-template'].forEach((attr) => {
+                    if (newGrid.hasAttribute(attr)) {
+                        grid.setAttribute(attr, newGrid.getAttribute(attr));
+                    } else {
+                        grid.removeAttribute(attr);
+                    }
+                });
+                // 通知懒加载模块：分页状态归零、footer 重新隐藏、按需预触发一次加载。
+                grid.dispatchEvent(new CustomEvent('lazy-grid:reset'));
+
                 if (push) window.history.pushState({}, '', targetKey);
             } catch (err) {
                 /* 降级：获取失败时回退到整页跳转 */

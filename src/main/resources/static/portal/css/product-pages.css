@@ -274,3 +274,51 @@ body.product-page .page-main { padding-top: 82px; }
   .detail-spec-row { grid-template-columns: 92px 1fr; gap: 12px; }
   .related-card img { width: 100px; }
 }
+
+/* ----- 列表页无限滚动加载样式（产品中心 / 公司动态共用） ----- */
+.lazy-sentinel {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 28px 0 12px;
+  color: var(--ink-muted, #6c7a80);
+  font-size: 13px;
+}
+
+.lazy-sentinel[hidden] { display: none; }
+
+.lazy-spinner {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid rgba(0, 0, 0, .08);
+  border-top-color: var(--blue, #1f6feb);
+  animation: lazy-spin 0.85s linear infinite;
+}
+
+.lazy-spinner[hidden] { display: none; }
+
+@keyframes lazy-spin {
+  to { transform: rotate(360deg); }
+}
+
+.lazy-end {
+  grid-column: 1 / -1;
+  text-align: center;
+  color: var(--ink-muted, #6c7a80);
+  font-size: 13px;
+  padding: 36px 0 12px;
+}
+
+.lazy-end[hidden] { display: none; }
+
+/* 列表页加载期间隐藏 footer，避免用户提前看到页脚 */
+body[data-lazy-loading] footer.footer,
+body[data-lazy-loading] .site-footer,
+footer.footer[data-lazy-loading],
+.site-footer[data-lazy-loading] {
+  display: none !important;
+}
+

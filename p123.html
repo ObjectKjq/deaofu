@@ -1,16 +1,25 @@
 <!doctype html>
-<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
-<body>
-<header class="site-header" th:fragment="header(active)">
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta name="description" content="DEAOFU 德奥福产品中心，公交车玻璃及商用车汽车配件，支持 OEM 定制与全球交付。"/>
+    <title>产品中心 | DEAOFU 德奥福</title>
+    <link rel="stylesheet" href="/portal/vendor/fonts/fonts.css"/>
+    <link rel="stylesheet" href="/portal/css/styles.css"/>
+    <link rel="stylesheet" href="/portal/css/product-pages.css"/>
+</head>
+<body class="product-page">
+<header class="site-header">
     <div class="header-inner">
-        <a class="brand" th:href="@{/}"><span
+        <a class="brand" href="/"><span
                 class="brand-mark">D</span><span><b>DEAOFU</b><small>BUS GLASS</small></span></a>
         <nav class="desktop-nav" aria-label="主导航">
-            <a th:classappend="${active == 'home'} ? ' active'" th:href="@{/}">首页</a>
-            <a th:classappend="${active == 'about'} ? ' active'" th:href="@{/about}">关于我们</a>
-            <a th:classappend="${active == 'products'} ? ' active'" th:href="@{/products}">产品中心</a>
-            <a th:classappend="${active == 'news'} ? ' active'" th:href="@{/news}">公司动态</a>
-            <a th:classappend="${active == 'contact'} ? ' active'" th:href="@{/contact}">联系我们</a>
+            <a href="/">首页</a>
+            <a href="/about">关于我们</a>
+            <a href="/products" class=" active">产品中心</a>
+            <a href="/news">公司动态</a>
+            <a href="/contact">联系我们</a>
         </nav>
         <div class="header-actions">
             <a href="#" id="langToggle">中 / EN</a>
@@ -18,17 +27,70 @@
         <button class="menu-toggle" id="menuToggle" aria-label="打开菜单"><i></i><i></i><i></i></button>
     </div>
     <nav class="mobile-nav" id="mobileNav" aria-label="移动端主导航">
-        <a th:href="@{/}">首页</a>
-        <a th:href="@{/about}">关于我们</a>
-        <a th:href="@{/products}">产品中心</a>
-        <a th:href="@{/news}">公司动态</a>
-        <a th:href="@{/contact}">联系我们</a>
+        <a href="/">首页</a>
+        <a href="/about">关于我们</a>
+        <a href="/products">产品中心</a>
+        <a href="/news">公司动态</a>
+        <a href="/contact">联系我们</a>
     </nav>
 </header>
-<footer class="footer" th:fragment="footer">
+<main class="page-main">
+    <section class="container products-layout">
+        <aside class="product-filter" aria-label="产品筛选">
+            <h2>筛选产品</h2>
+            <div class="filter-groups">
+                <a class="filter-all" href="/products">全部产品</a>
+                <div class="filter-group is-collapsed">
+                    <button class="filter-group-title" type="button" aria-expanded="false"
+                            aria-controls="filter-options-0">ad</button>
+                    <div class="filter-options" id="filter-options-0">
+                        <a class="filter-option" href="/products?categoryId=a952c84adbfe2d0acbb8b195e7cf4837">safd</a><a class="filter-option" href="/products?categoryId=c89c387b54c7ecfd47b5295640caf50f">adf</a>
+                    </div>
+                </div>
+                <div class="filter-group is-collapsed">
+                    <button class="filter-group-title" type="button" aria-expanded="false"
+                            aria-controls="filter-options-1">1dsaf</button>
+                    <div class="filter-options" id="filter-options-1">
+                        <a class="filter-option" href="/products?categoryId=52ff57b57a5e868ed94f223bf9f5e110">123</a>
+                    </div>
+                </div>
+                
+                
+                
+            </div>
+        </aside>
+        <div class="product-results">
+            <div class="product-results-tools">
+                <form class="product-search" id="productSearchForm" role="search" action="/products" method="get">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                        <circle cx="11" cy="11" r="7"></circle>
+                        <path d="m20 20-4-4"></path>
+                    </svg>
+                    <input id="productSearch" type="search" name="keyword" placeholder="搜索产品名称、类别或关键词"
+                           autocomplete="off" aria-label="搜索产品名称、类别或关键词" value=""/>
+                    <button type="submit">搜索</button>
+                </form>
+            </div>
+            <div class="product-results-head">
+                <h2 id="resultTitle">全部产品</h2>
+                <p>点击产品卡片查看规格、应用与询价方式</p>
+            </div>
+            <div class="product-grid-page" id="productGrid"
+                 data-lazy-grid
+                 data-lazy-url="/api/products"
+                 data-lazy-size="9" data-lazy-category-id="123">
+                
+                <div class="catalog-empty"><strong>没有找到匹配的产品</strong>请尝试更换关键词或筛选条件。
+                </div>
+                
+            </div>
+        </div>
+    </section>
+</main>
+<footer class="footer">
     <div class="container footer-top">
         <div class="footer-brand">
-            <a class="brand" th:href="@{/}"><span class="brand-mark">D</span><span><b>DEAOFU</b><small>BUS GLASS</small></span>
+            <a class="brand" href="/"><span class="brand-mark">D</span><span><b>DEAOFU</b><small>BUS GLASS</small></span>
             </a>
             <p>高品质商用车玻璃与汽车配件<br>服务全球每一段旅程。</p>
             <div class="footer-social" aria-label="官方社交账号">
@@ -68,10 +130,10 @@
             </div>
         </div>
         <div class="footer-col"><b>快速链接</b>
-            <a th:href="@{/about}">关于我们</a>
-            <a th:href="@{/products}">产品中心</a>
-            <a th:href="@{/news}">公司动态</a>
-            <a th:href="@{/contact}">联系我们</a>
+            <a href="/about">关于我们</a>
+            <a href="/products">产品中心</a>
+            <a href="/news">公司动态</a>
+            <a href="/contact">联系我们</a>
         </div>
         <div class="footer-col contact-col"><b>联系我们</b>
             <a href="mailto:dafbusglass@163.com">dafbusglass@163.com</a>
@@ -81,5 +143,9 @@
     <div class="container footer-bottom"><span>© 2026 DEAOFU Auto Glass. All rights reserved.</span><span>ECE R43 · DOT · ISO9001 · CCC · IATF 16949</span>
     </div>
 </footer>
+<script src="/portal/vendor/gsap/gsap.min.js"></script>
+<script src="/portal/vendor/gsap/ScrollTrigger.min.js"></script>
+<script src="/portal/js/main.js"></script>
+<script src="/portal/js/lazy-load.js"></script>
 </body>
 </html>

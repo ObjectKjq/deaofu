@@ -1,6 +1,7 @@
 package com.deaofu.controller.portal;
 
 import com.deaofu.common.BaseResponse;
+import com.deaofu.common.PageResult;
 import com.deaofu.common.ResultUtils;
 import com.deaofu.enums.CountryEnum;
 import com.deaofu.model.dto.AdminPageDto;
@@ -35,6 +36,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import cn.hutool.core.util.StrUtil;
@@ -72,6 +74,9 @@ public class PortalController {
 
     /** 公开标签图标路径前缀。 */
     private static final String PUBLIC_TAG_ICON_PREFIX = "/files/news-tags/";
+
+    /** 官网前台滚动加载页大小，每屏 9 张卡片。 */
+    private static final int PORTAL_PAGE_SIZE = 9;
 
     private final IProductService productService;
     private final IProductCategoryService categoryService;
@@ -126,7 +131,7 @@ public class PortalController {
      */
     @GetMapping("/products")
     public String products(AdminPageDto query, Model model) {
-        normalize(query, 12);
+        normalize(query, PORTAL_PAGE_SIZE);
         model.addAttribute("categories", categoryService.listCategories());
         model.addAttribute("products", productService.pageProducts(query).getList().stream()
                 .map(this::toProductVo).toList());
@@ -168,7 +173,7 @@ public class PortalController {
      */
     @GetMapping("/news")
     public String news(AdminPageDto query, Model model) {
-        normalize(query, 12);
+        normalize(query, PORTAL_PAGE_SIZE);
         model.addAttribute("tags", newsTagService.listTags().stream().map(this::toTagVo).toList());
         model.addAttribute("news", newsService.pageNews(query).getList().stream()
                 .map(this::toNewsVo).toList());
@@ -222,6 +227,55 @@ public class PortalController {
     public BaseResponse<Boolean> consultation(@Valid @RequestBody ConsultationSaveDto dto) {
         consultationService.addConsultation(dto);
         return ResultUtils.success(Boolean.TRUE);
+    }
+
+    /**
+     * GET /api/products：官网前台产品分页JSON接口，供前端无限滚动加载使用。
+     * <p>支持 {@code categoryId}（二级分类）与 {@code keyword} 筛选，固定页大小 {@value #PORTAL_PAGE_SIZE}。
+     *
+     * @param pageNum    页码，从1开始，缺省1
+     * @param categoryId 二级分类ID，可空
+     * @param keyword    关键字，可空
+     * @return 当前页的产品列表与总量
+     */
+    @GetMapping("/api/products")
+    @ResponseBody
+    public BaseResponse<PageResult<PortalProductVo>> productsApi(
+            @RequestParam(value = "pageNum", required = false) Integer pageNum,
+            @RequestParam(value = "categoryId", required = false) String categoryId,
+            @RequestParam(value = "keyword", required = false) String keyword
+    ) {
+        AdminPageDto query = new AdminPageDto();
+        query.setPageNum(pageNum == null || pageNum < 1 ? 1 : pageNum);
+        query.setPageSize(PORTAL_PAGE_SIZE);
+        query.setCategoryId(categoryId);
+        query.setKeyword(keyword);
+        PageResult<ProductVo> page = productService.pageProducts(query);
+        List<PortalProductVo> list = page.getList().stream().map(this::toProductVo).toList();
+        return ResultUtils.success(new PageResult<>(list, page.getTotal()));
+    }
+
+    /**
+     * GET /api/news：官网前台公司动态分页JSON接口，供前端无限滚动加载使用。
+     * <p>支持 {@code tagId} 筛选，固定页大小 {@value #PORTAL_PAGE_SIZE}。
+     *
+     * @param pageNum 页码，从1开始，缺省1
+     * @param tagId   标签ID，可空
+     * @return 当前页的动态列表与总量
+     */
+    @GetMapping("/api/news")
+    @ResponseBody
+    public BaseResponse<PageResult<CompanyNewsVo>> newsApi(
+            @RequestParam(value = "pageNum", required = false) Integer pageNum,
+            @RequestParam(value = "tagId", required = false) String tagId
+    ) {
+        AdminPageDto query = new AdminPageDto();
+        query.setPageNum(pageNum == null || pageNum < 1 ? 1 : pageNum);
+        query.setPageSize(PORTAL_PAGE_SIZE);
+        query.setTagId(tagId);
+        PageResult<CompanyNewsVo> page = newsService.pageNews(query);
+        List<CompanyNewsVo> list = page.getList().stream().map(this::toNewsVo).toList();
+        return ResultUtils.success(new PageResult<>(list, page.getTotal()));
     }
 
     /**
@@ -416,11 +470,10 @@ public class PortalController {
      * @param size  默认页容量
      */
     private void normalize(AdminPageDto query, int size) {
-        if (query.getPageNum() == null) {
+        // 强制使用前台滚动加载的页大小，避免 AdminPageDto 默认值干扰
+        if (query.getPageNum() == null || query.getPageNum() < 1) {
             query.setPageNum(1);
         }
-        if (query.getPageSize() == null) {
-            query.setPageSize(size);
-        }
+        query.setPageSize(size);
     }
 }

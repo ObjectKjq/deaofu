@@ -687,13 +687,18 @@ public class XxxController {
   - `50000-50999`：业务异常。
 - 必要时新增 `XxxException` + `GlobalExceptionHandler` 处理项。
 
-### 步骤 9：结束
+### 步骤 9：启动验证
 
-代码完成后不需要启动验证。
+1. 在项目根目录运行`mvn clean package -DskipTests`进行打包构建。
+2. 在项目根目录运行`C:\Users\EDY\.jdks\ms-17.0.20\bin\java.exe -jar target\deaofu-0.0.1-SNAPSHOT.jar`启动项目
+3. 访问前台官网首页地址是`http://127.0.0.1:8080/`
+4. 访问后台地址`http://127.0.0.1:8080/admin`，如果没有登录会跳转登录页（用户名：admin，密码：ax./sx762），如果已经登录会跳转到产品管理页面（管理后台首页）
+5. 然后验证修改的正确性。
+6. 验证成功后关闭运行的程序，防止和我外部运行的程序冲突。
 
 ---
 
-## 6. Agent 协作约定
+## 7. Agent 协作约定
 
 - **不修改生成产物**：不要编辑 `target/` 下任何文件；删除 / 重命名时优先用 IDE 安全重构。
 - **尊重现有示例**：在骨架尚未填充业务模块时。
