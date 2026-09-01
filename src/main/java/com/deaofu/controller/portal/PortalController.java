@@ -57,12 +57,6 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class PortalController {
 
-    /** 地图上生产基地（中国周口工厂）在 viewBox 0 0 1200 460 中的 X 坐标。 */
-    private static final int ORIGIN_X = 963;
-
-    /** 地图上生产基地（中国周口工厂）在 viewBox 0 0 1200 460 中的 Y 坐标。 */
-    private static final int ORIGIN_Y = 170;
-
     /** 管理端文件预览路径前缀，模板渲染前统一替换为公开路径。 */
     private static final String ADMIN_PREVIEW_PREFIX = "/admin/sys-file/preview/";
 
@@ -103,7 +97,7 @@ public class PortalController {
         Map<String, PortalMapPointVo> targets = new LinkedHashMap<>();
         routes.forEach(route -> targets.putIfAbsent(route.getTargetName(),
                 point("服务国家: " + route.getTargetName(), route.getTargetX(), route.getTargetY())));
-        model.addAttribute("mapOrigin", point("中国 · 周口工厂", ORIGIN_X, ORIGIN_Y));
+        model.addAttribute("mapOrigin", point("中国 · 周口工厂", CountryEnum.CN.getX(), CountryEnum.CN.getY()));
         model.addAttribute("mapTargets", targets.values());
         model.addAttribute("routes", routes);
         // 合作企业 Logo 墙：平均拆分上下两行
@@ -338,8 +332,8 @@ public class PortalController {
             return null;
         }
         boolean cnSource = CountryEnum.CN.getCode().equals(source.getCode());
-        int sx = cnSource ? ORIGIN_X : source.getX();
-        int sy = cnSource ? ORIGIN_Y : source.getY();
+        int sx = cnSource ? CountryEnum.CN.getX() : source.getX();
+        int sy = cnSource ? CountryEnum.CN.getY() : source.getY();
         int tx = target.getX();
         int ty = target.getY();
         PortalRouteVo vo = new PortalRouteVo();
