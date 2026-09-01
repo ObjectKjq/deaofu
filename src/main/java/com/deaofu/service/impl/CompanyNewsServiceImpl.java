@@ -65,7 +65,10 @@ public class CompanyNewsServiceImpl extends ServiceImpl<CompanyNewsMapper, Compa
                         .like(CompanyNews::getTitle, dto.getKeyword())
                         .or().like(CompanyNews::getProjectRegion, dto.getKeyword()))
                 .in(CollUtil.isNotEmpty(filteredNewsIds), CompanyNews::getNewsId, filteredNewsIds)
-                .orderByDesc(CompanyNews::getCreateTime)
+                .eq(dto.getHomeShow() != null && dto.getHomeShow() == 0, CompanyNews::getHomeShowOrder, 0)
+                .gt(dto.getHomeShow() != null && dto.getHomeShow() == 1, CompanyNews::getHomeShowOrder, 0)
+                .orderByDesc(dto.getHomeShow() != null && dto.getHomeShow() == 1, CompanyNews::getHomeShowOrder)
+                .orderByDesc(dto.getHomeShow() == null || dto.getHomeShow() == 0, CompanyNews::getCreateTime)
                 .page(new Page<>(dto.getPageNum(), dto.getPageSize()));
         Map<String, List<NewsTagVo>> tagsByNews = loadTags(page.getRecords().stream()
                 .map(CompanyNews::getNewsId).toList());
@@ -139,6 +142,17 @@ public class CompanyNewsServiceImpl extends ServiceImpl<CompanyNewsMapper, Compa
         entity.setHomeShowOrder(order);
         updateById(entity);
         return getNews(newsId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<CompanyNewsVo> listHomeNews() {
+        Page<CompanyNews> page = lambdaQuery().gt(CompanyNews::getHomeShowOrder, 0)
+                .orderByDesc(CompanyNews::getHomeShowOrder)
+                .page(new Page<>(1, 3));
+        Map<String, List<NewsTagVo>> tagsByNews = loadTags(page.getRecords().stream().map(CompanyNews::getNewsId).toList());
+        Map<String, SysUser> users = loadUserMap(page.getRecords().stream().map(CompanyNews::getCreateBy).filter(Objects::nonNull).distinct().toList());
+        return page.getRecords().stream().map(item -> toVo(item, tagsByNews.getOrDefault(item.getNewsId(), Collections.emptyList()), users)).toList();
     }
 
     private void validateTags(List<String> tagIds) {

@@ -44,7 +44,10 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
         Page<Product> page = lambdaQuery()
                 .like(StrUtil.isNotBlank(dto.getKeyword()), Product::getTitle, dto.getKeyword())
                 .eq(StrUtil.isNotBlank(dto.getCategoryId()), Product::getCategoryId, dto.getCategoryId())
-                .orderByDesc(Product::getCreateTime)
+                .eq(dto.getHomeShow() != null && dto.getHomeShow() == 0, Product::getHomeShowOrder, 0)
+                .gt(dto.getHomeShow() != null && dto.getHomeShow() == 1, Product::getHomeShowOrder, 0)
+                .orderByDesc(dto.getHomeShow() != null && dto.getHomeShow() == 1, Product::getHomeShowOrder)
+                .orderByDesc(dto.getHomeShow() == null || dto.getHomeShow() == 0, Product::getCreateTime)
                 .page(new Page<>(dto.getPageNum(), dto.getPageSize()));
         Map<String, ProductCategory> categories = loadCategoryMap();
         Map<String, SysUser> users = loadUserMap(page.getRecords().stream().map(Product::getCreateBy).filter(Objects::nonNull).distinct().toList());
@@ -98,6 +101,17 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
         entity.setHomeShowOrder(order);
         updateById(entity);
         return getProduct(productId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ProductVo> listHomeProducts() {
+        Page<Product> page = lambdaQuery().gt(Product::getHomeShowOrder, 0)
+                .orderByDesc(Product::getHomeShowOrder)
+                .page(new Page<>(1, 5));
+        Map<String, ProductCategory> categories = loadCategoryMap();
+        Map<String, SysUser> users = loadUserMap(page.getRecords().stream().map(Product::getCreateBy).filter(Objects::nonNull).distinct().toList());
+        return page.getRecords().stream().map(item -> toVo(item, categories, users)).toList();
     }
 
     private void validateReferences(ProductSaveDto dto) {

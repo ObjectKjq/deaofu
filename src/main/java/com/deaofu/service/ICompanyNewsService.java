@@ -4,6 +4,7 @@ import com.deaofu.common.PageResult;
 import com.deaofu.model.dto.AdminPageDto;
 import com.deaofu.model.dto.CompanyNewsSaveDto;
 import com.deaofu.model.vo.CompanyNewsVo;
+import java.util.List;
 
 /** 公司动态管理业务接口。 */
 public interface ICompanyNewsService {
@@ -19,4 +20,6 @@ public interface ICompanyNewsService {
     boolean deleteNews(String newsId);
     /** 设置动态官网首页展示顺序，0表示取消展示。 */
     CompanyNewsVo updateHomeShowOrder(String newsId, Integer order);
+    /** 查询官网首页展示动态，按展示顺序倒序返回，最多3条。 */
+    List<CompanyNewsVo> listHomeNews();
 }

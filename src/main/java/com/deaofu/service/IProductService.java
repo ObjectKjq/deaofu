@@ -4,6 +4,7 @@ import com.deaofu.common.PageResult;
 import com.deaofu.model.dto.AdminPageDto;
 import com.deaofu.model.dto.ProductSaveDto;
 import com.deaofu.model.vo.ProductVo;
+import java.util.List;
 
 /** 产品管理业务接口。 */
 public interface IProductService {
@@ -19,4 +20,6 @@ public interface IProductService {
     boolean deleteProduct(String productId);
     /** 设置产品官网首页展示顺序，0表示取消展示。 */
     ProductVo updateHomeShowOrder(String productId, Integer order);
+    /** 查询官网首页展示产品，按展示顺序倒序返回，最多5条。 */
+    List<ProductVo> listHomeProducts();
 }

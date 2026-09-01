@@ -114,9 +114,9 @@ public class PortalController {
         model.addAttribute("partnerRowBottom", partners.subList(half, partners.size()));
         // 产品分类（两级）与推荐产品、最新动态
         model.addAttribute("categories", categoryService.listCategories());
-        model.addAttribute("products", productService.pageProducts(page(1, 4)).getList().stream()
+        model.addAttribute("products", productService.listHomeProducts().stream()
                 .map(this::toProductVo).toList());
-        model.addAttribute("news", newsService.pageNews(page(1, 3)).getList().stream()
+        model.addAttribute("news", newsService.listHomeNews().stream()
                 .map(this::toNewsVo).toList());
         return "portal/index";
     }

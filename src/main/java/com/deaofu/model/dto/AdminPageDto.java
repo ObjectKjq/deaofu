@@ -28,4 +28,7 @@ public class AdminPageDto extends PageDomain {
 
     /** 动态标签筛选ID，仅公司动态分页使用。 */
     private String tagId;
+
+    /** 首页展示筛选：1表示首页展示内容，0表示普通内容，空表示全部。 */
+    private Integer homeShow;
 }
