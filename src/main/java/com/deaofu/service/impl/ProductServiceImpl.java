@@ -87,6 +87,19 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
         return removeById(productId);
     }
 
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public ProductVo updateHomeShowOrder(String productId, Integer order) {
+        if (order == null || order < 0 || order > 5) throw new BusinessException(ErrorCode.PARAMS_ERROR, "首页产品顺序必须为0-5");
+        Product entity = requireProduct(productId);
+        if (order > 0) {
+            lambdaUpdate().eq(Product::getHomeShowOrder, order).ne(Product::getProductId, productId).set(Product::getHomeShowOrder, 0).update();
+        }
+        entity.setHomeShowOrder(order);
+        updateById(entity);
+        return getProduct(productId);
+    }
+
     private void validateReferences(ProductSaveDto dto) {
         ProductCategory category = productCategoryMapper.selectById(dto.getCategoryId());
         if (category == null || StrUtil.isBlank(category.getParentId())) {
@@ -144,6 +157,7 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
         vo.setTitle(entity.getTitle());
         vo.setSummary(entity.getSummary());
         vo.setParameters(GsonUtils.fromJsonList(entity.getSpecs(), ProductParameterVo.class));
+        vo.setHomeShowOrder(entity.getHomeShowOrder() == null ? 0 : entity.getHomeShowOrder());
         SysUser creator = users.get(entity.getCreateBy());
         // createBy 库中存的是 userId，对外展示为用户名
         vo.setCreateBy(creator == null ? entity.getCreateBy() : creator.getUsername());

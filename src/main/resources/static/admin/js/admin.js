@@ -344,7 +344,7 @@
             const page = await request(`${API}/${endpoints[module]}/page?${params}`);
             const list = page.list || [];
             const total = page.total || 0;
-            root.querySelector('[data-list]').innerHTML = list.length ? list.map(row => rowHtml(module, row)).join('') : `<tr><td class="empty-state" colspan="${module === 'products' ? 9 : module === 'news' ? 9 : module === 'consultations' ? 7 : module === 'users' ? 6 : 8}">暂无数据</td></tr>`;
+            root.querySelector('[data-list]').innerHTML = list.length ? list.map(row => rowHtml(module, row)).join('') : `<tr><td class="empty-state" colspan="${module === 'products' ? 10 : module === 'news' ? 10 : module === 'consultations' ? 7 : module === 'users' ? 6 : 8}">暂无数据</td></tr>`;
             bindRows(module, root, list);
             bindProductPreviews(module, root, list);
             bindCategoryToggle(module, root, list);
@@ -358,13 +358,13 @@
             const showView = module === 'consultations';
             const showContent = module === 'news';
             const showEditDelete = module !== 'consultations';
-            return `<div class="action-list">${showView ? button('view', '查看') : ''}${showContent ? button('view-content', '查看正文') : ''}${module === 'users' ? button('change-password', '修改密码') : ''}${showEditDelete ? button('edit', '编辑') + button('delete', '删除', 'danger') : ''}</div>`;
+            return `<div class="action-list">${showView ? button('view', '查看') : ''}${showContent ? button('view-content', '查看正文') : ''}${(module === 'products' || module === 'news') ? button('homepage-order', '设置首页') : ''}${module === 'users' ? button('change-password', '修改密码') : ''}${showEditDelete ? button('edit', '编辑') + button('delete', '删除', 'danger') : ''}</div>`;
         };
         if (module === 'products') {
             const params = x.parameters || [];
             const detailImages = x.detailImages || [];
             const creator = x.createBy || '-';
-            return `<tr data-id="${x.productId}"><td><div class="item-title"><span>${escapeHtml(x.title)}</span></div></td><td>${escapeHtml([x.parentCategoryName, x.categoryName].filter(Boolean).join(' / ') || '-')}</td><td>${image(x.coverUrl, 'thumb thumb-zoomable')}</td><td class="ellipsis">${escapeHtml(x.summary || '-')}</td><td>${params.length ? `<span class="param-summary" title="点击查看全部参数">查看参数（${params.length}）</span>` : '-'}</td><td>${detailImages.length ? `<span class="image-summary">查看图片（${detailImages.length}）</span>` : '-'}</td><td>${escapeHtml(creator)}</td><td>${time(x.createTime)}</td><td class="align-right">${actions()}</td></tr>`;
+            return `<tr data-id="${x.productId}"><td><div class="item-title"><span>${escapeHtml(x.title)}</span></div></td><td>${escapeHtml([x.parentCategoryName, x.categoryName].filter(Boolean).join(' / ') || '-')}</td><td>${image(x.coverUrl, 'thumb thumb-zoomable')}</td><td class="ellipsis">${escapeHtml(x.summary || '-')}</td><td>${params.length ? `<span class="param-summary">查看参数（${params.length}）</span>` : '-'}</td><td>${detailImages.length ? `<span class="image-summary">查看图片（${detailImages.length}）</span>` : '-'}</td><td>${escapeHtml(creator)}</td><td>${time(x.createTime)}</td><td>${x.homeShowOrder || 0}</td><td class="align-right">${actions()}</td></tr>`;
         }
         if (module === 'categories') {
             if (x.level === 2) return `<tr data-id="${x.categoryId}" class="category-child-row"><td><div class="cell-collapse"><span class="tree-name"><i class="tree-indent">└</i>${escapeHtml(x.categoryName)}</span></div></td><td><div class="cell-collapse"><span class="level-badge">${escapeHtml(x.level === 1 ? '一级分类' : '二级分类')}</span></div></td><td><div class="cell-collapse">${escapeHtml(x.parentName || '-')}</div></td><td><div class="cell-collapse">${x.sortOrder ?? 0}</div></td><td><div class="cell-collapse">${time(x.createTime)}</div></td><td><div class="cell-collapse">${actions()}</div></td></tr>`;
@@ -379,7 +379,7 @@
             return `<tr data-id="${x.routeId}"><td>${escapeHtml(country(x.sourceAddress))}</td><td class="route-arrow">&#8594;</td><td>${escapeHtml(country(x.targetAddress))}</td><td>${time(x.updateTime)}</td><td>${actions()}</td></tr>`;
         }
         if (module === 'partners') return `<tr data-id="${x.partnerId}"><td>${image(x.logoUrl, 'logo-thumb logo-zoomable')}</td><td>${escapeHtml(x.companyName)}</td><td>${time(x.createTime)}</td><td>${time(x.updateTime)}</td><td>${actions()}</td></tr>`;
-        if (module === 'news') return `<tr data-id="${x.newsId}"><td>${image(x.coverUrl, 'thumb thumb-zoomable news-cover')}</td><td><div class="item-title"><span>${escapeHtml(x.title)}</span></div></td><td>${(x.tags || []).map(t => `<span class="tag">${escapeHtml(t.tagName)}</span>`).join('') || '-'}</td><td class="ellipsis">${escapeHtml(x.summary || '-')}</td><td>${escapeHtml(x.projectRegion || '-')}</td><td>${escapeHtml(x.contactEmail || '-')}</td><td>${escapeHtml(x.createBy || '-')}</td><td>${time(x.createTime)}</td><td>${actions()}</td></tr>`;
+        if (module === 'news') return `<tr data-id="${x.newsId}"><td>${image(x.coverUrl, 'thumb thumb-zoomable news-cover')}</td><td><div class="item-title"><span>${escapeHtml(x.title)}</span></div></td><td>${(x.tags || []).map(t => `<span class="tag">${escapeHtml(t.tagName)}</span>`).join('') || '-'}</td><td class="ellipsis">${escapeHtml(x.summary || '-')}</td><td>${escapeHtml(x.projectRegion || '-')}</td><td>${escapeHtml(x.contactEmail || '-')}</td><td>${escapeHtml(x.createBy || '-')}</td><td>${time(x.createTime)}</td><td>${x.homeShowOrder || 0}</td><td>${actions()}</td></tr>`;
         if (module === 'tags') return `<tr data-id="${x.tagId}"><td>${image(x.iconUrl, 'tag-icon logo-zoomable')}</td><td><b>${escapeHtml(x.tagName)}</b></td><td>${time(x.createTime)}</td><td class="align-right">${actions()}</td></tr>`;
         if (module === 'users') return `<tr data-id="${x.userId}"><td>${escapeHtml(x.username)}</td><td>${escapeHtml(x.displayName || '-')}</td><td><span class="status-badge ${x.status === '0' ? 'is-enabled' : 'is-disabled'}">${escapeHtml(x.statusText || '-')}</span></td><td>${time(x.createTime)}</td><td>${time(x.updateTime)}</td><td class="align-right">${actions()}</td></tr>`;
         return `<tr data-id="${x.consultationId}"><td>${escapeHtml(x.contactName)}</td><td>${escapeHtml(x.phone || '-')}</td><td>${escapeHtml(x.email || '-')}</td><td>${(x.subjects || []).map(s => `<span class="tag">${escapeHtml(s)}</span>`).join('')}</td><td class="ellipsis">${escapeHtml(x.content)}</td><td>${time(x.createTime)}</td><td>${actions()}</td></tr>`;
@@ -403,6 +403,10 @@
         }
         if (action === 'edit') {
             openEditor(module, id);
+            return;
+        }
+        if (action === 'homepage-order') {
+            openHomepageOrderEditor(module, id, row.querySelector('td:nth-last-child(2)')?.textContent.trim() || '0');
             return;
         }
         if (action === 'change-password') {
@@ -745,6 +749,20 @@
         const title = `动态正文 - ${escapeHtml(x.title || '')}`;
         const body = `<div class="news-content-viewer">${x.content || '<div class="empty-state">暂无正文</div>'}</div>`;
         modal(title, body, '<button class="layui-btn" type="button" data-close>关闭</button>', 'news').querySelector('[data-close]')?.addEventListener('click', closeModal);
+    };
+    const openHomepageOrderEditor = (module, id, currentOrder) => {
+        const max = module === 'products' ? 5 : 3;
+        const label = module === 'products' ? '产品' : '动态';
+        const body = `<div class="homepage-order-editor"><div class="layui-form-item homepage-order-field"><label class="layui-form-label">展示顺序</label><div class="layui-input-block"><input class="layui-input" type="number" name="homeShowOrder" min="0" max="${max}" step="1" value="${Number(currentOrder) || 0}" autofocus><div class="layui-form-mid layui-word-aux">请输入 0-${max}，输入 0 表示取消首页展示</div></div></div></div>`;
+        const panel = modal(`设置${label}首页展示`, body, '<button class="layui-btn layui-btn-primary" type="button" data-close>取消</button><button class="layui-btn" type="button" data-save-home>保存设置</button>', module);
+        const input = panel.querySelector('[name="homeShowOrder"]');
+        panel.querySelector('[data-close]')?.addEventListener('click', closeModal);
+        panel.querySelector('[data-save-home]')?.addEventListener('click', async () => {
+            const order = Number(input.value);
+            if (!Number.isInteger(order) || order < 0 || order > max) { input.focus(); notify(`顺序必须为0-${max}的整数`); return; }
+            try { await request(`${API}/${endpoints[module]}/${id}/homepage-order`, {method: 'PUT', body: JSON.stringify(order)}); closeModal(); renderModule(module, workspace.querySelector('.module-page')); } catch (error) { notify(error.message); }
+        });
+        setTimeout(() => input?.focus(), 60);
     };
     const openPasswordEditor = userId => {
         const passwordField = (label, name, autocomplete) => `<div class="layui-form-item"><label class="layui-form-label">${label}</label><div class="layui-input-block"><input type="password" name="${name}" autocomplete="${autocomplete}" class="layui-input"></div></div>`;

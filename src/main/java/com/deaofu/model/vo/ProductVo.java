@@ -31,6 +31,8 @@ public class ProductVo {
     private String summary;
     /** 产品参数列表。 */
     private List<ProductParameterVo> parameters;
+    /** 官网首页展示顺序，0表示不展示，1-5表示展示顺序。 */
+    private Integer homeShowOrder;
     /** 创建人用户名（数据库存 userId，接口层已转换为用户名）。 */
     private String createBy;
     /** 创建时间，格式 {@code yyyy-MM-dd HH:mm:ss}。 */

@@ -128,6 +128,19 @@ public class CompanyNewsServiceImpl extends ServiceImpl<CompanyNewsMapper, Compa
         return removeById(newsId);
     }
 
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public CompanyNewsVo updateHomeShowOrder(String newsId, Integer order) {
+        if (order == null || order < 0 || order > 3) throw new BusinessException(ErrorCode.PARAMS_ERROR, "首页动态顺序必须为0-3");
+        CompanyNews entity = requireNews(newsId);
+        if (order > 0) {
+            lambdaUpdate().eq(CompanyNews::getHomeShowOrder, order).ne(CompanyNews::getNewsId, newsId).set(CompanyNews::getHomeShowOrder, 0).update();
+        }
+        entity.setHomeShowOrder(order);
+        updateById(entity);
+        return getNews(newsId);
+    }
+
     private void validateTags(List<String> tagIds) {
         if (CollUtil.isEmpty(tagIds)) {
             return;
@@ -216,6 +229,7 @@ public class CompanyNewsServiceImpl extends ServiceImpl<CompanyNewsMapper, Compa
         vo.setContent(entity.getContent());
         vo.setProjectRegion(entity.getProjectRegion());
         vo.setContactEmail(entity.getContactEmail());
+        vo.setHomeShowOrder(entity.getHomeShowOrder() == null ? 0 : entity.getHomeShowOrder());
         vo.setTags(tags);
         SysUser creator = users.get(entity.getCreateBy());
         // createBy 库中存的是 userId，对外展示为用户名

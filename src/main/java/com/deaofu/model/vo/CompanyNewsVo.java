@@ -29,6 +29,8 @@ public class CompanyNewsVo {
     private String contactEmail;
     /** 关联的动态标签列表。 */
     private List<NewsTagVo> tags;
+    /** 官网首页展示顺序，0表示不展示，1-3表示展示顺序。 */
+    private Integer homeShowOrder;
     /** 创建人用户名（数据库存 userId，接口层已转换为用户名）。 */
     private String createBy;
     /** 创建时间，格式 {@code yyyy-MM-dd HH:mm:ss}。 */

@@ -56,4 +56,10 @@ public class ProductController {
     public BaseResponse<Boolean> delete(@PathVariable String productId) {
         return ResultUtils.success(productService.deleteProduct(productId));
     }
+
+    /** PUT /admin/products/{productId}/homepage-order：设置首页展示顺序。 */
+    @PutMapping("/{productId}/homepage-order")
+    public BaseResponse<ProductVo> updateHomeShowOrder(@PathVariable String productId, @RequestBody Integer order) {
+        return ResultUtils.success(productService.updateHomeShowOrder(productId, order));
+    }
 }

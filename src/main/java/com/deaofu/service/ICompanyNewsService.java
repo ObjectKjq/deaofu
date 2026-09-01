@@ -17,4 +17,6 @@ public interface ICompanyNewsService {
     CompanyNewsVo updateNews(String newsId, CompanyNewsSaveDto dto);
     /** 删除公司动态及标签关系。 @param newsId 动态ID @return 是否成功 */
     boolean deleteNews(String newsId);
+    /** 设置动态官网首页展示顺序，0表示取消展示。 */
+    CompanyNewsVo updateHomeShowOrder(String newsId, Integer order);
 }

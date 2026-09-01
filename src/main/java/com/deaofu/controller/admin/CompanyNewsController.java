@@ -55,4 +55,10 @@ public class CompanyNewsController {
     public BaseResponse<Boolean> delete(@PathVariable String newsId) {
         return ResultUtils.success(newsService.deleteNews(newsId));
     }
+
+    /** PUT /admin/news/{newsId}/homepage-order：设置首页展示顺序。 */
+    @PutMapping("/{newsId}/homepage-order")
+    public BaseResponse<CompanyNewsVo> updateHomeShowOrder(@PathVariable String newsId, @RequestBody Integer order) {
+        return ResultUtils.success(newsService.updateHomeShowOrder(newsId, order));
+    }
 }

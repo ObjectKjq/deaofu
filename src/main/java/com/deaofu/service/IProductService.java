@@ -17,4 +17,6 @@ public interface IProductService {
     ProductVo updateProduct(String productId, ProductSaveDto dto);
     /** 逻辑删除产品。 @param productId 产品ID @return 是否删除成功 */
     boolean deleteProduct(String productId);
+    /** 设置产品官网首页展示顺序，0表示取消展示。 */
+    ProductVo updateHomeShowOrder(String productId, Integer order);
 }

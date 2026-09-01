@@ -37,4 +37,7 @@ public class CompanyNews extends BaseDo implements Serializable {
 
     /** 咨询邮箱，对应 {@code contact_email}。 */
     private String contactEmail;
+
+    /** 官网首页展示顺序，0表示不展示，1-3表示展示顺序。 */
+    private Integer homeShowOrder;
 }

@@ -37,4 +37,7 @@ public class Product extends BaseDo implements Serializable {
 
     /** 参数信息JSON数组，对应 {@code specs}。 */
     private String specs;
+
+    /** 官网首页展示顺序，0表示不展示，1-5表示展示顺序。 */
+    private Integer homeShowOrder;
 }
