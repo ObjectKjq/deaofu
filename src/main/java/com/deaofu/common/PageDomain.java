@@ -1,6 +1,8 @@
 package com.deaofu.common;
 
 import cn.hutool.core.util.StrUtil;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import lombok.Data;
 
 /**
@@ -13,12 +15,15 @@ public class PageDomain {
     /**
      * 当前记录起始索引
      */
-    private Integer pageNum;
+    @Min(value = 1, message = "页码不能小于1")
+    private Integer pageNum = 1;
 
     /**
      * 每页显示记录数
      */
-    private Integer pageSize;
+    @Min(value = 1, message = "每页数量不能小于1")
+    @Max(value = 100, message = "每页数量不能超过100")
+    private Integer pageSize = 10;
 
     /**
      * 排序列

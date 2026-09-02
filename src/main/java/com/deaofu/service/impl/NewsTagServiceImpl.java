@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.deaofu.common.ErrorCode;
 import com.deaofu.common.PageResult;
+import com.deaofu.constants.CommonConstant;
 import com.deaofu.exception.BusinessException;
 import com.deaofu.mapper.CompanyNewsTagMapper;
 import com.deaofu.mapper.NewsTagMapper;
@@ -38,6 +39,14 @@ public class NewsTagServiceImpl extends ServiceImpl<NewsTagMapper, NewsTag> impl
                         NewsTag::getCreateTime).orderByDesc(NewsTag::getCreateTime).list().stream()
                 .map(this::toVo).toList();
     }
+    @Override
+    @Transactional(readOnly = true)
+    public List<NewsTagVo> listPortalTags() {
+        return lambdaQuery().select(NewsTag::getTagId, NewsTag::getTagName, NewsTag::getIconContentType,
+                        NewsTag::getCreateTime).orderByDesc(NewsTag::getCreateTime).list().stream()
+                .map(this::toPortalVo).toList();
+    }
+
 
     @Override
     @Transactional(readOnly = true)
@@ -139,7 +148,17 @@ public class NewsTagServiceImpl extends ServiceImpl<NewsTagMapper, NewsTag> impl
         vo.setTagId(entity.getTagId());
         vo.setTagName(entity.getTagName());
         vo.setIconUrl(StrUtil.isBlank(entity.getIconContentType()) ? null
-                : "/admin/news-tags/" + entity.getTagId() + "/icon");
+                : CommonConstant.ADMIN_TAG_ICON_PREFIX + entity.getTagId() + "/icon");
+        vo.setCreateTime(entity.getCreateTime());
+        return vo;
+    }
+
+    private NewsTagVo toPortalVo(NewsTag entity) {
+        NewsTagVo vo = new NewsTagVo();
+        vo.setTagId(entity.getTagId());
+        vo.setTagName(entity.getTagName());
+        vo.setIconUrl(StrUtil.isBlank(entity.getIconContentType()) ? null
+                : CommonConstant.PUBLIC_TAG_ICON_PREFIX + entity.getTagId() + "/icon");
         vo.setCreateTime(entity.getCreateTime());
         return vo;
     }

@@ -11,15 +11,6 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = true)
 public class AdminPageDto extends PageDomain {
 
-    /** 当前页码，从1开始。 */
-    @Min(value = 1, message = "页码不能小于1")
-    private Integer pageNum = 1;
-
-    /** 每页数量，最大100条。 */
-    @Min(value = 1, message = "每页数量不能小于1")
-    @Max(value = 100, message = "每页数量不能超过100")
-    private Integer pageSize = 10;
-
     /** 模糊搜索关键字，各模块按标题、名称、地址或联系人匹配。 */
     private String keyword;
 

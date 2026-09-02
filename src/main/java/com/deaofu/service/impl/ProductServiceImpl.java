@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.deaofu.common.ErrorCode;
 import com.deaofu.common.PageResult;
+import com.deaofu.constants.CommonConstant;
 import com.deaofu.exception.BusinessException;
 import com.deaofu.mapper.ProductCategoryMapper;
 import com.deaofu.mapper.ProductMapper;
@@ -14,6 +15,7 @@ import com.deaofu.model.dto.ProductSaveDto;
 import com.deaofu.model.entity.Product;
 import com.deaofu.model.entity.ProductCategory;
 import com.deaofu.model.entity.SysUser;
+import com.deaofu.model.vo.PortalProductVo;
 import com.deaofu.model.vo.ProductParameterVo;
 import com.deaofu.model.vo.ProductVo;
 import com.deaofu.service.IProductService;
@@ -57,10 +59,33 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
 
     @Override
     @Transactional(readOnly = true)
+    public PageResult<PortalProductVo> pagePortalProducts(AdminPageDto dto) {
+        Page<Product> page = lambdaQuery()
+                .like(StrUtil.isNotBlank(dto.getKeyword()), Product::getTitle, dto.getKeyword())
+                .eq(StrUtil.isNotBlank(dto.getCategoryId()), Product::getCategoryId, dto.getCategoryId())
+                .eq(dto.getHomeShow() != null && dto.getHomeShow() == 0, Product::getHomeShowOrder, 0)
+                .gt(dto.getHomeShow() != null && dto.getHomeShow() == 1, Product::getHomeShowOrder, 0)
+                .orderByDesc(dto.getHomeShow() != null && dto.getHomeShow() == 1, Product::getHomeShowOrder)
+                .orderByDesc(dto.getHomeShow() == null || dto.getHomeShow() == 0, Product::getCreateTime)
+                .page(new Page<>(dto.getPageNum(), dto.getPageSize()));
+        Map<String, ProductCategory> categories = loadCategoryMap();
+        List<PortalProductVo> list = page.getRecords().stream().map(item -> toPortalVo(item, categories)).toList();
+        return new PageResult<>(list, page.getTotal());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public ProductVo getProduct(String productId) {
         Product entity = requireProduct(productId);
         Map<String, SysUser> users = loadUserMap(List.of(entity.getCreateBy()));
         return toVo(entity, loadCategoryMap(), users);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PortalProductVo getPortalProduct(String productId) {
+        Product entity = requireProduct(productId);
+        return toPortalVo(entity, loadCategoryMap());
     }
 
     @Override
@@ -105,13 +130,12 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
 
     @Override
     @Transactional(readOnly = true)
-    public List<ProductVo> listHomeProducts() {
+    public List<PortalProductVo> listHomeProducts() {
         Page<Product> page = lambdaQuery().gt(Product::getHomeShowOrder, 0)
                 .orderByDesc(Product::getHomeShowOrder)
                 .page(new Page<>(1, 5));
         Map<String, ProductCategory> categories = loadCategoryMap();
-        Map<String, SysUser> users = loadUserMap(page.getRecords().stream().map(Product::getCreateBy).filter(Objects::nonNull).distinct().toList());
-        return page.getRecords().stream().map(item -> toVo(item, categories, users)).toList();
+        return page.getRecords().stream().map(item -> toPortalVo(item, categories)).toList();
     }
 
     private void validateReferences(ProductSaveDto dto) {
@@ -165,9 +189,9 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
         ProductCategory parent = category == null ? null : categories.get(category.getParentId());
         vo.setParentCategoryName(parent == null ? null : parent.getCategoryName());
         vo.setCoverAccessName(entity.getCoverAccessName());
-        vo.setCoverUrl("/admin/sys-file/preview/" + entity.getCoverAccessName());
+        vo.setCoverUrl(CommonConstant.ADMIN_PREVIEW_PREFIX + entity.getCoverAccessName());
         List<String> detailImages = GsonUtils.fromJsonList(entity.getDetailImages(), String.class);
-        vo.setDetailImages(detailImages == null ? null : detailImages.stream().map(name -> "/admin/sys-file/preview/" + name).toList());
+        vo.setDetailImages(detailImages == null ? null : detailImages.stream().map(name -> CommonConstant.ADMIN_PREVIEW_PREFIX + name).toList());
         vo.setTitle(entity.getTitle());
         vo.setSummary(entity.getSummary());
         vo.setParameters(GsonUtils.fromJsonList(entity.getSpecs(), ProductParameterVo.class));
@@ -177,6 +201,25 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
         vo.setCreateBy(creator == null ? entity.getCreateBy() : creator.getUsername());
         vo.setCreateTime(entity.getCreateTime());
         vo.setUpdateTime(entity.getUpdateTime());
+        return vo;
+    }
+
+    private PortalProductVo toPortalVo(Product entity, Map<String, ProductCategory> categories) {
+        PortalProductVo vo = new PortalProductVo();
+        vo.setProductId(entity.getProductId());
+        vo.setCategoryId(entity.getCategoryId());
+        ProductCategory category = categories.get(entity.getCategoryId());
+        vo.setCategoryName(category == null ? null : category.getCategoryName());
+        ProductCategory parent = category == null ? null : categories.get(category.getParentId());
+        vo.setParentCategoryName(parent == null ? null : parent.getCategoryName());
+        vo.setCoverUrl(CommonConstant.PUBLIC_PREVIEW_PREFIX + entity.getCoverAccessName());
+        List<String> detailImages = GsonUtils.fromJsonList(entity.getDetailImages(), String.class);
+        vo.setDetailImageUrls(detailImages == null ? null : detailImages.stream().map(name -> CommonConstant.PUBLIC_PREVIEW_PREFIX + name).toList());
+        vo.setTitle(entity.getTitle());
+        vo.setSummary(entity.getSummary());
+        vo.setParameters(GsonUtils.fromJsonList(entity.getSpecs(), ProductParameterVo.class));
+        // createBy 库中存的是 userId，对外展示为用户名
+        vo.setCreateTime(entity.getCreateTime());
         return vo;
     }
 }

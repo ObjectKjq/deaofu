@@ -15,6 +15,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import static cn.hutool.core.date.DatePattern.NORM_DATETIME_PATTERN;
+
 /**
  * Gson JSON 序列化/反序列化工具类（线程安全）。
  *
@@ -34,21 +36,18 @@ import java.util.Map;
  */
 public final class GsonUtils {
 
-    /** 默认日期格式。 */
-    public static final String DATE_PATTERN = "yyyy-MM-dd HH:mm:ss";
-
     /** 紧凑输出、禁用 HTML 转义、带日期格式化的 Gson 实例。 */
     public static final Gson GSON = new GsonBuilder()
             .disableHtmlEscaping()
             .serializeNulls()
-            .setDateFormat(DATE_PATTERN)
+            .setDateFormat(NORM_DATETIME_PATTERN)
             .create();
 
     /** 带格式化输出（pretty printing）的 Gson 实例，适合日志/调试使用。 */
     public static final Gson GSON_PRETTY = new GsonBuilder()
             .disableHtmlEscaping()
             .serializeNulls()
-            .setDateFormat(DATE_PATTERN)
+            .setDateFormat(NORM_DATETIME_PATTERN)
             .setPrettyPrinting()
             .create();
 

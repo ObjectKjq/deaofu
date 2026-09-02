@@ -20,11 +20,6 @@ public final class SessionUserUtils {
         }
     }
 
-    // public static UserSessionVo getCurrentUser() {
-    //     HttpServletRequest request = currentRequest();
-    //     return request == null ? null : getCurrentUser(request);
-    // }
-
     public static UserSessionVo getCurrentUser() {
         HttpServletRequest request = currentRequest();
         if (request == null) {

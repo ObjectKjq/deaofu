@@ -5,12 +5,14 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.deaofu.common.ErrorCode;
 import com.deaofu.common.PageResult;
+import com.deaofu.constants.CommonConstant;
 import com.deaofu.exception.BusinessException;
 import com.deaofu.mapper.PartnerCompanyMapper;
 import com.deaofu.model.dto.AdminPageDto;
 import com.deaofu.model.dto.PartnerCompanySaveDto;
 import com.deaofu.model.entity.PartnerCompany;
 import com.deaofu.model.vo.PartnerCompanyVo;
+import com.deaofu.model.vo.PortalPartnerVo;
 import com.deaofu.service.IPartnerCompanyService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,6 +38,17 @@ public class PartnerCompanyServiceImpl extends ServiceImpl<PartnerCompanyMapper,
                 .orderByDesc(PartnerCompany::getCreateTime)
                 .page(new Page<>(dto.getPageNum(), dto.getPageSize()));
         List<PartnerCompanyVo> list = page.getRecords().stream().map(this::toVo).toList();
+        return new PageResult<>(list, page.getTotal());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PageResult<PortalPartnerVo> pagePortalPartners(AdminPageDto dto) {
+        Page<PartnerCompany> page = lambdaQuery()
+                .like(StrUtil.isNotBlank(dto.getKeyword()), PartnerCompany::getCompanyName, dto.getKeyword())
+                .orderByDesc(PartnerCompany::getCreateTime)
+                .page(new Page<>(dto.getPageNum(), dto.getPageSize()));
+        List<PortalPartnerVo> list = page.getRecords().stream().map(this::toPortalVo).toList();
         return new PageResult<>(list, page.getTotal());
     }
 
@@ -89,10 +102,18 @@ public class PartnerCompanyServiceImpl extends ServiceImpl<PartnerCompanyMapper,
         PartnerCompanyVo vo = new PartnerCompanyVo();
         vo.setPartnerId(entity.getPartnerId());
         vo.setLogoAccessName(entity.getLogoAccessName());
-        vo.setLogoUrl("/admin/sys-file/preview/" + entity.getLogoAccessName());
+        vo.setLogoUrl(CommonConstant.ADMIN_PREVIEW_PREFIX + entity.getLogoAccessName());
         vo.setCompanyName(entity.getCompanyName());
         vo.setCreateTime(entity.getCreateTime());
         vo.setUpdateTime(entity.getUpdateTime());
+        return vo;
+    }
+
+    private PortalPartnerVo toPortalVo(PartnerCompany entity) {
+        PortalPartnerVo vo = new PortalPartnerVo();
+        vo.setPartnerId(entity.getPartnerId());
+        vo.setLogoUrl(CommonConstant.PUBLIC_PREVIEW_PREFIX + entity.getLogoAccessName());
+        vo.setCompanyName(entity.getCompanyName());
         return vo;
     }
 }

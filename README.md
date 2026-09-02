@@ -21,8 +21,8 @@
 
 1. 在 MySQL 8+ 中创建 `deaofu` 数据库。
 2. 按文件名顺序执行 `db/` 下 SQL：
-   - `202608240001_file_storage_and_user.sql`
-   - `202608251653_insert_sys_user.sql`
+   - `20260824000100_file_storage_and_user.sql`
+   - `20260825165300_insert_sys_user.sql`
    - `20260825230000_admin_content.sql`
 3. 按需通过 `DB_URL / DB_USERNAME / DB_PASSWORD` 覆盖数据源配置。
 4. 启动后访问 `http://localhost:8080/admin/login`。

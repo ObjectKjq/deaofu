@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.deaofu.common.ErrorCode;
 import com.deaofu.common.PageResult;
+import com.deaofu.constants.CommonConstant;
 import com.deaofu.exception.BusinessException;
 import com.deaofu.mapper.CompanyNewsMapper;
 import com.deaofu.mapper.CompanyNewsTagMapper;
@@ -82,10 +83,50 @@ public class CompanyNewsServiceImpl extends ServiceImpl<CompanyNewsMapper, Compa
 
     @Override
     @Transactional(readOnly = true)
+    public PageResult<CompanyNewsVo> pagePortalNews(AdminPageDto dto) {
+        Set<String> filteredNewsIds = null;
+        if (StrUtil.isNotBlank(dto.getTagId())) {
+            filteredNewsIds = new LinkedHashSet<>(companyNewsTagMapper.selectList(
+                            Wrappers.<CompanyNewsTag>lambdaQuery().eq(CompanyNewsTag::getTagId, dto.getTagId()))
+                    .stream().map(CompanyNewsTag::getNewsId).toList());
+            if (filteredNewsIds.isEmpty()) {
+                return PageResult.empty();
+            }
+        }
+        Page<CompanyNews> page = lambdaQuery()
+                .and(StrUtil.isNotBlank(dto.getKeyword()), wrapper -> wrapper
+                        .like(CompanyNews::getTitle, dto.getKeyword())
+                        .or().like(CompanyNews::getProjectRegion, dto.getKeyword()))
+                .in(CollUtil.isNotEmpty(filteredNewsIds), CompanyNews::getNewsId, filteredNewsIds)
+                .eq(dto.getHomeShow() != null && dto.getHomeShow() == 0, CompanyNews::getHomeShowOrder, 0)
+                .gt(dto.getHomeShow() != null && dto.getHomeShow() == 1, CompanyNews::getHomeShowOrder, 0)
+                .orderByDesc(dto.getHomeShow() != null && dto.getHomeShow() == 1, CompanyNews::getHomeShowOrder)
+                .orderByDesc(dto.getHomeShow() == null || dto.getHomeShow() == 0, CompanyNews::getCreateTime)
+                .page(new Page<>(dto.getPageNum(), dto.getPageSize()));
+        Map<String, List<NewsTagVo>> tagsByNews = loadPortalTags(page.getRecords().stream()
+                .map(CompanyNews::getNewsId).toList());
+        Map<String, SysUser> users = loadUserMap(page.getRecords().stream()
+                .map(CompanyNews::getCreateBy).filter(Objects::nonNull).distinct().toList());
+        List<CompanyNewsVo> list = page.getRecords().stream()
+                .map(item -> toPortalVo(item, tagsByNews.getOrDefault(item.getNewsId(), Collections.emptyList()), users))
+                .toList();
+        return new PageResult<>(list, page.getTotal());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public CompanyNewsVo getNews(String newsId) {
         CompanyNews entity = requireNews(newsId);
         Map<String, SysUser> users = loadUserMap(List.of(entity.getCreateBy()));
         return toVo(entity, loadTags(List.of(newsId)).getOrDefault(newsId, Collections.emptyList()), users);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public CompanyNewsVo getPortalNews(String newsId) {
+        CompanyNews entity = requireNews(newsId);
+        Map<String, SysUser> users = loadUserMap(List.of(entity.getCreateBy()));
+        return toPortalVo(entity, loadPortalTags(List.of(newsId)).getOrDefault(newsId, Collections.emptyList()), users);
     }
 
     /** 批量加载创建人用户信息，key 为 userId。 */
@@ -150,9 +191,9 @@ public class CompanyNewsServiceImpl extends ServiceImpl<CompanyNewsMapper, Compa
         Page<CompanyNews> page = lambdaQuery().gt(CompanyNews::getHomeShowOrder, 0)
                 .orderByDesc(CompanyNews::getHomeShowOrder)
                 .page(new Page<>(1, 3));
-        Map<String, List<NewsTagVo>> tagsByNews = loadTags(page.getRecords().stream().map(CompanyNews::getNewsId).toList());
+        Map<String, List<NewsTagVo>> tagsByNews = loadPortalTags(page.getRecords().stream().map(CompanyNews::getNewsId).toList());
         Map<String, SysUser> users = loadUserMap(page.getRecords().stream().map(CompanyNews::getCreateBy).filter(Objects::nonNull).distinct().toList());
-        return page.getRecords().stream().map(item -> toVo(item, tagsByNews.getOrDefault(item.getNewsId(), Collections.emptyList()), users)).toList();
+        return page.getRecords().stream().map(item -> toPortalVo(item, tagsByNews.getOrDefault(item.getNewsId(), Collections.emptyList()), users)).toList();
     }
 
     private void validateTags(List<String> tagIds) {
@@ -223,12 +264,47 @@ public class CompanyNewsServiceImpl extends ServiceImpl<CompanyNewsMapper, Compa
         return result;
     }
 
+    private Map<String, List<NewsTagVo>> loadPortalTags(List<String> newsIds) {
+        Map<String, List<NewsTagVo>> result = new HashMap<>();
+        if (CollUtil.isEmpty(newsIds)) {
+            return result;
+        }
+        List<CompanyNewsTag> relations = companyNewsTagMapper.selectList(
+                Wrappers.<CompanyNewsTag>lambdaQuery().in(CompanyNewsTag::getNewsId, newsIds));
+        if (relations.isEmpty()) {
+            return result;
+        }
+        Set<String> tagIds = new LinkedHashSet<>(relations.stream().map(CompanyNewsTag::getTagId).toList());
+        Map<String, NewsTagVo> tags = new HashMap<>();
+        newsTagMapper.selectList(Wrappers.<NewsTag>lambdaQuery().in(NewsTag::getTagId, tagIds)
+                        .select(NewsTag::getTagId, NewsTag::getTagName, NewsTag::getIconContentType,
+                                NewsTag::getCreateTime))
+                .forEach(item -> tags.put(item.getTagId(), toPortalTagVo(item)));
+        relations.forEach(relation -> {
+            NewsTagVo tag = tags.get(relation.getTagId());
+            if (tag != null) {
+                result.computeIfAbsent(relation.getNewsId(), ignored -> new ArrayList<>()).add(tag);
+            }
+        });
+        return result;
+    }
+
     private NewsTagVo toTagVo(NewsTag entity) {
         NewsTagVo vo = new NewsTagVo();
         vo.setTagId(entity.getTagId());
         vo.setTagName(entity.getTagName());
         vo.setIconUrl(StrUtil.isBlank(entity.getIconContentType()) ? null
-                : "/admin/news-tags/" + entity.getTagId() + "/icon");
+                : CommonConstant.ADMIN_TAG_ICON_PREFIX + entity.getTagId() + "/icon");
+        vo.setCreateTime(entity.getCreateTime());
+        return vo;
+    }
+
+    private NewsTagVo toPortalTagVo(NewsTag entity) {
+        NewsTagVo vo = new NewsTagVo();
+        vo.setTagId(entity.getTagId());
+        vo.setTagName(entity.getTagName());
+        vo.setIconUrl(StrUtil.isBlank(entity.getIconContentType()) ? null
+                : CommonConstant.PUBLIC_TAG_ICON_PREFIX + entity.getTagId() + "/icon");
         vo.setCreateTime(entity.getCreateTime());
         return vo;
     }
@@ -237,7 +313,27 @@ public class CompanyNewsServiceImpl extends ServiceImpl<CompanyNewsMapper, Compa
         CompanyNewsVo vo = new CompanyNewsVo();
         vo.setNewsId(entity.getNewsId());
         vo.setCoverAccessName(entity.getCoverAccessName());
-        vo.setCoverUrl("/admin/sys-file/preview/" + entity.getCoverAccessName());
+        vo.setCoverUrl(CommonConstant.ADMIN_PREVIEW_PREFIX + entity.getCoverAccessName());
+        vo.setTitle(entity.getTitle());
+        vo.setSummary(entity.getSummary());
+        vo.setContent(entity.getContent());
+        vo.setProjectRegion(entity.getProjectRegion());
+        vo.setContactEmail(entity.getContactEmail());
+        vo.setHomeShowOrder(entity.getHomeShowOrder() == null ? 0 : entity.getHomeShowOrder());
+        vo.setTags(tags);
+        SysUser creator = users.get(entity.getCreateBy());
+        // createBy 库中存的是 userId，对外展示为用户名
+        vo.setCreateBy(creator == null ? entity.getCreateBy() : creator.getUsername());
+        vo.setCreateTime(entity.getCreateTime());
+        vo.setUpdateTime(entity.getUpdateTime());
+        return vo;
+    }
+
+    private CompanyNewsVo toPortalVo(CompanyNews entity, List<NewsTagVo> tags, Map<String, SysUser> users) {
+        CompanyNewsVo vo = new CompanyNewsVo();
+        vo.setNewsId(entity.getNewsId());
+        vo.setCoverAccessName(entity.getCoverAccessName());
+        vo.setCoverUrl(CommonConstant.PUBLIC_PREVIEW_PREFIX + entity.getCoverAccessName());
         vo.setTitle(entity.getTitle());
         vo.setSummary(entity.getSummary());
         vo.setContent(entity.getContent());
