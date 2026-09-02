@@ -53,6 +53,29 @@
         return body?.data;
     };
     const notify = message => layuiLayer ? layuiLayer.msg(message, {icon: 2, time: 2400}) : window.alert(message);
+    const confirmDelete = message => new Promise(resolve => {
+        if (!layuiLayer) {
+            resolve(window.confirm(message));
+            return;
+        }
+        layuiLayer.confirm(message, {
+            title: '删除确认',
+            icon: 3,
+            skin: 'layui-layer-delete-confirm',
+            btn: ['确定删除', '取消'],
+            closeBtn: 0,
+            shade: 0.28,
+            shadeClose: false,
+            resize: false,
+            success: layero => layero.attr('aria-label', '删除确认')
+        }, index => {
+            layuiLayer.close(index);
+            resolve(true);
+        }, index => {
+            layuiLayer.close(index);
+            resolve(false);
+        });
+    });
     // 图片预览遮罩层：点击任意处关闭
     const openPreview = url => {
         const mask = document.createElement('div');
@@ -393,7 +416,7 @@
         const id = row.dataset.id;
         const action = node.dataset.rowAction;
         if (action === 'delete') {
-            if (!confirm('确定删除这条记录吗？此操作无法撤销。')) return;
+            if (!await confirmDelete('确定删除这条记录吗？此操作无法撤销。')) return;
             try {
                 await request(`${API}/${endpoints[module]}/${id}`, {method: 'DELETE'});
                 renderModule(module, root);

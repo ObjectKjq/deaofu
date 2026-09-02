@@ -897,6 +897,70 @@ html.modal-page-scroll::-webkit-scrollbar {
     height: auto
 }
 
+/* 删除确认弹窗：参照 admin-prototype 的 Layui 对话框，保持后台视觉统一 */
+.layui-layer-delete-confirm {
+    border: 0 !important;
+    border-radius: 8px !important;
+    overflow: hidden;
+    box-shadow: 0 12px 34px rgba(31, 35, 41, .18) !important;
+}
+
+.layui-layer-delete-confirm .layui-layer-title {
+    height: 52px;
+    line-height: 52px;
+    padding: 0 22px;
+    border-bottom: 1px solid #f0f1f3;
+    background: #fff;
+    color: #20222a;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.layui-layer-delete-confirm .layui-layer-content {
+    min-height: 24px;
+    padding: 24px 24px 20px 52px;
+    color: #525866;
+    font-size: 14px;
+    line-height: 24px;
+}
+
+.layui-layer-delete-confirm .layui-layer-content .layui-layer-ico {
+    top: 25px;
+    left: 22px;
+    width: 20px;
+    height: 20px;
+    line-height: 20px;
+    color: #ffb800;
+}
+
+.layui-layer-delete-confirm .layui-layer-btn {
+    padding: 0 22px 20px;
+    text-align: right;
+}
+
+.layui-layer-delete-confirm .layui-layer-btn a {
+    height: 32px;
+    line-height: 30px;
+    margin: 0 0 0 10px;
+    padding: 0 16px;
+    border: 1px solid #e6e8eb;
+    border-radius: 4px;
+    background: #fff;
+    color: #525866;
+    font-size: 13px;
+}
+
+.layui-layer-delete-confirm .layui-layer-btn .layui-layer-btn0 {
+    border-color: #ff5722;
+    background: #ff5722;
+    color: #fff;
+}
+
+.layui-layer-delete-confirm .layui-layer-btn .layui-layer-btn0:hover {
+    border-color: #ff784f;
+    background: #ff784f;
+}
+
 .modal-panel {
     position: absolute !important;
     top: 60px;
