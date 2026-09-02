@@ -279,18 +279,6 @@
     box-shadow: none;
 }
 
-.news-photo--uk {
-    background-image: url('https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=1000&q=85');
-}
-
-.news-photo--factory {
-    background-image: url('https://images.unsplash.com/photo-1565610222536-ef125c59da2e?auto=format&fit=crop&w=1000&q=85');
-}
-
-.news-photo--product {
-    background-image: url('https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&w=1000&q=85');
-}
-
 .news-card-body {
     position: relative;
     flex: 1;
