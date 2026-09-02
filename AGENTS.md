@@ -500,7 +500,15 @@ String statusText = StatusEnum.getInfoByCode(user.getStatus());   // 暴露给�
 | `GET`    | `/admin/consultations/{consultationId}` | 咨询详情       | 咨询ID                | `BaseResponse<ConsultationVo>`             |
 | `POST`   | `/admin/consultations`                  | 管理端录入咨询 | `ConsultationSaveDto` | `BaseResponse<ConsultationVo>`             |
 | `PUT`    | `/admin/consultations/{consultationId}` | 修改咨询       | 咨询ID + DTO          | `BaseResponse<ConsultationVo>`             |
-| `DELETE` | `/admin/consultations/{consultationId}` | 逻辑删除咨询   | 咨询ID                | `BaseResponse<Boolean>`                    |
+| `DELETE` | `/admin/consultations/{consultationId}` | 逻辑删除咨询                       | 咨询ID                | `BaseResponse<Boolean>`                    |
+| `PUT`    | `/admin/consultations/{consultationId}/viewed` | 标记为已查看（幂等）              | 咨询ID                | `BaseResponse<ConsultationVo>`             |
+
+**注意事项**：
+
+- `ConsultationVo.viewStatus` 取值见 `com.deaofu.enums.ViewStatusEnum`（`0` 未查看、`1` 已查看），对应数据库 `consultation.view_status` 字段。
+- 分页接口默认按 `view_status ASC, create_time DESC` 排序，未查看的咨询排在前面。
+- `viewed` 接口幂等：当前已是已查看状态时不再触发更新，避免无意义的 `update_by` / `update_time` 变更。
+- 管理端列表点击"查看"按钮时，前端会自动调用 `viewed` 接口将该条标记为已查看；标记失败不影响详情弹窗。
 
 > §4.11.3 至 §4.11.12 的接口除 `/admin/login` 外均需要管理端 Session 登录态。
 

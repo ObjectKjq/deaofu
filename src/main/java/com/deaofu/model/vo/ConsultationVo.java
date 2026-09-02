@@ -1,5 +1,6 @@
 package com.deaofu.model.vo;
 
+import com.deaofu.enums.ViewStatusEnum;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 
@@ -23,6 +24,10 @@ public class ConsultationVo {
     private String phone;
     /** 联系邮箱。 */
     private String email;
+    /** 查看状态编码，取值见 {@link ViewStatusEnum}：{@code 0}未查看、{@code 1}已查看。 */
+    private String viewStatus;
+    /** 查看状态中文描述，取值见 {@link ViewStatusEnum#getInfo()}。 */
+    private String viewStatusText;
     /** 创建时间，格式 {@code yyyy-MM-dd HH:mm:ss}。 */
     @JsonFormat(pattern = NORM_DATETIME_PATTERN)
     private Date createTime;

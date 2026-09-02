@@ -344,7 +344,7 @@
             const page = await request(`${API}/${endpoints[module]}/page?${params}`);
             const list = page.list || [];
             const total = page.total || 0;
-            root.querySelector('[data-list]').innerHTML = list.length ? list.map(row => rowHtml(module, row)).join('') : `<tr><td class="empty-state" colspan="${module === 'products' ? 10 : module === 'news' ? 10 : module === 'consultations' ? 7 : module === 'users' ? 6 : 8}">暂无数据</td></tr>`;
+            root.querySelector('[data-list]').innerHTML = list.length ? list.map(row => rowHtml(module, row)).join('') : `<tr><td class="empty-state" colspan="${module === 'products' ? 10 : module === 'news' ? 10 : module === 'consultations' ? 8 : module === 'users' ? 6 : 8}">暂无数据</td></tr>`;
             bindRows(module, root, list);
             bindProductPreviews(module, root, list);
             bindCategoryToggle(module, root, list);
@@ -382,7 +382,8 @@
         if (module === 'news') return `<tr data-id="${x.newsId}"><td>${image(x.coverUrl, 'thumb thumb-zoomable news-cover')}</td><td><div class="item-title"><span>${escapeHtml(x.title)}</span></div></td><td>${(x.tags || []).map(t => `<span class="tag">${escapeHtml(t.tagName)}</span>`).join('') || '-'}</td><td class="ellipsis">${escapeHtml(x.summary || '-')}</td><td>${escapeHtml(x.projectRegion || '-')}</td><td>${escapeHtml(x.contactEmail || '-')}</td><td>${escapeHtml(x.createBy || '-')}</td><td>${time(x.createTime)}</td><td>${x.homeShowOrder || 0}</td><td>${actions()}</td></tr>`;
         if (module === 'tags') return `<tr data-id="${x.tagId}"><td>${image(x.iconUrl, 'tag-icon logo-zoomable')}</td><td><b>${escapeHtml(x.tagName)}</b></td><td>${time(x.createTime)}</td><td class="align-right">${actions()}</td></tr>`;
         if (module === 'users') return `<tr data-id="${x.userId}"><td>${escapeHtml(x.username)}</td><td>${escapeHtml(x.displayName || '-')}</td><td><span class="status-badge ${x.status === '0' ? 'is-enabled' : 'is-disabled'}">${escapeHtml(x.statusText || '-')}</span></td><td>${time(x.createTime)}</td><td>${time(x.updateTime)}</td><td class="align-right">${actions()}</td></tr>`;
-        return `<tr data-id="${x.consultationId}"><td>${escapeHtml(x.contactName)}</td><td>${escapeHtml(x.phone || '-')}</td><td>${escapeHtml(x.email || '-')}</td><td>${(x.subjects || []).map(s => `<span class="tag">${escapeHtml(s)}</span>`).join('')}</td><td class="ellipsis">${escapeHtml(x.content)}</td><td>${time(x.createTime)}</td><td>${actions()}</td></tr>`;
+        const statusBadge = x.viewStatus === '1' ? `<span class="status-badge is-enabled">${escapeHtml(x.viewStatusText || '已查看')}</span>` : `<span class="status-badge is-disabled unread">${escapeHtml(x.viewStatusText || '未查看')}</span>`;
+        return `<tr data-id="${x.consultationId}" class="${x.viewStatus === '1' ? 'is-viewed' : 'is-unviewed'}"><td>${escapeHtml(x.contactName)}</td><td>${escapeHtml(x.phone || '-')}</td><td>${escapeHtml(x.email || '-')}</td><td>${(x.subjects || []).map(s => `<span class="tag">${escapeHtml(s)}</span>`).join('')}</td><td class="ellipsis">${escapeHtml(x.content)}</td><td>${statusBadge}</td><td>${time(x.createTime)}</td><td>${actions()}</td></tr>`;
     };
     // rows 支持传 tr 行数组（如分类展开时动态插入的二级行），内部统一解析为行内的操作按钮再绑定
     const bindRows = (module, root, list, rows) => {
@@ -418,7 +419,35 @@
             openNewsContent(data);
             return;
         }
-        const idField = module === 'categories' ? 'categoryId' : module === 'tags' ? 'tagId' : module === 'consultations' ? 'consultationId' : module === 'products' ? 'productId' : module === 'routes' ? 'routeId' : module === 'partners' ? 'partnerId' : module === 'users' ? 'userId' : 'newsId';
+        if (action === 'view') {
+            // 咨询信息查看按钮：先标记为已查看，再弹出详情；标记失败不阻塞查看
+            const local = list.find(x => x.consultationId === id);
+            let data = local;
+            try {
+                if (local && local.viewStatus !== '1') {
+                    const updated = await request(`${API}/${endpoints[module]}/${id}/viewed`, {method: 'PUT'});
+                    if (updated) {
+                        local.viewStatus = updated.viewStatus;
+                        local.viewStatusText = updated.viewStatusText;
+                        // 行内状态徽标与样式实时刷新，无需重渲染整张表
+                        const rowEl = node.closest('tr');
+                        if (rowEl) {
+                            rowEl.classList.remove('is-unviewed');
+                            rowEl.classList.add('is-viewed');
+                            // 第 6 列：查看状态（联系人/手机号/邮箱/咨询主题/咨询摘要/查看状态）
+                            const badgeCell = rowEl.querySelector('td:nth-child(6)');
+                            if (badgeCell) badgeCell.innerHTML = `<span class="status-badge is-enabled">${escapeHtml(updated.viewStatusText || '已查看')}</span>`;
+                        }
+                    }
+                }
+                if (!data) data = await fetchDetail(module, id);
+                openDetail(module, data);
+            } catch (error) {
+                notify(error.message);
+            }
+            return;
+        }
+                const idField = module === 'categories' ? 'categoryId' : module === 'tags' ? 'tagId' : module === 'consultations' ? 'consultationId' : module === 'products' ? 'productId' : module === 'routes' ? 'routeId' : module === 'partners' ? 'partnerId' : module === 'users' ? 'userId' : 'newsId';
         const data = list.find(x => x[idField] === id) || await fetchDetail(module, id);
         openDetail(module, data);
         }));
@@ -740,6 +769,9 @@
         let fields = [];
         if (module === 'news') fields = [['动态标题', x.title], ['动态摘要', x.summary], ['动态标签', (x.tags || []).map(t => t.tagName).join('、') || '-'], ['项目地区', x.projectRegion || '-'], ['咨询邮箱', x.contactEmail || '-'], ['创建人', x.createBy || '-'], ['创建时间', time(x.createTime)]];
         else if (module === 'users') fields = [['登录用户名', x.username], ['显示名称', x.displayName || '-'], ['用户状态', x.statusText || '-'], ['创建人', x.createBy || '-'], ['创建时间', time(x.createTime)], ['更新时间', time(x.updateTime)]];
+        else if (module === 'consultations') {
+            fields = [['联系人', x.contactName], ['邮箱', x.email], ['电话', x.phone || '-'], ['咨询主题', (x.subjects || []).join('、')], ['咨询内容', x.content], ['查看状态', x.viewStatusText || (x.viewStatus === '1' ? '已查看' : '未查看')], ['提交时间', time(x.createTime)]];
+        }
         else fields = [['联系人', x.contactName], ['邮箱', x.email], ['电话', x.phone || '-'], ['咨询主题', (x.subjects || []).join('、')], ['咨询内容', x.content], ['提交时间', time(x.createTime)]];
         const cover = module === 'products' ? image(x.coverUrl, 'detail-cover') : module === 'partners' ? image(x.logoUrl, 'detail-cover') : module === 'news' ? image(x.coverUrl, 'detail-cover') : module === 'tags' ? image(x.iconUrl, 'detail-cover') : '';
         modal(`${moduleTitles[module]}详情`, `${cover}<dl class="detail-grid">${fields.map(([k, v]) => `<dt>${escapeHtml(k)}</dt><dd>${v ? escapeHtml(v).replace(/\n/g, '<br>') : '-'}</dd>`).join('')}</dl>`, '<button class="layui-btn" type="button" data-close>关闭</button>', module).querySelector('[data-close]')?.addEventListener('click', closeModal);
@@ -1075,3 +1107,4 @@
     initLogin();
     initShell();
 })();
+

@@ -1,9 +1,11 @@
 package com.deaofu.model.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.deaofu.common.BaseDo;
+import com.deaofu.enums.ViewStatusEnum;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -34,4 +36,10 @@ public class Consultation extends BaseDo implements Serializable {
 
     /** 联系邮箱，对应 {@code email}。 */
     private String email;
+
+    /**
+     * 查看状态，取值见 {@link ViewStatusEnum}：{@code 0}未查看、{@code 1}已查看，对应 {@code view_status}。
+     */
+    @TableField("view_status")
+    private String viewStatus;
 }

@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.deaofu.common.ErrorCode;
 import com.deaofu.common.PageResult;
+import com.deaofu.enums.ViewStatusEnum;
 import com.deaofu.exception.BusinessException;
 import com.deaofu.mapper.ConsultationMapper;
 import com.deaofu.model.dto.AdminPageDto;
@@ -34,6 +35,7 @@ public class ConsultationServiceImpl extends ServiceImpl<ConsultationMapper, Con
                         .or().like(Consultation::getEmail, dto.getKeyword())
                         .or().like(Consultation::getPhone, dto.getKeyword())
                         .or().like(Consultation::getContent, dto.getKeyword()))
+                .orderByAsc(Consultation::getViewStatus)
                 .orderByDesc(Consultation::getCreateTime)
                 .page(new Page<>(dto.getPageNum(), dto.getPageSize()));
         List<ConsultationVo> list = page.getRecords().stream().map(this::toVo).toList();
@@ -51,6 +53,8 @@ public class ConsultationServiceImpl extends ServiceImpl<ConsultationMapper, Con
     public ConsultationVo addConsultation(ConsultationSaveDto dto) {
         Consultation entity = new Consultation();
         fill(entity, dto);
+        // 客户从门户提交的新咨询默认未查看
+        entity.setViewStatus(ViewStatusEnum.UNVIEWED.getCode());
         save(entity);
         return toVo(entity);
     }
@@ -69,6 +73,18 @@ public class ConsultationServiceImpl extends ServiceImpl<ConsultationMapper, Con
     public boolean deleteConsultation(String consultationId) {
         requireConsultation(consultationId);
         return removeById(consultationId);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public ConsultationVo markAsViewed(String consultationId) {
+        Consultation entity = requireConsultation(consultationId);
+        // 幂等处理：仅当当前为未查看时才更新，避免无意义的 update_by / update_time 变更
+        if (ViewStatusEnum.isUnviewed(entity.getViewStatus())) {
+            entity.setViewStatus(ViewStatusEnum.VIEWED.getCode());
+            updateById(entity);
+        }
+        return toVo(entity);
     }
 
     private Consultation requireConsultation(String consultationId) {
@@ -95,6 +111,8 @@ public class ConsultationServiceImpl extends ServiceImpl<ConsultationMapper, Con
         vo.setContactName(entity.getContactName());
         vo.setPhone(entity.getPhone());
         vo.setEmail(entity.getEmail());
+        vo.setViewStatus(entity.getViewStatus());
+        vo.setViewStatusText(ViewStatusEnum.getInfoByCode(entity.getViewStatus()));
         vo.setCreateTime(entity.getCreateTime());
         vo.setUpdateTime(entity.getUpdateTime());
         return vo;

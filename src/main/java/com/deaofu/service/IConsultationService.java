@@ -17,4 +17,11 @@ public interface IConsultationService {
     ConsultationVo updateConsultation(String consultationId, ConsultationSaveDto dto);
     /** 逻辑删除咨询信息。 @param consultationId 咨询ID @return 是否成功 */
     boolean deleteConsultation(String consultationId);
+    /**
+     * 将咨询信息标记为已查看（{@code view_status=1}）。
+     * @param consultationId 咨询ID
+     * @return 标记后的咨询详情
+     * @throws com.deaofu.exception.BusinessException 咨询信息不存在
+     */
+    ConsultationVo markAsViewed(String consultationId);
 }

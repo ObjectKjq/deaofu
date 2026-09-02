@@ -25,7 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class ConsultationController {
     private final IConsultationService consultationService;
 
-    /** GET /admin/consultations/page：分页查询咨询信息。 @param dto 查询条件 @return 咨询分页数据 */
+    /** GET /admin/consultations/page：分页查询咨询信息；按查看状态升序、提交时间倒序，未查看的优先展示。 @param dto 查询条件 @return 咨询分页数据 */
     @GetMapping("/page")
     public BaseResponse<PageResult<ConsultationVo>> page(@Valid AdminPageDto dto) {
         return ResultUtils.success(consultationService.pageConsultations(dto));
@@ -54,5 +54,11 @@ public class ConsultationController {
     @DeleteMapping("/{consultationId}")
     public BaseResponse<Boolean> delete(@PathVariable String consultationId) {
         return ResultUtils.success(consultationService.deleteConsultation(consultationId));
+    }
+
+    /** PUT /admin/consultations/{consultationId}/viewed：将咨询标记为已查看；幂等，重复调用不会重复更新 {@code update_time}。 @param consultationId 咨询ID @return 标记后的咨询详情 */
+    @PutMapping("/{consultationId}/viewed")
+    public BaseResponse<ConsultationVo> markAsViewed(@PathVariable String consultationId) {
+        return ResultUtils.success(consultationService.markAsViewed(consultationId));
     }
 }
