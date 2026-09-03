@@ -1,10 +1,10 @@
 <!doctype html>
-<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}">
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
-    <meta name="description" content="联系德奥福汽车玻璃厂有限公司，获取专业商用车玻璃解决方案。"/>
-    <title>联系我们 | DEAOFU 德奥福</title>
+    <meta name="description" th:content="#{contact.meta}"/>
+    <title th:text="#{meta.title.contact}">Contact Us | DEAOFU</title>
     <link rel="stylesheet" th:href="@{/portal/css/styles.css}"/>
     <link rel="stylesheet" th:href="@{/portal/css/contact.css}"/>
 </head>
@@ -13,75 +13,67 @@
 <main class="page-main">
     <section class="contact-form-section">
         <div class="container contact-head-wrap">
-            <h1 class="contact-heading">联系我们</h1>
-            <p class="contact-desc">请填写以下表单，我们的专业顾问将尽快为您服务</p>
+            <h1 class="contact-heading" th:text="#{contact.title}">Contact Us</h1>
+            <p class="contact-desc" th:text="#{contact.desc}">Please fill in the form below...</p>
         </div>
         <div class="container contact-layout">
             <form class="contact-form" id="contactForm" novalidate>
                 <div>
-                    <label><em>*</em> 咨询主题</label>
+                    <label><em>*</em> <span th:text="#{contact.label.topic}">* Inquiry Topic</span></label>
                     <div class="contact-checkboxes" id="topicGroup">
-                        <label class="contact-checkbox"><input type="checkbox" name="topic" value="产品及解决方案咨询"/><span>产品及解决方案咨询</span>
-                        </label>
-                        <label class="contact-checkbox"><input type="checkbox" name="topic"
-                                                               value="价格咨询"/><span>价格咨询</span></label>
-                        <label class="contact-checkbox"><input type="checkbox" name="topic"
-                                                               value="项目合作"/><span>项目合作</span></label>
-                        <label class="contact-checkbox"><input type="checkbox" name="topic" value="现场演示支持"/><span>现场演示支持</span>
-                        </label>
-                        <label class="contact-checkbox"><input type="checkbox" name="topic"
-                                                               value="其他"/><span>其他</span></label>
+                        <label class="contact-checkbox"><input type="checkbox" name="topic" value="product"/><span th:text="#{contact.topic.1}">Product &amp; Solution Inquiry</span></label>
+                        <label class="contact-checkbox"><input type="checkbox" name="topic" value="pricing"/><span th:text="#{contact.topic.2}">Pricing Inquiry</span></label>
+                        <label class="contact-checkbox"><input type="checkbox" name="topic" value="project"/><span th:text="#{contact.topic.3}">Project Cooperation</span></label>
+                        <label class="contact-checkbox"><input type="checkbox" name="topic" value="demo"/><span th:text="#{contact.topic.4}">On-site Demo Support</span></label>
+                        <label class="contact-checkbox"><input type="checkbox" name="topic" value="other"/><span th:text="#{contact.topic.5}">Other</span></label>
                     </div>
                 </div>
 
                 <div>
-                    <label for="msg"><em>*</em> 咨询内容</label>
+                    <label for="msg"><em>*</em> <span th:text="#{contact.label.message}">* Message</span></label>
                     <textarea id="msg" name="message" required></textarea>
-                    <span class="field-error">请填写咨询内容</span>
+                    <span class="field-error" th:text="#{contact.label.message}">* Message</span>
                 </div>
 
                 <div>
-                    <label for="name"><em>*</em> 姓名</label>
+                    <label for="name"><em>*</em> <span th:text="#{contact.label.name}">* Name</span></label>
                     <input type="text" id="name" name="name" required/>
-                    <span class="field-error">请填写您的姓名</span>
+                    <span class="field-error" th:text="#{contact.label.name}">* Name</span>
                 </div>
 
                 <div>
-                    <label for="phone">电话</label>
-                    <div class="contact-phone-field"><span class="contact-phone-prefix">+86</span><input type="tel"
-                                                                                                         id="phone"
-                                                                                                         name="phone"/>
-                    </div>
+                    <label for="phone" th:text="#{contact.label.phone}">Phone</label>
+                    <div class="contact-phone-field"><span class="contact-phone-prefix">+86</span><input type="tel" id="phone" name="phone"/></div>
                 </div>
 
                 <div>
-                    <label for="email"><em>*</em> 邮箱</label>
+                    <label for="email"><em>*</em> <span th:text="#{contact.label.email}">* Email</span></label>
                     <input type="email" id="email" name="email" required/>
-                    <span class="field-error">请填写正确的邮箱地址</span>
-                    <span class="field-hint">我们将通过该邮箱与您联系</span>
+                    <span class="field-error" th:text="#{contact.label.email}">* Email</span>
+                    <span class="field-hint" th:text="#{contact.email.hint}">We will reach you via this email.</span>
                 </div>
 
-                <button class="btn-submit" type="submit">提交咨询</button>
+                <button class="btn-submit" type="submit" th:text="#{contact.submit}">Submit Inquiry</button>
                 <p class="form-status" id="formStatus" role="status" aria-live="polite"></p>
             </form>
 
             <aside class="contact-info-side">
-                <h3>联系方式</h3>
+                <h3 th:text="#{contact.info.title}">Contact Information</h3>
                 <div class="contact-info-list">
                     <div class="contact-info-item">
-                        <b>邮箱</b>
+                        <b th:text="#{contact.info.email_label}">Email</b>
                         <a href="mailto:dafbusglass@163.com">dafbusglass@163.com</a>
                     </div>
                     <div class="contact-info-item">
-                        <b>电话 / WhatsApp</b>
-                        <a href="tel:+8617737159530">+86 177 3715 9530</a>
+                        <b th:text="#{contact.info.phone_label}">Phone / WhatsApp</b>
+                        <a href="tel:+8617737159530">+86 177  1234 5678</a>
                     </div>
                     <div class="contact-info-item">
-                        <b>地址</b>
-                        <span>中国 · 河南省周口市通远11路</span>
+                        <b th:text="#{contact.info.address_label}">Address</b>
+                        <span th:text="#{contact.info.address}">No.11 Tongyuan Road, Zhoukou City, Henan Province, China</span>
                     </div>
                     <div class="contact-info-item">
-                        <b>社交媒体</b>
+                        <b th:text="#{contact.info.social_label}">Social Media</b>
                         <span>Facebook · Twitter / X · YouTube · TikTok · Instagram</span>
                     </div>
                 </div>
@@ -90,6 +82,7 @@
     </section>
 </main>
 <div th:replace="~{portal/fragments :: footer}"></div>
+<script th:src="@{/portal/js/main.js}"></script>
 <script th:src="@{/portal/js/contact.js}"></script>
 </body>
 </html>

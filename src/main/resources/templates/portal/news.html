@@ -1,10 +1,10 @@
 <!doctype html>
-<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}">
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
-    <meta name="description" content="德奥福汽车玻璃厂有限公司公司动态、客户案例与产品资讯。"/>
-    <title>公司动态 | DEAOFU 德奥福</title>
+    <meta name="description" th:content="#{news.meta}"/>
+    <title th:text="#{meta.title.news}">News | DEAOFU</title>
     <link rel="stylesheet" th:href="@{/portal/vendor/fonts/fonts.css}"/>
     <link rel="stylesheet" th:href="@{/portal/css/styles.css}"/>
     <link rel="stylesheet" th:href="@{/portal/css/product-pages.css}"/>
@@ -13,57 +13,47 @@
 <body class="product-page news-page">
 <div th:replace="~{portal/fragments :: header('news')}"></div>
 <main class="page-main news-main">
-    <section class="news-browser" aria-label="公司动态列表">
+    <section class="news-browser" th:attr="aria-label=#{common.aria.news_list}">
         <div class="container">
-            <div class="news-tags" id="newsTags" role="tablist" aria-label="动态分类">
-                <a class="news-tag" th:classappend="${query.tagId == null} ? ' is-active'" th:href="@{/news}">全部动态
-                </a>
-                <a class="news-tag" th:each="tag : ${tags}" th:classappend="${tag.tagId == query.tagId} ? ' is-active'"
-                   th:href="@{/news(tagId=${tag.tagId})}">
-                    <img th:if="${tag.iconUrl != null}" th:src="${tag.iconUrl}" th:alt="${tag.tagName + ' 图标'}"/>
+            <div class="news-tags" id="newsTags" role="tablist" th:attr="aria-label=#{common.aria.news_tag}">
+                <a class="news-tag" th:classappend="${query.tagId == null} ? ' is-active'" th:href="@{/news}" th:text="#{news.all}">All News</a>
+                <a class="news-tag" th:each="tag : ${tags}" th:classappend="${tag.tagId == query.tagId} ? ' is-active'" th:href="@{/news(tagId=${tag.tagId})}">
+                    <img th:if="${tag.iconUrl != null}" th:src="${tag.iconUrl}" th:alt="${tag.tagName}"/>
                     <span th:text="${tag.tagName}"></span>
                 </a>
             </div>
             <div class="news-results-head">
-                <div><p class="kicker">LATEST STORIES</p>
-                    <h2 id="newsResultTitle">全部动态</h2></div>
+                <div><p class="kicker" th:text="#{news.kicker}">LATEST STORIES</p>
+                    <h2 id="newsResultTitle" th:text="#{news.all}">All News</h2></div>
             </div>
-            <div class="news-center-grid" id="newsGrid"
-                 data-lazy-grid
-                 data-lazy-url="/api/news"
-                 data-lazy-size="9"
-                 data-lazy-template="news"
-                 th:attr="data-lazy-tag-id=${query.tagId}">
+            <div class="news-center-grid" id="newsGrid" data-lazy-grid data-lazy-url="/api/news" data-lazy-size="9" data-lazy-template="news" th:attr="data-lazy-tag-id=${query.tagId}">
                 <a class="news-center-card" th:each="item : ${news}" th:href="@{/news/{id}(id=${item.newsId})}">
                     <div class="news-center-media">
-                        <img th:if="${item.coverUrl != null}" th:src="${item.coverUrl}" th:alt="${item.title}"
-                             loading="lazy"/>
-                        <span class="news-center-category"
-                              th:text="${#lists.isEmpty(item.tags) ? '公司动态' : item.tags[0].tagName}"></span>
+                        <img th:if="${item.coverUrl != null}" th:src="${item.coverUrl}" th:alt="${item.title}" loading="lazy"/>
+                        <span class="news-center-category" th:with="defaultTag=#{home.news.default_tag}" th:text="${#lists.isEmpty(item.tags) ? defaultTag : item.tags[0].tagName}"></span>
                     </div>
                     <div class="news-center-body">
                         <div class="news-center-meta">
-                            <span th:text="${#lists.isEmpty(item.tags) ? '公司动态' : item.tags[0].tagName}"></span>
-                            <time th:attr="datetime=${#dates.format(item.createTime, 'yyyy-MM-dd')}"
-                                  th:text="${#dates.format(item.createTime, 'yyyy.MM.dd')}"></time>
+                            <span th:with="defaultTag=#{home.news.default_tag}" th:text="${#lists.isEmpty(item.tags) ? defaultTag : item.tags[0].tagName}"></span>
+                            <time th:attr="datetime=${#dates.format(item.createTime, 'yyyy-MM-dd')}" th:text="${#dates.format(item.createTime, 'yyyy.MM.dd')}"></time>
                         </div>
                         <h3 th:text="${item.title}"></h3>
                         <p th:text="${item.summary}"></p>
-                        <span class="news-center-link">阅读详情 <span>↗</span></span>
+                        <span class="news-center-link"><span th:text="#{news.read_more}">Read More</span> <span>↗</span></span>
                     </div>
                 </a>
                 <th:block th:if="${!#lists.isEmpty(news)}">
                     <div class="lazy-sentinel" data-lazy-sentinel aria-hidden="true">
                         <span class="lazy-spinner" data-lazy-spinner></span>
-                        <span class="lazy-text" data-lazy-text>正在加载更多…</span>
+                        <span class="lazy-text" data-lazy-text th:text="#{news.lazy_loading}">Loading more...</span>
                     </div>
-                    <div class="lazy-end" data-lazy-end hidden>已经到底了</div>
+                    <div class="lazy-end" data-lazy-end hidden th:text="#{news.lazy_end}">You've reached the end</div>
                 </th:block>
             </div>
             <div class="news-empty" th:if="${#lists.isEmpty(news)}">
-                <strong>没有找到匹配的动态</strong>
-                <p>请尝试切换其他分类。</p>
-                <a class="button detail-outline" th:href="@{/news}">查看全部动态</a>
+                <strong th:text="#{news.empty}">No matching news found</strong>
+                <p th:text="#{news.empty.desc}">Try switching to another category.</p>
+                <a class="button detail-outline" th:href="@{/news}" th:text="#{news.empty.cta}">View All News</a>
             </div>
         </div>
     </section>

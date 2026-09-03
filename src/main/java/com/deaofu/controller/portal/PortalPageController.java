@@ -11,6 +11,8 @@ import com.deaofu.service.IProductCategoryService;
 import com.deaofu.service.IProductService;
 import com.deaofu.service.ITransportRouteService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -38,6 +40,8 @@ public class PortalPageController {
     private final INewsTagService newsTagService;
     private final IPartnerCompanyService partnerService;
     private final ITransportRouteService routeService;
+    /** i18n 文案查询（默认语言为英文，详情见 {@link com.deaofu.config.I18nConfig}） */
+    private final MessageSource messageSource;
 
     /**
      * GET /：渲染官网首页。
@@ -54,8 +58,8 @@ public class PortalPageController {
                 .map(this::toRouteVo).filter(Objects::nonNull).toList();
         Map<String, PortalMapPointVo> targets = new LinkedHashMap<>();
         routes.forEach(route -> targets.putIfAbsent(route.getTargetName(),
-                point("服务国家: " + route.getTargetName(), route.getTargetX(), route.getTargetY())));
-        model.addAttribute("mapOrigin", point("中国 · 周口工厂", CountryEnum.CN.getX(), CountryEnum.CN.getY()));
+                point(msg("home.map.target") + route.getTargetName(), route.getTargetX(), route.getTargetY())));
+        model.addAttribute("mapOrigin", point(msg("home.map.origin"), CountryEnum.CN.getX(), CountryEnum.CN.getY()));
         model.addAttribute("mapTargets", targets.values());
         model.addAttribute("routes", routes);
         // 合作企业 Logo 墙：平均拆分上下两行
@@ -181,7 +185,7 @@ public class PortalPageController {
         int ty = target.getY();
         PortalRouteVo vo = new PortalRouteVo();
         vo.setRouteId(route.getRouteId());
-        vo.setSourceName(cnSource ? "中国 · 周口工厂" : source.getName());
+        vo.setSourceName(cnSource ? msg("home.map.origin") : source.getName());
         vo.setSourceX(sx);
         vo.setSourceY(sy);
         vo.setTargetName(target.getName());
@@ -225,6 +229,16 @@ public class PortalPageController {
         dto.setPageNum(number);
         dto.setPageSize(size);
         return dto;
+    }
+
+    /**
+     * 根据当前请求的 locale 从 i18n 资源中取文案。
+     *
+     * @param key 资源键
+     * @return 对应语言的文案
+     */
+    private String msg(String key) {
+        return messageSource.getMessage(key, null, LocaleContextHolder.getLocale());
     }
 
     /**

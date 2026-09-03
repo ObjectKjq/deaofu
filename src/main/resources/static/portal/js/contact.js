@@ -19,12 +19,19 @@
       });
     });
   }
-  const lang = document.querySelector('#langToggle');
-  if (lang) lang.addEventListener('click', (event) => event.preventDefault());
+
 
   /* ============================================================
    * 咨询表单：本地校验 + JSON 提交 POST /api/consultations
    * ============================================================ */
+  /* 从 footer fragment 注入的 i18n 文案（th:inline 渲染） */
+  const i18n = (window.portalI18n && window.portalI18n.status) || {
+    submitting: "Submitting...",
+    success: "Submitted successfully.",
+    failure: "Submission failed.",
+    network: "Network error.",
+    required: "Please complete required fields."
+  };
   const form = document.querySelector('#contactForm');
   if (!form) return;
 
@@ -84,7 +91,7 @@
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
     if (!validate()) {
-      showStatus('请完善表单中标红的必填项', 'is-error');
+      showStatus(i18n.status.required, 'is-error');
       return;
     }
 
@@ -98,7 +105,7 @@
     };
 
     if (submitBtn) submitBtn.disabled = true;
-    showStatus('正在提交…');
+    showStatus(i18n.status.submitting);
     try {
       const response = await fetch('/api/consultations', {
         method: 'POST',
@@ -107,13 +114,13 @@
       });
       const result = await response.json();
       if (response.ok && result.code === 0) {
-        showStatus('提交成功，我们的顾问将尽快与您联系。', 'is-success');
+        showStatus(i18n.status.success, 'is-success');
         form.reset();
       } else {
-        showStatus((result && result.message) || '提交失败，请稍后重试。', 'is-error');
+        showStatus((result && result.message) || i18n.status.failure, 'is-error');
       }
     } catch (error) {
-      showStatus('网络异常，请稍后重试。', 'is-error');
+      showStatus(i18n.status.network, 'is-error');
     } finally {
       if (submitBtn) submitBtn.disabled = false;
     }

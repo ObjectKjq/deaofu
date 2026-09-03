@@ -1,10 +1,10 @@
 <!doctype html>
-<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}">
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
-    <meta name="description" content="德奥福安全玻璃有限公司，专业制造公交、客车及商用车层压玻璃和汽车配件。"/>
-    <title>关于我们 | DEAOFU 德奥福</title>
+    <meta name="description" th:content="#{about.meta}"/>
+    <title th:text="#{meta.title.about}">About Us | DEAOFU</title>
     <link rel="stylesheet" th:href="@{/portal/css/styles.css}"/>
     <link rel="stylesheet" th:href="@{/portal/css/about.css}"/>
 </head>
@@ -16,24 +16,18 @@
         <span class="hairline hairline--top" aria-hidden="true"></span>
         <div class="container about-story-content">
             <div class="about-story-copy">
-                <p class="kicker">WHO WE ARE</p>
-                <h2>专业生产客车前挡风玻璃，<br/><em>服务全球每一段旅程。</em></h2>
-                <p class="lead">德奥福（DEAOFU）是专业生产客车前挡风玻璃的制造企业。公司自成立以来发展迅猛，现已成为中国规模最大的汽车安全玻璃生产商之一，95%
-                    的产品销往全球各地。</p>
-                <p>生产基地坐落于中国河南省，厂区面积超 10000 平方米，可适配 2000 余种客车挡风玻璃型号。产品已取得欧洲 ECE
-                    R43、美国 DOT、中国 3C 及南非 SABS 认证。企业严格依照 ISO9001
-                    标准建立管理体系，配备独立质检部门，确保每一片玻璃都符合高标准。</p>
+                <p class="kicker" th:text="#{about.kicker}">WHO WE ARE</p>
+                <h2 th:utext="#{about.title}">Professional bus windshield manufacturer,<br/><em>serving every journey worldwide.</em></h2>
+                <p class="lead" th:text="#{about.lead}">DEAOFU is a professional...</p>
+                <p th:text="#{about.body}">Our production base is located...</p>
             </div>
             <aside class="about-audience">
-                <p class="kicker">OUR AUDIENCE</p>
-                <h3>我们的目标受众</h3>
+                <p class="kicker" th:text="#{about.audience.kicker}">OUR AUDIENCE</p>
+                <h3 th:text="#{about.audience.title}">Our Target Audience</h3>
                 <ul>
-                    <li><b>公交车制造商</b><span>为公交车制造商提供耐用、高品质且符合安全法规的 OEM 玻璃解决方案。</span>
-                    </li>
-                    <li><b>公交零部件分销商</b><span>玻璃产品可批发销售，为公交服务中心和维修店提供可靠库存。</span></li>
-                    <li>
-                        <b>工厂与行业伙伴</b><span>专注公交挡风玻璃、长途汽车玻璃及定制玻璃制造，支持复杂车型开发与批量交付。</span>
-                    </li>
+                    <li><b th:text="#{about.audience.1.title}">Bus Manufacturers</b><span th:text="#{about.audience.1.desc}">Durable, high-quality OEM...</span></li>
+                    <li><b th:text="#{about.audience.2.title}">Bus Parts Distributors</b><span th:text="#{about.audience.2.desc}">Glass available for wholesale...</span></li>
+                    <li><b th:text="#{about.audience.3.title}">Factories &amp; Industry Partners</b><span th:text="#{about.audience.3.desc}">Bus windshields, coach glass...</span></li>
                 </ul>
             </aside>
         </div>
@@ -43,36 +37,35 @@
         <div class="container">
             <div class="section-head">
                 <div>
-                    <p class="kicker">FROM FACTORY TO ROAD</p>
-                    <h2>每一道工序，<br/><em>都为真实道路负责。</em></h2>
+                    <p class="kicker" th:text="#{about.cap.kicker}">FROM FACTORY TO ROAD</p>
+                    <h2 th:utext="#{about.cap.title}">Every process,<br/><em>is responsible for the real road.</em></h2>
                 </div>
-                <p class="section-note">
-                    先进设备、稳定工艺与国际认证共同构成我们的制造底座，支持复杂车型玻璃的定制开发和批量交付。</p>
+                <p class="section-note" th:text="#{about.cap.note}">Advanced equipment, stable craftsmanship...</p>
             </div>
             <div class="process-grid">
                 <figure>
-                    <img th:src="@{/portal/images/factory/原始玻璃作坊.jpg}" alt="原始玻璃作坊" loading="lazy"/>
-                    <figcaption><b>01 / RAW GLASS</b><span>原片入库与检验</span></figcaption>
+                    <img th:src="@{/portal/images/factory/原始玻璃作坊.jpg}" th:alt="#{about.cap.img.1.alt}" loading="lazy"/>
+                    <figcaption><b th:text="#{about.cap.1.title}">01 / RAW GLASS</b><span th:text="#{about.cap.1.desc}">Raw glass inbound &amp; inspection</span></figcaption>
                 </figure>
                 <figure>
-                    <img th:src="@{/portal/images/factory/切割机.jpg}" alt="玻璃切割机" loading="lazy"/>
-                    <figcaption><b>02 / CUTTING</b><span>精准切割成型</span></figcaption>
+                    <img th:src="@{/portal/images/factory/切割机.jpg}" th:alt="#{about.cap.img.2.alt}" loading="lazy"/>
+                    <figcaption><b th:text="#{about.cap.2.title}">02 / CUTTING</b><span th:text="#{about.cap.2.desc}">Precision cutting &amp; shaping</span></figcaption>
                 </figure>
                 <figure>
-                    <img th:src="@{/portal/images/factory/印刷机.jpg}" alt="玻璃印刷机" loading="lazy"/>
-                    <figcaption><b>03 / PRINTING</b><span>边缘丝印处理</span></figcaption>
+                    <img th:src="@{/portal/images/factory/印刷机.jpg}" th:alt="#{about.cap.img.3.alt}" loading="lazy"/>
+                    <figcaption><b th:text="#{about.cap.3.title}">03 / PRINTING</b><span th:text="#{about.cap.3.desc}">Edge silk-screen printing</span></figcaption>
                 </figure>
                 <figure>
-                    <img th:src="@{/portal/images/factory/热弯机.jpg}" alt="玻璃热弯机" loading="lazy"/>
-                    <figcaption><b>04 / BENDING</b><span>复杂弧面热弯</span></figcaption>
+                    <img th:src="@{/portal/images/factory/热弯机.jpg}" th:alt="#{about.cap.img.4.alt}" loading="lazy"/>
+                    <figcaption><b th:text="#{about.cap.4.title}">04 / BENDING</b><span th:text="#{about.cap.4.desc}">Complex curvature bending</span></figcaption>
                 </figure>
                 <figure>
-                    <img th:src="@{/portal/images/factory/洗衣机.jpg}" alt="玻璃清洗设备" loading="lazy"/>
-                    <figcaption><b>05 / WASHING</b><span>深度清洗准备</span></figcaption>
+                    <img th:src="@{/portal/images/factory/洗衣机.jpg}" th:alt="#{about.cap.img.5.alt}" loading="lazy"/>
+                    <figcaption><b th:text="#{about.cap.5.title}">05 / WASHING</b><span th:text="#{about.cap.5.desc}">Deep washing preparation</span></figcaption>
                 </figure>
                 <figure>
-                    <img th:src="@{/portal/images/factory/玻璃作坊.jpg}" alt="玻璃生产车间" loading="lazy"/>
-                    <figcaption><b>06 / LAMINATION</b><span>层压与成品检验</span></figcaption>
+                    <img th:src="@{/portal/images/factory/玻璃作坊.jpg}" th:alt="#{about.cap.img.6.alt}" loading="lazy"/>
+                    <figcaption><b th:text="#{about.cap.6.title}">06 / LAMINATION</b><span th:text="#{about.cap.6.desc}">Lamination &amp; final inspection</span></figcaption>
                 </figure>
             </div>
         </div>
@@ -83,29 +76,27 @@
         <div class="container">
             <div class="section-head">
                 <div>
-                    <p class="kicker">QUALITY &amp; COMPLIANCE</p>
-                    <h2>被标准认可，<br/><em>也经得起路况检验。</em></h2>
+                    <p class="kicker" th:text="#{about.cert.kicker}">QUALITY &amp; COMPLIANCE</p>
+                    <h2 th:utext="#{about.cert.title}">Recognised by standards,<br/><em>and proven by real roads.</em></h2>
                 </div>
-                <p class="section-note">产品符合 ECE R43、DOT、CCC、ISO9001 与 IATF 16949
-                    等标准，为全球合作伙伴提供可追溯的质量保障。</p>
+                <p class="section-note" th:text="#{about.cert.note}">Products comply with ECE R43, DOT...</p>
             </div>
             <div class="cert-grid">
                 <figure>
-                    <img th:src="@{/portal/images/certs/美国交通部认证.png}" alt="美国交通部认证" loading="lazy"/>
-                    <figcaption>美国交通部认证<br/><small>DOT</small></figcaption>
+                    <img th:src="@{/portal/images/certs/美国交通部认证.png}" th:alt="#{about.cert.img.1.alt}" loading="lazy"/>
+                    <figcaption><span th:text="#{about.cert.1.title}">US DOT Certified</span><br/><small th:text="#{about.cert.1.sub}">DOT</small></figcaption>
                 </figure>
                 <figure>
-                    <img th:src="@{/portal/images/certs/欧盟ECE R43 E24认证.jpg}" alt="欧盟 ECE R43 E24 认证"
-                         loading="lazy"/>
-                    <figcaption>欧盟 ECE R43 E24 认证<br/><small>ECE R43</small></figcaption>
+                    <img th:src="@{/portal/images/certs/欧盟ECE R43 E24认证.jpg}" th:alt="#{about.cert.img.2.alt}" loading="lazy"/>
+                    <figcaption><span th:text="#{about.cert.2.title}">EU ECE R43 E24 Certified</span><br/><small th:text="#{about.cert.2.sub}">ECE R43</small></figcaption>
                 </figure>
                 <figure>
-                    <img th:src="@{/portal/images/certs/ISO9001 CCC认证.jpg}" alt="ISO9001 CCC 认证" loading="lazy"/>
-                    <figcaption>ISO9001 · CCC 认证<br/><small>QUALITY SYSTEM</small></figcaption>
+                    <img th:src="@{/portal/images/certs/ISO9001 CCC认证.jpg}" th:alt="#{about.cert.img.3.alt}" loading="lazy"/>
+                    <figcaption><span th:text="#{about.cert.3.title}">ISO9001 · CCC Certified</span><br/><small th:text="#{about.cert.3.sub}">QUALITY SYSTEM</small></figcaption>
                 </figure>
                 <figure>
-                    <img th:src="@{/portal/images/certs/IATF 16949认证.jpg}" alt="IATF 16949 认证" loading="lazy"/>
-                    <figcaption>IATF 16949 认证<br/><small>AUTOMOTIVE QUALITY</small></figcaption>
+                    <img th:src="@{/portal/images/certs/IATF 16949认证.jpg}" th:alt="#{about.cert.img.4.alt}" loading="lazy"/>
+                    <figcaption><span th:text="#{about.cert.4.title}">IATF 16949 Certified</span><br/><small th:text="#{about.cert.4.sub}">AUTOMOTIVE QUALITY</small></figcaption>
                 </figure>
             </div>
         </div>

@@ -1,10 +1,10 @@
 <!doctype html>
-<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}">
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="description" th:attr="content=${product.summary}"/>
-    <title th:text="${product.title + ' | DEAOFU 德奥福'}">产品详情 | DEAOFU 德奥福</title>
+    <title th:text="#{meta.title.product_detail(${product.title})}">Product | DEAOFU</title>
     <link rel="stylesheet" th:href="@{/portal/vendor/fonts/fonts.css}"/>
     <link rel="stylesheet" th:href="@{/portal/css/styles.css}"/>
     <link rel="stylesheet" th:href="@{/portal/css/product-pages.css}"/>
@@ -15,9 +15,9 @@
 <main class="page-main">
     <div class="container">
         <div class="detail-breadcrumb">
-            <a th:href="@{/}">首页</a>
+            <a th:href="@{/}" th:text="#{common.nav.home}">Home</a>
             <span>/</span>
-            <a th:href="@{/products}">产品中心</a>
+            <a th:href="@{/products}" th:text="#{common.nav.products}">Products</a>
             <span>/</span><span th:text="${product.title}"></span>
         </div>
     </div>
@@ -26,17 +26,12 @@
             <div class="detail-media" th:if="${!#lists.isEmpty(product.detailImageUrls)}">
                 <div class="detail-media-stage">
                     <img class="detail-media-image" th:src="${product.detailImageUrls[0]}" th:alt="${product.title}"/>
-                    <img class="detail-media-image detail-media-image-next" th:src="${product.detailImageUrls[0]}"
-                         th:alt="${product.title}" aria-hidden="true"/>
-                    <button class="detail-media-prev" type="button" aria-label="上一张详情图片">
-                        <svg viewBox="0 0 24 24" aria-hidden="true">
-                            <polyline points="15 6 9 12 15 18"></polyline>
-                        </svg>
+                    <img class="detail-media-image detail-media-image-next" th:src="${product.detailImageUrls[0]}" th:alt="${product.title}" aria-hidden="true"/>
+                    <button class="detail-media-prev" type="button" th:attr="aria-label=#{product.media.prev}">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="15 6 9 12 15 18"></polyline></svg>
                     </button>
-                    <button class="detail-media-next" type="button" aria-label="下一张详情图片">
-                        <svg viewBox="0 0 24 24" aria-hidden="true">
-                            <polyline points="9 6 15 12 9 18"></polyline>
-                        </svg>
+                    <button class="detail-media-next" type="button" th:attr="aria-label=#{product.media.next}">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="9 6 15 12 9 18"></polyline></svg>
                     </button>
                     <div class="detail-media-counter" data-media-counter aria-live="polite">
                         <span data-media-current>1</span>
@@ -44,22 +39,19 @@
                         <span data-media-total>1</span>
                     </div>
                 </div>
-                <div class="detail-media-thumbs" role="tablist" aria-label="产品详情图片">
-                    <button class="detail-media-thumb" th:each="image, stat : ${product.detailImageUrls}" type="button"
-                            role="tab" th:classappend="${stat.index == 0 ? 'is-active' : ''}"
-                            th:attr="data-image=${image},aria-label='查看第' + (${stat.index} + 1) + '张详情图片'">
+                <div class="detail-media-thumbs" role="tablist" th:attr="aria-label=#{common.aria.product_images}">
+                    <button class="detail-media-thumb" th:each="image, stat : ${product.detailImageUrls}" type="button" role="tab" th:classappend="${stat.index == 0 ? 'is-active' : ''}" th:attr="data-image=${image},aria-label=#{product.media.view_n(${stat.index + 1})}">
                         <img th:src="${image}" th:alt="${product.title}" loading="lazy"/>
                     </button>
                 </div>
             </div>
             <div class="detail-copy">
-                <p class="detail-overline"
-                   th:text="${(product.parentCategoryName != null ? product.parentCategoryName + ' / ' : '') + product.categoryName}"></p>
+                <p class="detail-overline" th:text="${(product.parentCategoryName != null ? product.parentCategoryName + ' / ' : '') + product.categoryName}"></p>
                 <h1 th:text="${product.title}"></h1>
                 <p class="lede" th:text="${product.summary}"></p>
                 <div class="detail-actions">
-                    <a class="button button-primary" th:href="@{/contact}">获取产品报价 <span>↗</span></a>
-                    <a class="button detail-outline" th:href="@{/products}">返回产品中心</a>
+                    <a class="button button-primary" th:href="@{/contact}"><span th:text="#{product-detail.quote}">Get a Quote</span> <span>↗</span></a>
+                    <a class="button detail-outline" th:href="@{/products}" th:text="#{product-detail.back}">Back to Products</a>
                 </div>
                 <dl class="detail-specs">
                     <div class="detail-spec-row" th:each="parameter : ${product.parameters}">
@@ -72,14 +64,13 @@
     </section>
     <section class="detail-section" th:if="${!#lists.isEmpty(relatedProducts)}">
         <div class="container">
-            <div class="detail-section-head"><h2>相关产品</h2>
-                <a class="text-link" th:href="@{/products}">浏览全部产品 <span>→</span></a>
+            <div class="detail-section-head">
+                <h2 th:text="#{product-detail.related}">Related Products</h2>
+                <a class="text-link" th:href="@{/products}"><span th:text="#{product-detail.related.cta}">Browse All Products</span> <span>→</span></a>
             </div>
             <div class="related-grid">
-                <a class="related-card" th:each="item : ${relatedProducts}"
-                   th:href="@{/product/{id}(id=${item.productId})}">
-                    <img th:if="${item.coverUrl != null}" th:src="${item.coverUrl}" th:alt="${item.title}"
-                         loading="lazy"/>
+                <a class="related-card" th:each="item : ${relatedProducts}" th:href="@{/product/{id}(id=${item.productId})}">
+                    <img th:if="${item.coverUrl != null}" th:src="${item.coverUrl}" th:alt="${item.title}" loading="lazy"/>
                     <div><small th:text="${item.categoryName}"></small>
                         <h3 th:text="${item.title}"></h3></div>
                 </a>

@@ -537,11 +537,20 @@
         point.addEventListener('mouseleave', () => tooltip.classList.remove('is-visible'));
     });
 
+        /* ============================================================
+     * 语言切换：点击 -> 写入 ?lang= URL 参数，
+     * 由 I18nConfig.LocaleChangeInterceptor 处理并写入 CookieLocaleResolver。
+     * ============================================================ */
     const language = document.querySelector('#langToggle');
     if (language) {
         language.addEventListener('click', (event) => {
             event.preventDefault();
-            language.textContent = language.textContent.startsWith('中') ? 'EN / 中' : '中 / EN';
+            const next = (window.portalI18n && window.portalI18n.lang && window.portalI18n.lang.next)
+                || language.dataset.lang
+                || 'en';
+            const url = new URL(window.location.href);
+            url.searchParams.set('lang', next);
+            window.location.href = url.toString();
         });
     }
 

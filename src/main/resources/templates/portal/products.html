@@ -1,10 +1,10 @@
 <!doctype html>
-<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}">
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
-    <meta name="description" content="DEAOFU 德奥福产品中心，公交车玻璃及商用车汽车配件，支持 OEM 定制与全球交付。"/>
-    <title>产品中心 | DEAOFU 德奥福</title>
+    <meta name="description" th:content="#{products.meta}"/>
+    <title th:text="#{meta.title.products}">Products | DEAOFU</title>
     <link rel="stylesheet" th:href="@{/portal/vendor/fonts/fonts.css}"/>
     <link rel="stylesheet" th:href="@{/portal/css/styles.css}"/>
     <link rel="stylesheet" th:href="@{/portal/css/product-pages.css}"/>
@@ -13,25 +13,14 @@
 <div th:replace="~{portal/fragments :: header('products')}"></div>
 <main class="page-main">
     <section class="container products-layout">
-        <aside class="product-filter" aria-label="产品筛选">
-            <h2>筛选产品</h2>
+        <aside class="product-filter" th:attr="aria-label=#{common.aria.product_filter}">
+            <h2 th:text="#{products.filter.title}">Filter Products</h2>
             <div class="filter-groups">
-                <a class="filter-all" th:classappend="${query.categoryId == null} ? ' is-active'" th:href="@{/products}"
-                   th:text="'全部产品'">全部产品
-                </a>
-                <div class="filter-group is-collapsed" th:each="parent, stat : ${categories}"
-                     th:if="${parent.level == 1}">
-                    <button class="filter-group-title" type="button" aria-expanded="false"
-                            th:attr="aria-controls=|filter-options-${stat.index}|"
-                            th:text="${parent.categoryName}">产品类别
-                    </button>
+                <a class="filter-all" th:classappend="${query.categoryId == null} ? ' is-active'" th:href="@{/products}" th:text="#{products.filter.all}">All Products</a>
+                <div class="filter-group is-collapsed" th:each="parent, stat : ${categories}" th:if="${parent.level == 1}">
+                    <button class="filter-group-title" type="button" aria-expanded="false" th:attr="aria-controls=|filter-options-${stat.index}|" th:text="${parent.categoryName}">Category</button>
                     <div class="filter-options" th:id="|filter-options-${stat.index}|">
-                        <a class="filter-option" th:each="child : ${categories}"
-                           th:if="${child.parentId == parent.categoryId}"
-                           th:classappend="${child.categoryId == query.categoryId} ? ' is-active'"
-                           th:href="@{/products(categoryId=${child.categoryId})}"
-                           th:text="${child.categoryName}">分类
-                        </a>
+                        <a class="filter-option" th:each="child : ${categories}" th:if="${child.parentId == parent.categoryId}" th:classappend="${child.categoryId == query.categoryId} ? ' is-active'" th:href="@{/products(categoryId=${child.categoryId})}" th:text="${child.categoryName}">Subcategory</a>
                     </div>
                 </div>
             </div>
@@ -43,49 +32,40 @@
                         <circle cx="11" cy="11" r="7"></circle>
                         <path d="m20 20-4-4"></path>
                     </svg>
-                    <input id="productSearch" type="search" name="keyword" placeholder="搜索产品名称、类别或关键词"
-                           autocomplete="off" aria-label="搜索产品名称、类别或关键词" th:value="${query.keyword}"/>
-                    <button type="submit">搜索</button>
+                    <input id="productSearch" type="search" name="keyword" th:placeholder="#{common.search.placeholder}" autocomplete="off" th:attr="aria-label=#{common.search.label}" th:value="${query.keyword}"/>
+                    <button type="submit" th:text="#{common.btn.search}">Search</button>
                 </form>
             </div>
             <div class="product-results-head">
-                <h2 id="resultTitle"
-                    th:text="${query.keyword != null && !query.keyword.isEmpty()} ? '搜索：' + ${query.keyword} : '全部产品'">
-                    全部产品</h2>
-                <p>点击产品卡片查看规格、应用与询价方式</p>
+                <h2 id="resultTitle" th:text="${query.keyword != null && !query.keyword.isEmpty()} ? #{products.results.search.prefix} + ${query.keyword} : #{products.results.all}">All Products</h2>
+                <p th:text="#{products.results.subtitle}">Click a product card...</p>
             </div>
-            <div class="product-grid-page" id="productGrid"
-                 data-lazy-grid
-                 data-lazy-url="/api/products"
-                 data-lazy-size="9"
-                 th:attr="data-lazy-category-id=${query.categoryId},data-lazy-keyword=${query.keyword}">
-                <a class="catalog-card" th:each="item, stat : ${products}"
-                   th:href="@{/product/{id}(id=${item.productId})}">
+            <div class="product-grid-page" id="productGrid" data-lazy-grid data-lazy-url="/api/products" data-lazy-size="9" th:attr="data-lazy-category-id=${query.categoryId},data-lazy-keyword=${query.keyword}">
+                <a class="catalog-card" th:each="item, stat : ${products}" th:href="@{/product/{id}(id=${item.productId})}">
                     <div class="catalog-card-media">
-                        <img th:if="${item.coverUrl != null}" th:src="${item.coverUrl}" th:alt="${item.title}"
-                             loading="lazy"/>
+                        <img th:if="${item.coverUrl != null}" th:src="${item.coverUrl}" th:alt="${item.title}" loading="lazy"/>
                         <span class="catalog-card-tag" th:text="${item.categoryName}"></span>
                     </div>
                     <div class="catalog-card-body">
-                        <span class="catalog-card-code"
-                              th:text="'P-' + ${#numbers.formatInteger(stat.count, 2, 'NONE')} + ' / ' + ${item.categoryName}"></span>
+                        <span class="catalog-card-code" th:text="'P-' + ${#numbers.formatInteger(stat.count, 2, 'NONE')} + ' / ' + ${item.categoryName}"></span>
                         <h3 th:text="${item.title}"></h3>
                         <p th:text="${item.summary}"></p>
                         <div class="catalog-card-footer">
-                            <span class="catalog-card-spec"
-                                  th:text="${item.parentCategoryName != null ? item.parentCategoryName + ' · ' + item.categoryName : item.categoryName}"></span>
-                            <span class="catalog-card-link">查看详情 <span>↗</span></span>
+                            <span class="catalog-card-spec" th:text="${item.parentCategoryName != null ? item.parentCategoryName + ' · ' + item.categoryName : item.categoryName}"></span>
+                            <span class="catalog-card-link"><span th:text="#{common.btn.view_detail}">View Details</span> <span>↗</span></span>
                         </div>
                     </div>
                 </a>
-                <div class="catalog-empty" th:if="${#lists.isEmpty(products)}"><strong>没有找到匹配的产品</strong>请尝试更换关键词或筛选条件。
+                <div class="catalog-empty" th:if="${#lists.isEmpty(products)}">
+                    <strong th:text="#{products.empty}">No matching products found</strong>
+                    <span th:text="#{products.empty_desc}">Try changing keywords or filter criteria.</span>
                 </div>
                 <th:block th:if="${!#lists.isEmpty(products)}">
                     <div class="lazy-sentinel" data-lazy-sentinel aria-hidden="true">
                         <span class="lazy-spinner" data-lazy-spinner></span>
-                        <span class="lazy-text" data-lazy-text>正在加载更多…</span>
+                        <span class="lazy-text" data-lazy-text th:text="#{products.lazy_loading}">Loading more...</span>
                     </div>
-                    <div class="lazy-end" data-lazy-end hidden>已经到底了</div>
+                    <div class="lazy-end" data-lazy-end hidden th:text="#{products.lazy_end}">You've reached the end</div>
                 </th:block>
             </div>
         </div>
