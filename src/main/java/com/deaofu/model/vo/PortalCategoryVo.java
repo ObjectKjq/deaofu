@@ -8,6 +8,9 @@ import java.util.List;
 @Data
 public class PortalCategoryVo {
 
+    /** 内容语言：0表示中文，1表示英语。 */
+    private Integer language;
+
     /** 产品分类ID。 */
     private String categoryId;
 

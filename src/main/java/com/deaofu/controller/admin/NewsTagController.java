@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -36,8 +37,8 @@ public class NewsTagController {
 
     /** GET /admin/news-tags：查询全部标签，不返回图标二进制。 @return 标签列表 */
     @GetMapping
-    public BaseResponse<List<NewsTagVo>> list() {
-        return ResultUtils.success(tagService.listTags());
+    public BaseResponse<List<NewsTagVo>> list(@RequestParam(required = false) Integer language) {
+        return ResultUtils.success(tagService.listTags(language));
     }
 
     /** GET /admin/news-tags/page：分页查询标签，keyword 按名称模糊匹配。 @param dto 分页入参 @return 标签分页结果 */

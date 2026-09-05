@@ -17,8 +17,8 @@ import java.util.List;
  * 自动校验管理端 Session 登录态，未登录会被拦截。</p>
  *
  * <p>用途：管理后台运输路线编辑、世界地图销售点位编辑等需要选择国家的场景下拉框。
- * 返回字段为 {@code code} + {@code name}，前端用 code 提交、后端持久化；
- * 显示用 name（中文名）。</p>
+ * 返回字段为 {@code code} + 中英文名称，前端用 code 提交、后端持久化；
+ * 管理端默认显示中文名。</p>
  */
 @RestController
 @RequestMapping("/admin/countries")

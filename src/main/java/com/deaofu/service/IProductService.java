@@ -17,6 +17,8 @@ public interface IProductService {
     ProductVo getProduct(String productId);
     /** 官网前台查询产品详情。 @param productId 产品ID @return 产品详情 @throws com.deaofu.exception.BusinessException 产品不存在 */
     PortalProductVo getPortalProduct(String productId);
+    /** 按语言查询官网产品详情。 */
+    PortalProductVo getPortalProduct(String productId, Integer language);
     /** 新增产品。 @param dto 产品入参 @return 新增后的产品详情 @throws com.deaofu.exception.BusinessException 分类或文件不存在 */
     ProductVo addProduct(ProductSaveDto dto);
     /** 修改产品。 @param productId 产品ID @param dto 产品入参 @return 修改后的产品详情 @throws com.deaofu.exception.BusinessException 产品不存在 */
@@ -26,5 +28,5 @@ public interface IProductService {
     /** 设置产品官网首页展示顺序，0表示取消展示。 */
     ProductVo updateHomeShowOrder(String productId, Integer order);
     /** 查询官网首页展示产品，按展示顺序倒序返回，最多5条。 */
-    List<PortalProductVo> listHomeProducts();
+    List<PortalProductVo> listHomeProducts(Integer language);
 }

@@ -2,11 +2,20 @@ package com.deaofu.model.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Max;
 import lombok.Data;
 
 /** 动态标签新增或修改入参。 */
 @Data
 public class NewsTagSaveDto {
+
+    /** 内容语言：0表示中文，1表示英语。 */
+    @NotNull(message = "语言标识不能为空")
+    @Min(value = 0, message = "语言标识只能为0或1")
+    @Max(value = 1, message = "语言标识只能为0或1")
+    private Integer language;
 
     /** 动态标签名称。 */
     @NotBlank(message = "动态标签名称不能为空")

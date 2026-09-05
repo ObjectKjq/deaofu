@@ -37,8 +37,9 @@ public class ProductCategoryServiceImpl extends ServiceImpl<ProductCategoryMappe
 
     @Override
     @Transactional(readOnly = true)
-    public List<ProductCategoryVo> listCategories() {
+    public List<ProductCategoryVo> listCategories(Integer language) {
         List<ProductCategory> entities = lambdaQuery()
+                .eq(language != null, ProductCategory::getLanguage, language)
                 .orderByAsc(ProductCategory::getSortOrder)
                 .orderByDesc(ProductCategory::getCreateTime).list();
         Map<String, ProductCategory> byId = new HashMap<>();
@@ -62,11 +63,13 @@ public class ProductCategoryServiceImpl extends ServiceImpl<ProductCategoryMappe
     public PageResult<ProductCategoryVo> pageCategories(AdminPageDto dto) {
         // 关键字命中二级分类名称时，把其父级分类也纳入分页范围
         List<String> matchedParentIds = StrUtil.isBlank(dto.getKeyword()) ? List.of()
-                : lambdaQuery().like(ProductCategory::getCategoryName, dto.getKeyword())
+                : lambdaQuery().eq(dto.getLanguage() != null, ProductCategory::getLanguage, dto.getLanguage())
+                        .like(ProductCategory::getCategoryName, dto.getKeyword())
                         .isNotNull(ProductCategory::getParentId).list().stream()
                         .map(ProductCategory::getParentId).distinct().toList();
         Page<ProductCategory> page = lambdaQuery()
                 .isNull(ProductCategory::getParentId)
+                .eq(dto.getLanguage() != null, ProductCategory::getLanguage, dto.getLanguage())
                 .and(StrUtil.isNotBlank(dto.getKeyword()), wrapper -> wrapper
                         .like(ProductCategory::getCategoryName, dto.getKeyword())
                         .or().in(!matchedParentIds.isEmpty(), ProductCategory::getCategoryId, matchedParentIds))
@@ -77,6 +80,7 @@ public class ProductCategoryServiceImpl extends ServiceImpl<ProductCategoryMappe
         List<String> parentIds = page.getRecords().stream().map(ProductCategory::getCategoryId).toList();
         Map<String, List<ProductCategory>> childMap = parentIds.isEmpty() ? Map.of()
                 : lambdaQuery().in(ProductCategory::getParentId, parentIds)
+                        .eq(dto.getLanguage() != null, ProductCategory::getLanguage, dto.getLanguage())
                         .orderByAsc(ProductCategory::getSortOrder)
                         .orderByDesc(ProductCategory::getCreateTime).list().stream()
                         .collect(Collectors.groupingBy(ProductCategory::getParentId));
@@ -106,7 +110,7 @@ public class ProductCategoryServiceImpl extends ServiceImpl<ProductCategoryMappe
     @Override
     @Transactional(rollbackFor = Exception.class)
     public ProductCategoryVo addCategory(ProductCategorySaveDto dto) {
-        validateParent(null, dto.getParentId());
+        validateParent(null, dto.getParentId(), dto.getLanguage());
         ProductCategory entity = new ProductCategory();
         fill(entity, dto);
         save(entity);
@@ -117,7 +121,7 @@ public class ProductCategoryServiceImpl extends ServiceImpl<ProductCategoryMappe
     @Transactional(rollbackFor = Exception.class)
     public ProductCategoryVo updateCategory(String categoryId, ProductCategorySaveDto dto) {
         ProductCategory entity = requireCategory(categoryId);
-        validateParent(categoryId, dto.getParentId());
+        validateParent(categoryId, dto.getParentId(), dto.getLanguage());
         if (StrUtil.isNotBlank(dto.getParentId()) && lambdaQuery()
                 .eq(ProductCategory::getParentId, categoryId).count() > 0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "包含二级分类的一级分类不能改为二级分类");
@@ -142,7 +146,7 @@ public class ProductCategoryServiceImpl extends ServiceImpl<ProductCategoryMappe
         return removeById(categoryId);
     }
 
-    private void validateParent(String categoryId, String parentId) {
+    private void validateParent(String categoryId, String parentId, Integer language) {
         if (StrUtil.isBlank(parentId)) {
             return;
         }
@@ -152,6 +156,9 @@ public class ProductCategoryServiceImpl extends ServiceImpl<ProductCategoryMappe
         ProductCategory parent = getById(parentId);
         if (parent == null) {
             throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "父级分类不存在");
+        }
+        if (!java.util.Objects.equals(parent.getLanguage(), language)) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "父级分类语言必须与当前分类一致");
         }
         if (StrUtil.isNotBlank(parent.getParentId())) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "产品分类最多支持两级");
@@ -168,6 +175,7 @@ public class ProductCategoryServiceImpl extends ServiceImpl<ProductCategoryMappe
 
     private void fill(ProductCategory entity, ProductCategorySaveDto dto) {
         entity.setCategoryName(dto.getCategoryName());
+        entity.setLanguage(dto.getLanguage());
         entity.setSortOrder(dto.getSortOrder() == null ? 0 : dto.getSortOrder());
         entity.setParentId(StrUtil.isBlank(dto.getParentId()) ? null : dto.getParentId());
     }
@@ -175,6 +183,7 @@ public class ProductCategoryServiceImpl extends ServiceImpl<ProductCategoryMappe
     private ProductCategoryVo toVo(ProductCategory entity, Map<String, ProductCategory> byId) {
         ProductCategoryVo vo = new ProductCategoryVo();
         vo.setCategoryId(entity.getCategoryId());
+        vo.setLanguage(entity.getLanguage());
         vo.setCategoryName(entity.getCategoryName());
         vo.setSortOrder(entity.getSortOrder());
         vo.setParentId(entity.getParentId());

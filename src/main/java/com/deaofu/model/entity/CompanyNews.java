@@ -20,6 +20,9 @@ public class CompanyNews extends BaseDo implements Serializable {
     @TableId(value = "news_id", type = IdType.ASSIGN_UUID)
     private String newsId;
 
+    /** 内容语言：0表示中文，1表示英语，对应 {@code language}。 */
+    private Integer language;
+
     /** 封面图在 {@code sys_file.access_name} 中的访问文件名。 */
     private String coverAccessName;
 

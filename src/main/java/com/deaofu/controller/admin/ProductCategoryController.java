@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -27,10 +28,10 @@ import java.util.List;
 public class ProductCategoryController {
     private final IProductCategoryService categoryService;
 
-    /** GET /admin/product-categories：查询全部一二级分类。 @return 统一响应中的分类列表 */
+    /** GET /admin/product-categories：查询全部一二级分类，可按 language（0中文、1英语）筛选。 @return 统一响应中的分类列表 */
     @GetMapping
-    public BaseResponse<List<ProductCategoryVo>> list() {
-        return ResultUtils.success(categoryService.listCategories());
+    public BaseResponse<List<ProductCategoryVo>> list(@RequestParam(required = false) Integer language) {
+        return ResultUtils.success(categoryService.listCategories(language));
     }
 
     /** GET /admin/product-categories/page：以一级分类为单位分页，每个一级分类携带二级分类列表。 @param dto 分页入参（keyword 可选） @return 一级分类分页结果 */

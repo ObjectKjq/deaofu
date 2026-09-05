@@ -202,7 +202,7 @@
             </div>
             <div class="news-grid">
                 <a class="news-item news-card" th:each="item, stat : ${news}"
-                   th:classappend="${stat.first} ? ' news-feature'" th:href="@{/news/{id}(id=${item.newsId})}">
+                   th:classappend="${stat.first} ? ' news-feature'" th:href="@{/news/{id}(id=${item.newsId},language=${language})}">
                     <div class="news-photo" role="img" th:aria-label="${item.title}"
                          th:style="${item.coverUrl != null} ? 'background-image:url(' + ${item.coverUrl} + ')'"></div>
                     <div class="news-card-body">

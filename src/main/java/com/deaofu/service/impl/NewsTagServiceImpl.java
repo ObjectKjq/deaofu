@@ -34,16 +34,16 @@ public class NewsTagServiceImpl extends ServiceImpl<NewsTagMapper, NewsTag> impl
 
     @Override
     @Transactional(readOnly = true)
-    public List<NewsTagVo> listTags() {
-        return lambdaQuery().select(NewsTag::getTagId, NewsTag::getTagName, NewsTag::getIconContentType,
-                        NewsTag::getCreateTime).orderByDesc(NewsTag::getCreateTime).list().stream()
+    public List<NewsTagVo> listTags(Integer language) {
+        return lambdaQuery().select(NewsTag::getTagId, NewsTag::getLanguage, NewsTag::getTagName, NewsTag::getIconContentType,
+                        NewsTag::getCreateTime).eq(language != null, NewsTag::getLanguage, language).orderByDesc(NewsTag::getCreateTime).list().stream()
                 .map(this::toVo).toList();
     }
     @Override
     @Transactional(readOnly = true)
-    public List<NewsTagVo> listPortalTags() {
-        return lambdaQuery().select(NewsTag::getTagId, NewsTag::getTagName, NewsTag::getIconContentType,
-                        NewsTag::getCreateTime).orderByDesc(NewsTag::getCreateTime).list().stream()
+    public List<NewsTagVo> listPortalTags(Integer language) {
+        return lambdaQuery().select(NewsTag::getTagId, NewsTag::getLanguage, NewsTag::getTagName, NewsTag::getIconContentType,
+                        NewsTag::getCreateTime).eq(language != null, NewsTag::getLanguage, language).orderByDesc(NewsTag::getCreateTime).list().stream()
                 .map(this::toPortalVo).toList();
     }
 
@@ -52,8 +52,9 @@ public class NewsTagServiceImpl extends ServiceImpl<NewsTagMapper, NewsTag> impl
     @Transactional(readOnly = true)
     public PageResult<NewsTagVo> pageTags(AdminPageDto dto) {
         Page<NewsTag> page = lambdaQuery()
-                .select(NewsTag::getTagId, NewsTag::getTagName, NewsTag::getIconContentType, NewsTag::getCreateTime)
+                .select(NewsTag::getTagId, NewsTag::getLanguage, NewsTag::getTagName, NewsTag::getIconContentType, NewsTag::getCreateTime)
                 .like(StrUtil.isNotBlank(dto.getKeyword()), NewsTag::getTagName, dto.getKeyword())
+                .eq(dto.getLanguage() != null, NewsTag::getLanguage, dto.getLanguage())
                 .orderByDesc(NewsTag::getCreateTime)
                 .page(new Page<>(dto.getPageNum(), dto.getPageSize()));
         List<NewsTagVo> list = page.getRecords().stream().map(this::toVo).toList();
@@ -75,7 +76,7 @@ public class NewsTagServiceImpl extends ServiceImpl<NewsTagMapper, NewsTag> impl
     @Override
     @Transactional(rollbackFor = Exception.class)
     public NewsTagVo addTag(NewsTagSaveDto dto) {
-        ensureNameUnique(null, dto.getTagName());
+        ensureNameUnique(null, dto.getTagName(), dto.getLanguage());
         NewsTag entity = new NewsTag();
         fill(entity, dto);
         save(entity);
@@ -86,7 +87,7 @@ public class NewsTagServiceImpl extends ServiceImpl<NewsTagMapper, NewsTag> impl
     @Transactional(rollbackFor = Exception.class)
     public NewsTagVo updateTag(String tagId, NewsTagSaveDto dto) {
         NewsTag entity = requireTag(tagId);
-        ensureNameUnique(tagId, dto.getTagName());
+        ensureNameUnique(tagId, dto.getTagName(), dto.getLanguage());
         fill(entity, dto);
         updateById(entity);
         return getTag(tagId);
@@ -104,8 +105,9 @@ public class NewsTagServiceImpl extends ServiceImpl<NewsTagMapper, NewsTag> impl
         return removeById(tagId);
     }
 
-    private void ensureNameUnique(String tagId, String tagName) {
+    private void ensureNameUnique(String tagId, String tagName, Integer language) {
         long count = lambdaQuery().eq(NewsTag::getTagName, tagName)
+                .eq(NewsTag::getLanguage, language)
                 .ne(StrUtil.isNotBlank(tagId), NewsTag::getTagId, tagId).count();
         if (count > 0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "动态标签名称已存在");
@@ -121,6 +123,7 @@ public class NewsTagServiceImpl extends ServiceImpl<NewsTagMapper, NewsTag> impl
     }
 
     private void fill(NewsTag entity, NewsTagSaveDto dto) {
+        entity.setLanguage(dto.getLanguage());
         entity.setTagName(dto.getTagName());
         if (StrUtil.isBlank(dto.getIconBase64())) {
             return;
@@ -146,6 +149,7 @@ public class NewsTagServiceImpl extends ServiceImpl<NewsTagMapper, NewsTag> impl
     private NewsTagVo toVo(NewsTag entity) {
         NewsTagVo vo = new NewsTagVo();
         vo.setTagId(entity.getTagId());
+        vo.setLanguage(entity.getLanguage());
         vo.setTagName(entity.getTagName());
         vo.setIconUrl(StrUtil.isBlank(entity.getIconContentType()) ? null
                 : CommonConstant.ADMIN_TAG_ICON_PREFIX + entity.getTagId() + "/icon");
@@ -156,6 +160,7 @@ public class NewsTagServiceImpl extends ServiceImpl<NewsTagMapper, NewsTag> impl
     private NewsTagVo toPortalVo(NewsTag entity) {
         NewsTagVo vo = new NewsTagVo();
         vo.setTagId(entity.getTagId());
+        vo.setLanguage(entity.getLanguage());
         vo.setTagName(entity.getTagName());
         vo.setIconUrl(StrUtil.isBlank(entity.getIconContentType()) ? null
                 : CommonConstant.PUBLIC_TAG_ICON_PREFIX + entity.getTagId() + "/icon");

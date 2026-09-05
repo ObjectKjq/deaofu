@@ -396,7 +396,7 @@ String statusText = StatusEnum.getInfoByCode(user.getStatus());   // 暴露给�
 | `POST`   | `/admin/products`             | 新增产品     | `ProductSaveDto`          | `BaseResponse<ProductVo>`             |
 | `PUT`    | `/admin/products/{productId}` | 修改产品     | 产品ID + `ProductSaveDto` | `BaseResponse<ProductVo>`             |
 | `DELETE` | `/admin/products/{productId}` | 逻辑删除产品 | 产品ID                    | `BaseResponse<Boolean>`               |
-| `PUT`    | `/admin/products/{productId}/homepage-order` | 设置首页展示顺序（0-5） | 产品ID + 顺序整数 | `BaseResponse<ProductVo>` |
+| `PUT`    | `/admin/products/{productId}/homepage-order` | 按语言设置首页展示顺序（0-5） | 产品ID + 顺序整数 | `BaseResponse<ProductVo>` |
 
 #### 4.11.6 产品分类 — `ProductCategoryController`
 
@@ -461,7 +461,7 @@ String statusText = StatusEnum.getInfoByCode(user.getStatus());   // 暴露给�
 | `POST`   | `/admin/news`          | 新增动态并保存标签关系 | `CompanyNewsSaveDto` | `BaseResponse<CompanyNewsVo>`             |
 | `PUT`    | `/admin/news/{newsId}` | 修改动态并重建标签关系 | 动态ID + DTO         | `BaseResponse<CompanyNewsVo>`             |
 | `DELETE` | `/admin/news/{newsId}` | 删除动态及标签关系     | 动态ID               | `BaseResponse<Boolean>`                   |
-| `PUT`    | `/admin/news/{newsId}/homepage-order` | 设置首页展示顺序（0-3） | 动态ID + 顺序整数 | `BaseResponse<CompanyNewsVo>` |
+| `PUT`    | `/admin/news/{newsId}/homepage-order` | 按语言设置首页展示顺序（0-3） | 动态ID + 顺序整数 | `BaseResponse<CompanyNewsVo>` |
 
 #### 4.11.10 动态标签 — `NewsTagController`
 

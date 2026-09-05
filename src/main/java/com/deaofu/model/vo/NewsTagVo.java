@@ -10,6 +10,9 @@ import static cn.hutool.core.date.DatePattern.NORM_DATETIME_PATTERN;
 /** 动态标签出参，不直接返回图标二进制。 */
 @Data
 public class NewsTagVo {
+
+    /** 内容语言：0表示中文，1表示英语。 */
+    private Integer language;
     /** 动态标签ID。 */
     private String tagId;
     /** 动态标签名称。 */

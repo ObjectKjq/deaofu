@@ -4,6 +4,9 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Max;
 import lombok.Data;
 
 import java.util.List;
@@ -11,6 +14,12 @@ import java.util.List;
 /** 产品新增或修改入参。 */
 @Data
 public class ProductSaveDto {
+
+    /** 内容语言：0表示中文，1表示英语。 */
+    @NotNull(message = "语言标识不能为空")
+    @Min(value = 0, message = "语言标识只能为0或1")
+    @Max(value = 1, message = "语言标识只能为0或1")
+    private Integer language;
 
     /** 产品二级分类ID。 */
     @NotBlank(message = "产品二级分类不能为空")

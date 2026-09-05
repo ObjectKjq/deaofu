@@ -66,6 +66,7 @@ public class CompanyNewsServiceImpl extends ServiceImpl<CompanyNewsMapper, Compa
                         .like(CompanyNews::getTitle, dto.getKeyword())
                         .or().like(CompanyNews::getProjectRegion, dto.getKeyword()))
                 .in(CollUtil.isNotEmpty(filteredNewsIds), CompanyNews::getNewsId, filteredNewsIds)
+                .eq(dto.getLanguage() != null, CompanyNews::getLanguage, dto.getLanguage())
                 .eq(dto.getHomeShow() != null && dto.getHomeShow() == 0, CompanyNews::getHomeShowOrder, 0)
                 .gt(dto.getHomeShow() != null && dto.getHomeShow() == 1, CompanyNews::getHomeShowOrder, 0)
                 .orderByDesc(dto.getHomeShow() != null && dto.getHomeShow() == 1, CompanyNews::getHomeShowOrder)
@@ -98,6 +99,7 @@ public class CompanyNewsServiceImpl extends ServiceImpl<CompanyNewsMapper, Compa
                         .like(CompanyNews::getTitle, dto.getKeyword())
                         .or().like(CompanyNews::getProjectRegion, dto.getKeyword()))
                 .in(CollUtil.isNotEmpty(filteredNewsIds), CompanyNews::getNewsId, filteredNewsIds)
+                .eq(dto.getLanguage() != null, CompanyNews::getLanguage, dto.getLanguage())
                 .eq(dto.getHomeShow() != null && dto.getHomeShow() == 0, CompanyNews::getHomeShowOrder, 0)
                 .gt(dto.getHomeShow() != null && dto.getHomeShow() == 1, CompanyNews::getHomeShowOrder, 0)
                 .orderByDesc(dto.getHomeShow() != null && dto.getHomeShow() == 1, CompanyNews::getHomeShowOrder)
@@ -124,7 +126,15 @@ public class CompanyNewsServiceImpl extends ServiceImpl<CompanyNewsMapper, Compa
     @Override
     @Transactional(readOnly = true)
     public CompanyNewsVo getPortalNews(String newsId) {
-        CompanyNews entity = requireNews(newsId);
+        return getPortalNews(newsId, null);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public CompanyNewsVo getPortalNews(String newsId, Integer language) {
+        CompanyNews entity = lambdaQuery().eq(CompanyNews::getNewsId, newsId)
+                .eq(language != null, CompanyNews::getLanguage, language).one();
+        if (entity == null) throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "公司动态不存在");
         Map<String, SysUser> users = loadUserMap(List.of(entity.getCreateBy()));
         return toPortalVo(entity, loadPortalTags(List.of(newsId)).getOrDefault(newsId, Collections.emptyList()), users);
     }
@@ -143,7 +153,7 @@ public class CompanyNewsServiceImpl extends ServiceImpl<CompanyNewsMapper, Compa
     @Transactional(rollbackFor = Exception.class)
     public CompanyNewsVo addNews(CompanyNewsSaveDto dto) {
         fileReferenceValidator.requireExists(dto.getCoverAccessName());
-        validateTags(dto.getTagIds());
+        validateTags(dto.getTagIds(), dto.getLanguage());
         CompanyNews entity = new CompanyNews();
         fill(entity, dto);
         save(entity);
@@ -155,7 +165,7 @@ public class CompanyNewsServiceImpl extends ServiceImpl<CompanyNewsMapper, Compa
     @Transactional(rollbackFor = Exception.class)
     public CompanyNewsVo updateNews(String newsId, CompanyNewsSaveDto dto) {
         fileReferenceValidator.requireExists(dto.getCoverAccessName());
-        validateTags(dto.getTagIds());
+        validateTags(dto.getTagIds(), dto.getLanguage());
         CompanyNews entity = requireNews(newsId);
         fill(entity, dto);
         updateById(entity);
@@ -178,7 +188,10 @@ public class CompanyNewsServiceImpl extends ServiceImpl<CompanyNewsMapper, Compa
         if (order == null || order < 0 || order > 3) throw new BusinessException(ErrorCode.PARAMS_ERROR, "首页动态顺序必须为0-3");
         CompanyNews entity = requireNews(newsId);
         if (order > 0) {
-            lambdaUpdate().eq(CompanyNews::getHomeShowOrder, order).ne(CompanyNews::getNewsId, newsId).set(CompanyNews::getHomeShowOrder, 0).update();
+            lambdaUpdate().eq(CompanyNews::getLanguage, entity.getLanguage())
+                    .eq(CompanyNews::getHomeShowOrder, order)
+                    .ne(CompanyNews::getNewsId, newsId)
+                    .set(CompanyNews::getHomeShowOrder, 0).update();
         }
         entity.setHomeShowOrder(order);
         updateById(entity);
@@ -187,8 +200,9 @@ public class CompanyNewsServiceImpl extends ServiceImpl<CompanyNewsMapper, Compa
 
     @Override
     @Transactional(readOnly = true)
-    public List<CompanyNewsVo> listHomeNews() {
-        Page<CompanyNews> page = lambdaQuery().gt(CompanyNews::getHomeShowOrder, 0)
+    public List<CompanyNewsVo> listHomeNews(Integer language) {
+        Page<CompanyNews> page = lambdaQuery().eq(language != null, CompanyNews::getLanguage, language)
+                .gt(CompanyNews::getHomeShowOrder, 0)
                 .orderByDesc(CompanyNews::getHomeShowOrder)
                 .page(new Page<>(1, 3));
         Map<String, List<NewsTagVo>> tagsByNews = loadPortalTags(page.getRecords().stream().map(CompanyNews::getNewsId).toList());
@@ -196,13 +210,14 @@ public class CompanyNewsServiceImpl extends ServiceImpl<CompanyNewsMapper, Compa
         return page.getRecords().stream().map(item -> toPortalVo(item, tagsByNews.getOrDefault(item.getNewsId(), Collections.emptyList()), users)).toList();
     }
 
-    private void validateTags(List<String> tagIds) {
+    private void validateTags(List<String> tagIds, Integer language) {
         if (CollUtil.isEmpty(tagIds)) {
             return;
         }
         Set<String> uniqueIds = new LinkedHashSet<>(tagIds);
         Long count = newsTagMapper.selectCount(Wrappers.<NewsTag>lambdaQuery()
-                .in(NewsTag::getTagId, uniqueIds));
+                .in(NewsTag::getTagId, uniqueIds)
+                .eq(language != null, NewsTag::getLanguage, language));
         if (count != uniqueIds.size()) {
             throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "部分动态标签不存在");
         }
@@ -232,6 +247,7 @@ public class CompanyNewsServiceImpl extends ServiceImpl<CompanyNewsMapper, Compa
 
     private void fill(CompanyNews entity, CompanyNewsSaveDto dto) {
         entity.setCoverAccessName(dto.getCoverAccessName());
+        entity.setLanguage(dto.getLanguage());
         entity.setTitle(dto.getTitle());
         entity.setSummary(dto.getSummary());
         entity.setContent(dto.getContent());
@@ -252,7 +268,7 @@ public class CompanyNewsServiceImpl extends ServiceImpl<CompanyNewsMapper, Compa
         Set<String> tagIds = new LinkedHashSet<>(relations.stream().map(CompanyNewsTag::getTagId).toList());
         Map<String, NewsTagVo> tags = new HashMap<>();
         newsTagMapper.selectList(Wrappers.<NewsTag>lambdaQuery().in(NewsTag::getTagId, tagIds)
-                        .select(NewsTag::getTagId, NewsTag::getTagName, NewsTag::getIconContentType,
+                        .select(NewsTag::getTagId, NewsTag::getLanguage, NewsTag::getTagName, NewsTag::getIconContentType,
                                 NewsTag::getCreateTime))
                 .forEach(item -> tags.put(item.getTagId(), toTagVo(item)));
         relations.forEach(relation -> {
@@ -277,7 +293,7 @@ public class CompanyNewsServiceImpl extends ServiceImpl<CompanyNewsMapper, Compa
         Set<String> tagIds = new LinkedHashSet<>(relations.stream().map(CompanyNewsTag::getTagId).toList());
         Map<String, NewsTagVo> tags = new HashMap<>();
         newsTagMapper.selectList(Wrappers.<NewsTag>lambdaQuery().in(NewsTag::getTagId, tagIds)
-                        .select(NewsTag::getTagId, NewsTag::getTagName, NewsTag::getIconContentType,
+                        .select(NewsTag::getTagId, NewsTag::getLanguage, NewsTag::getTagName, NewsTag::getIconContentType,
                                 NewsTag::getCreateTime))
                 .forEach(item -> tags.put(item.getTagId(), toPortalTagVo(item)));
         relations.forEach(relation -> {
@@ -312,6 +328,7 @@ public class CompanyNewsServiceImpl extends ServiceImpl<CompanyNewsMapper, Compa
     private CompanyNewsVo toVo(CompanyNews entity, List<NewsTagVo> tags, Map<String, SysUser> users) {
         CompanyNewsVo vo = new CompanyNewsVo();
         vo.setNewsId(entity.getNewsId());
+        vo.setLanguage(entity.getLanguage());
         vo.setCoverAccessName(entity.getCoverAccessName());
         vo.setCoverUrl(CommonConstant.ADMIN_PREVIEW_PREFIX + entity.getCoverAccessName());
         vo.setTitle(entity.getTitle());
@@ -332,6 +349,7 @@ public class CompanyNewsServiceImpl extends ServiceImpl<CompanyNewsMapper, Compa
     private CompanyNewsVo toPortalVo(CompanyNews entity, List<NewsTagVo> tags, Map<String, SysUser> users) {
         CompanyNewsVo vo = new CompanyNewsVo();
         vo.setNewsId(entity.getNewsId());
+        vo.setLanguage(entity.getLanguage());
         vo.setCoverAccessName(entity.getCoverAccessName());
         vo.setCoverUrl(CommonConstant.PUBLIC_PREVIEW_PREFIX + entity.getCoverAccessName());
         vo.setTitle(entity.getTitle());

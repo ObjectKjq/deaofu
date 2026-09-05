@@ -67,13 +67,15 @@ public class PortalApiController {
     public BaseResponse<PageResult<PortalProductVo>> productsApi(
             @RequestParam(value = "pageNum", required = false) Integer pageNum,
             @RequestParam(value = "categoryId", required = false) String categoryId,
-            @RequestParam(value = "keyword", required = false) String keyword
+            @RequestParam(value = "keyword", required = false) String keyword,
+            @RequestParam(value = "language", required = false) Integer language
     ) {
         AdminPageDto query = new AdminPageDto();
         query.setPageNum(pageNum == null || pageNum < 1 ? 1 : pageNum);
         query.setPageSize(CommonConstant.PORTAL_PAGE_SIZE);
         query.setCategoryId(categoryId);
         query.setKeyword(keyword);
+        query.setLanguage(language);
         PageResult<PortalProductVo> page = productService.pagePortalProducts(query);
         List<PortalProductVo> list = page.getList();
         return ResultUtils.success(new PageResult<>(list, page.getTotal()));
@@ -91,12 +93,14 @@ public class PortalApiController {
     @ResponseBody
     public BaseResponse<PageResult<CompanyNewsVo>> newsApi(
             @RequestParam(value = "pageNum", required = false) Integer pageNum,
-            @RequestParam(value = "tagId", required = false) String tagId
+            @RequestParam(value = "tagId", required = false) String tagId,
+            @RequestParam(value = "language", required = false) Integer language
     ) {
         AdminPageDto query = new AdminPageDto();
         query.setPageNum(pageNum == null || pageNum < 1 ? 1 : pageNum);
         query.setPageSize(CommonConstant.PORTAL_PAGE_SIZE);
         query.setTagId(tagId);
+        query.setLanguage(language);
         PageResult<CompanyNewsVo> page = newsService.pagePortalNews(query);
         List<CompanyNewsVo> list = page.getList();
         return ResultUtils.success(new PageResult<>(list, page.getTotal()));

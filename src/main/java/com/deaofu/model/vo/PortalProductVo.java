@@ -12,6 +12,9 @@ import static cn.hutool.core.date.DatePattern.NORM_DATETIME_PATTERN;
 @Data
 public class PortalProductVo {
 
+    /** 内容语言：0表示中文，1表示英语。 */
+    private Integer language;
+
     /** 产品ID，用于详情页路由 {@code /products/{productId}}。 */
     private String productId;
 

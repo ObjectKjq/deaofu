@@ -20,6 +20,9 @@ public class NewsTag extends BaseDo implements Serializable {
     @TableId(value = "tag_id", type = IdType.ASSIGN_UUID)
     private String tagId;
 
+    /** 内容语言：0表示中文，1表示英语，对应 {@code language}。 */
+    private Integer language;
+
     /** 动态标签名称，对应 {@code tag_name}。 */
     private String tagName;
 

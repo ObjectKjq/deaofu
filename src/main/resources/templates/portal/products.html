@@ -40,8 +40,8 @@
                 <h2 id="resultTitle" th:text="${query.keyword != null && !query.keyword.isEmpty()} ? #{products.results.search.prefix} + ${query.keyword} : #{products.results.all}">All Products</h2>
                 <p th:text="#{products.results.subtitle}">Click a product card...</p>
             </div>
-            <div class="product-grid-page" id="productGrid" data-lazy-grid data-lazy-url="/api/products" data-lazy-size="9" th:attr="data-lazy-category-id=${query.categoryId},data-lazy-keyword=${query.keyword}">
-                <a class="catalog-card" th:each="item, stat : ${products}" th:href="@{/product/{id}(id=${item.productId})}">
+            <div class="product-grid-page" id="productGrid" data-lazy-grid data-lazy-url="/api/products" data-lazy-size="9" th:attr="data-lazy-category-id=${query.categoryId},data-lazy-keyword=${query.keyword},data-lazy-language=${query.language}">
+                <a class="catalog-card" th:each="item, stat : ${products}" th:href="@{/product/{id}(id=${item.productId},language=${query.language})}">
                     <div class="catalog-card-media">
                         <img th:if="${item.coverUrl != null}" th:src="${item.coverUrl}" th:alt="${item.title}" loading="lazy"/>
                         <span class="catalog-card-tag" th:text="${item.categoryName}"></span>

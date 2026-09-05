@@ -69,7 +69,7 @@
                 <a class="text-link" th:href="@{/products}"><span th:text="#{product-detail.related.cta}">Browse All Products</span> <span>→</span></a>
             </div>
             <div class="related-grid">
-                <a class="related-card" th:each="item : ${relatedProducts}" th:href="@{/product/{id}(id=${item.productId})}">
+                <a class="related-card" th:each="item : ${relatedProducts}" th:href="@{/product/{id}(id=${item.productId},language=${language})}">
                     <img th:if="${item.coverUrl != null}" th:src="${item.coverUrl}" th:alt="${item.title}" loading="lazy"/>
                     <div><small th:text="${item.categoryName}"></small>
                         <h3 th:text="${item.title}"></h3></div>

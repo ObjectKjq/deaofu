@@ -221,7 +221,7 @@
                 });
                 // 同步懒加载需要的筛选属性（grid.innerHTML 只换子节点，自身属性不会自动更新）。
                 // 不刷新这些属性，lazy-load.js 仍会按旧 categoryId/keyword/tagId 请求下一页。
-                ['data-lazy-category-id', 'data-lazy-keyword', 'data-lazy-tag-id', 'data-lazy-template'].forEach((attr) => {
+                ['data-lazy-category-id', 'data-lazy-keyword', 'data-lazy-tag-id', 'data-lazy-language', 'data-lazy-template'].forEach((attr) => {
                     if (newGrid.hasAttribute(attr)) {
                         grid.setAttribute(attr, newGrid.getAttribute(attr));
                     } else {
@@ -324,6 +324,22 @@
             return;
         }
 
+        // 首页由服务端按官网语言注入名称；非首页场景回退到内置中文字典。
+        const countryNames = window.portalCountryNames && Object.keys(window.portalCountryNames).length
+            ? window.portalCountryNames : COUNTRY_NAMES;
+        const isEnglish = !String(document.documentElement.lang || '').toLowerCase().startsWith('zh');
+        const displayName = code => {
+            if (countryNames[code]) return countryNames[code];
+            if (isEnglish && typeof Intl !== 'undefined' && Intl.DisplayNames) {
+                try {
+                    return new Intl.DisplayNames(['en'], {type: 'region'}).of(code.toUpperCase()) || code.toUpperCase();
+                } catch (error) {
+                    // 非标准地图区域代码回退到内置名称或代码。
+                }
+            }
+            return COUNTRY_NAMES[code] || code.toUpperCase();
+        };
+
         // 源 viewBox 映射到目标 viewBox 0 0 1200 460
         const sourceMinX = 30.767;
         const sourceMinY = 241.591;
@@ -376,7 +392,7 @@
             const countryGroup = document.createElementNS(SVG_NS, 'g');
             countryGroup.setAttribute('class', 'country');
             countryGroup.setAttribute('data-code', code);
-            countryGroup.setAttribute('data-name', COUNTRY_NAMES[code] || code.toUpperCase());
+            countryGroup.setAttribute('data-name', displayName(code));
 
             sourcePaths.forEach((p) => {
                 const cloned = document.createElementNS(SVG_NS, 'path');

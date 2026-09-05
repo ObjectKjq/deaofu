@@ -11,9 +11,9 @@ import java.util.List;
 /** 动态标签管理业务接口。 */
 public interface INewsTagService {
     /** 查询全部动态标签。 @return 标签列表 */
-    List<NewsTagVo> listTags();
+    List<NewsTagVo> listTags(Integer language);
     /** 官网前台查询全部动态标签。 @return 标签列表 */
-    List<NewsTagVo> listPortalTags();
+    List<NewsTagVo> listPortalTags(Integer language);
     /** 分页查询动态标签，按名称模糊匹配。 @param dto 分页入参 @return 标签分页结果 */
     PageResult<NewsTagVo> pageTags(AdminPageDto dto);
     /** 查询动态标签详情。 @param tagId 标签ID @return 标签详情 */

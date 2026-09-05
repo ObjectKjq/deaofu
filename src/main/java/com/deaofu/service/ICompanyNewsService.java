@@ -16,6 +16,8 @@ public interface ICompanyNewsService {
     CompanyNewsVo getNews(String newsId);
     /** 官网前台查询公司动态详情。 @param newsId 动态ID @return 动态详情 */
     CompanyNewsVo getPortalNews(String newsId);
+    /** 按语言查询官网动态详情。 */
+    CompanyNewsVo getPortalNews(String newsId, Integer language);
     /** 新增公司动态并维护标签关系。 @param dto 动态入参 @return 新增结果 */
     CompanyNewsVo addNews(CompanyNewsSaveDto dto);
     /** 修改公司动态并重建标签关系。 @param newsId 动态ID @param dto 动态入参 @return 修改结果 */
@@ -25,5 +27,5 @@ public interface ICompanyNewsService {
     /** 设置动态官网首页展示顺序，0表示取消展示。 */
     CompanyNewsVo updateHomeShowOrder(String newsId, Integer order);
     /** 查询官网首页展示动态，按展示顺序倒序返回，最多3条。 */
-    List<CompanyNewsVo> listHomeNews();
+    List<CompanyNewsVo> listHomeNews(Integer language);
 }

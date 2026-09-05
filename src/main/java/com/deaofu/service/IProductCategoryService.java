@@ -10,7 +10,7 @@ import java.util.List;
 /** 产品分类管理业务接口。 */
 public interface IProductCategoryService {
     /** 查询全部分类并按层级和排序返回。 @return 分类列表 */
-    List<ProductCategoryVo> listCategories();
+    List<ProductCategoryVo> listCategories(Integer language);
     /** 以一级分类为单位分页查询，每个一级分类携带其二级分类列表；关键字同时匹配一级名称与二级名称。 @param dto 分页入参 @return 一级分类分页结果 */
     PageResult<ProductCategoryVo> pageCategories(AdminPageDto dto);
     /** 查询分类详情。 @param categoryId 分类ID @return 分类详情 */

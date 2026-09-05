@@ -11,6 +11,9 @@ import static cn.hutool.core.date.DatePattern.NORM_DATETIME_PATTERN;
 /** 公司动态出参。 */
 @Data
 public class CompanyNewsVo {
+
+    /** 内容语言：0表示中文，1表示英语。 */
+    private Integer language;
     /** 动态ID。 */
     private String newsId;
     /** 封面图访问文件名。 */

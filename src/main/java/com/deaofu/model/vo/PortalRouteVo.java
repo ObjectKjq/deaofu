@@ -9,7 +9,7 @@ public class PortalRouteVo {
     /** 运输线路ID。 */
     private String routeId;
 
-    /** 始发国家中文名，例如“中国”。 */
+    /** 始发国家名称，按官网当前语言返回，例如“中国”或“China”。 */
     private String sourceName;
 
     /** 始发国在地图 viewBox 0 0 1200 460 中的 X 坐标（像素）。 */
@@ -18,7 +18,7 @@ public class PortalRouteVo {
     /** 始发国在地图 viewBox 0 0 1200 460 中的 Y 坐标（像素）。 */
     private Integer sourceY;
 
-    /** 目标国家中文名，例如“德国”。 */
+    /** 目标国家名称，按官网当前语言返回，例如“德国”或“Germany”。 */
     private String targetName;
 
     /** 目标国在地图 viewBox 0 0 1200 460 中的 X 坐标（像素）。 */

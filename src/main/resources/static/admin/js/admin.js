@@ -847,6 +847,7 @@
             const panel = modal(`${id ? '编辑' : '新增'}${moduleTitles[module]}`, body, '<button class="layui-btn layui-btn-primary" type="button" data-close>取消</button><button class="layui-btn" type="button" data-save>保存</button>', module);
             panel.querySelector('[data-close]')?.addEventListener('click', closeModal);
             bindEditor(module, data);
+            bindLanguageOptions(module, panel);
             // 公司动态正文：初始化草稿、回显预览并绑定全屏编辑层入口
             if (module === 'news') {
                 newsContentDraft = data.content || '';
@@ -858,6 +859,46 @@
             notify(error.message);
         }
     };
+    // 语言切换后重新加载与语言相关的标签或分类选项，避免继续显示原语言内容
+    const bindLanguageOptions = (module, panel) => {
+        const languageSelect = panel.querySelector('[name="language"]');
+        if (!languageSelect || !['news', 'categories', 'products'].includes(module)) return;
+        let requestVersion = 0;
+        let currentLanguage = String(languageSelect.value);
+        const refreshOptions = async value => {
+            const language = Number(value);
+            if (!Number.isInteger(language) || (language !== 0 && language !== 1)
+                || String(language) === currentLanguage) return;
+            currentLanguage = String(language);
+            const version = ++requestVersion;
+            try {
+                if (module === 'news') {
+                    const tagSelect = panel.querySelector('[name="tagIds"]');
+                    if (!tagSelect) return;
+                    const tags = await request(`${API}/news-tags?language=${language}`);
+                    if (version !== requestVersion) return;
+                    tagSelect.innerHTML = tags.map(tag => `<option value="${escapeHtml(tag.tagId)}">${escapeHtml(tag.tagName)}</option>`).join('');
+                } else {
+                    const categorySelect = panel.querySelector('[name="categoryId"], [name="parentId"]');
+                    if (!categorySelect) return;
+                    const categories = await request(`${API}/product-categories?language=${language}`);
+                    if (version !== requestVersion) return;
+                    const options = module === 'products'
+                        ? categories.filter(item => item.level === 2).map(item => `<option value="${escapeHtml(item.categoryId)}">${escapeHtml(`${item.parentName || ''}${item.parentName ? ' / ' : ''}${item.categoryName}`)}</option>`)
+                        : categories.filter(item => item.level === 1).map(item => `<option value="${escapeHtml(item.categoryId)}">${escapeHtml(item.categoryName)}</option>`);
+                    categorySelect.innerHTML = `<option value="">请选择</option>${options.join('')}`;
+                }
+                window.layui?.form.render();
+            } catch (error) {
+                notify(error.message);
+            }
+        };
+        // 原生 change 兼容普通 select；layui select 事件兼容自定义下拉组件
+        languageSelect.addEventListener('change', () => refreshOptions(languageSelect.value));
+        window.layui?.form?.on('select(editor-language)', event => {
+            if (event.elem === languageSelect) refreshOptions(event.value);
+        });
+    };
     const editorForm = async (module, data) => {
         const input = (name, value = '', placeholder = '') => `<input type="text" name="${name}" value="${escapeHtml(value || '')}" placeholder="${escapeHtml(placeholder)}" autocomplete="off" class="layui-input">`;
         const select = (name, options, extra = '') => `<select name="${name}"${extra}><option value=""></option>${options}</select>`;
@@ -868,14 +909,16 @@
         };
         const item = (label, control) => `<div class="layui-form-item"><label class="layui-form-label">${label}</label><div class="layui-input-block">${control}</div></div>`;
         const field = (name, label, value = '', placeholder = '') => item(label, input(name, value, placeholder));
+        const language = Number(data.language ?? 0);
+        const languageField = item('语言', select('language', `<option value="0" ${language === 0 ? 'selected' : ''}>中文</option><option value="1" ${language === 1 ? 'selected' : ''}>英语</option>`, ' lay-filter="editor-language"'));
         if (module === 'users') {
             const status = data.status || '0';
             const password = data.userId ? '' : item('初始密码', `<input type="password" name="password" placeholder="请输入初始密码" autocomplete="new-password" class="layui-input">`);
             return `<form lay-filter="editor-form" data-editor>${field('username', '登录用户名', data.username, '请输入登录用户名')}${field('displayName', '显示名称', data.displayName, '请输入显示名称')}${password}${item('用户状态', select('status', `<option value="0" ${status === '0' ? 'selected' : ''}>启用</option><option value="1" ${status === '1' ? 'selected' : ''}>禁用</option>`))}</form>`;
         }
         if (module === 'categories') {
-            const categories = await request(`${API}/product-categories`);
-            return `<form lay-filter="editor-form" data-editor>${field('categoryName', '分类名称', data.categoryName)}${field('sortOrder', '排序值', data.sortOrder ?? 0)}${item('所属一级分类', select('parentId', categories.filter(x => x.level === 1 && x.categoryId !== data.categoryId).map(x => `<option value="${x.categoryId}" ${x.categoryId === data.parentId ? 'selected' : ''}>${escapeHtml(x.categoryName)}</option>`).join('')))}</form>`;
+            const categories = await request(`${API}/product-categories?language=${language}`);
+            return `<form lay-filter="editor-form" data-editor>${languageField}${field('categoryName', '分类名称', data.categoryName)}${field('sortOrder', '排序值', data.sortOrder ?? 0)}${item('所属一级分类', select('parentId', categories.filter(x => x.level === 1 && x.categoryId !== data.categoryId).map(x => `<option value="${x.categoryId}" ${x.categoryId === data.parentId ? 'selected' : ''}>${escapeHtml(x.categoryName)}</option>`).join('')))}</form>`;
         }
         if (module === 'routes') {
             const countries = await request(`${API}/countries`);
@@ -884,13 +927,13 @@
             return `<form lay-filter="editor-form" data-editor>${searchableCountry('始发地', 'sourceAddress', countries, source)}${searchableCountry('目的地', 'targetAddress', countries, target)}</form>`;
         }
         if (module === 'partners') return `<form lay-filter="editor-form" data-editor>${field('companyName', '企业名称', data.companyName)}${singleUpload('企业 Logo', 'logoAccessName', data.logoAccessName, data.logoUrl, data.logoAccessName)}</form>`;
-        if (module === 'tags') return `<form lay-filter="editor-form" data-editor>${field('tagName', '标签名称', data.tagName)}<div class="layui-form-item"><label class="layui-form-label">标签图标</label><div class="layui-input-block"><div class="tag-icon-pick"><img class="tag-icon-preview" alt="标签图标"${data.iconUrl ? ` src="${escapeHtml(data.iconUrl)}" onerror="this.hidden=true"` : ' hidden'}><button type="button" class="layui-btn layui-btn-primary" data-open-icon-picker><i class="layui-icon layui-icon-face-smile"></i> 从图标库选择</button><span class="upload-help" style="margin-left:10px">点击从内置字体图标库中挑选图标</span></div><input type="hidden" name="iconBase64" value=""></div></div></form>`;
+        if (module === 'tags') return `<form lay-filter="editor-form" data-editor>${languageField}${field('tagName', '标签名称', data.tagName)}<div class="layui-form-item"><label class="layui-form-label">标签图标</label><div class="layui-input-block"><div class="tag-icon-pick"><img class="tag-icon-preview" alt="标签图标"${data.iconUrl ? ` src="${escapeHtml(data.iconUrl)}" onerror="this.hidden=true"` : ' hidden'}><button type="button" class="layui-btn layui-btn-primary" data-open-icon-picker><i class="layui-icon layui-icon-face-smile"></i> 从图标库选择</button><span class="upload-help" style="margin-left:10px">点击从内置字体图标库中挑选图标</span></div><input type="hidden" name="iconBase64" value=""></div></div></form>`;
         if (module === 'products') {
-            const categories = await request(`${API}/product-categories`);
+            const categories = await request(`${API}/product-categories?language=${language}`);
             const options = categories.filter(x => x.level === 2).map(x => `<option value="${x.categoryId}" ${x.categoryId === data.categoryId ? 'selected' : ''}>${escapeHtml(`${x.parentName || ''}${x.parentName ? ' / ' : ''}${x.categoryName}`)}</option>`).join('');
-            return `<form lay-filter="editor-form" data-editor>${field('title', '产品名称', data.title)}${item('所属分类', select('categoryId', options))}<div class="layui-form-item layui-form-text"><label class="layui-form-label">产品简介</label><div class="layui-input-block"><textarea name="summary" placeholder="请输入产品简介" class="layui-textarea">${escapeHtml(data.summary || '')}</textarea></div></div>${singleUpload('产品封面', 'coverAccessName', data.coverAccessName, data.coverUrl, data.coverAccessName)}<div class="layui-form-item"><label class="layui-form-label">详情图片</label><div class="layui-input-block"><div class="upload-area" data-image-list>${uploadTile('upload-list', 'detailImages', true)}${(data.detailImages || []).map(n => imageTile(n, n.substring(n.lastIndexOf('/') + 1), n)).join('')}<span class="upload-help">请选择图片文件，可批量上传</span></div></div></div><div class="layui-form-item"><label class="layui-form-label">产品参数</label><div class="layui-input-block"><div data-parameters>${(data.parameters || []).map(p => parameterRow(p)).join('') || parameterRow()}</div><button class="layui-btn layui-btn-primary layui-btn-sm" type="button" data-add-parameter>+ 添加参数</button></div></div></form>`;
+            return `<form lay-filter="editor-form" data-editor>${languageField}${field('title', '产品名称', data.title)}${item('所属分类', select('categoryId', options))}<div class="layui-form-item layui-form-text"><label class="layui-form-label">产品简介</label><div class="layui-input-block"><textarea name="summary" placeholder="请输入产品简介" class="layui-textarea">${escapeHtml(data.summary || '')}</textarea></div></div>${singleUpload('产品封面', 'coverAccessName', data.coverAccessName, data.coverUrl, data.coverAccessName)}<div class="layui-form-item"><label class="layui-form-label">详情图片</label><div class="layui-input-block"><div class="upload-area" data-image-list>${uploadTile('upload-list', 'detailImages', true)}${(data.detailImages || []).map(n => imageTile(n, n.substring(n.lastIndexOf('/') + 1), n)).join('')}<span class="upload-help">请选择图片文件，可批量上传</span></div></div></div><div class="layui-form-item"><label class="layui-form-label">产品参数</label><div class="layui-input-block"><div data-parameters>${(data.parameters || []).map(p => parameterRow(p)).join('') || parameterRow()}</div><button class="layui-btn layui-btn-primary layui-btn-sm" type="button" data-add-parameter>+ 添加参数</button></div></div></form>`;
         }
-        const tags = module === 'news' ? await request(`${API}/news-tags`) : [];
+        const tags = module === 'news' ? await request(`${API}/news-tags?language=${language}`) : [];
         const selected = new Set((data.tags || []).map(x => x.tagId));
         // 动态正文：富文本改为全屏编辑层入口，textarea 仅作降级
         const contentField = module === 'news'
@@ -898,7 +941,7 @@
                 ? `<div class="layui-form-item"><label class="layui-form-label">动态正文</label><div class="layui-input-block"><div class="content-entry"><span class="content-entry-text" data-content-preview></span><button class="layui-btn layui-btn-sm" type="button" data-edit-content>编辑正文</button></div></div></div>`
                 : `<div class="layui-form-item layui-form-text"><label class="layui-form-label">动态正文</label><div class="layui-input-block"><textarea name="content" placeholder="支持 HTML 正文" class="layui-textarea">${escapeHtml(data.content || '')}</textarea></div></div>`)
             : '';
-        return `<form lay-filter="editor-form" data-editor>${field('title', '动态标题', data.title)}${field('projectRegion', '项目地区', data.projectRegion)}${field('contactEmail', '咨询邮箱', data.contactEmail)}<div class="layui-form-item"><label class="layui-form-label">动态标签</label><div class="layui-input-block"><select name="tagIds" multiple size="4">${tags.map(x => `<option value="${x.tagId}" ${selected.has(x.tagId) ? 'selected' : ''}>${escapeHtml(x.tagName)}</option>`).join('')}</select></div></div>${singleUpload('动态封面', 'coverAccessName', data.coverAccessName, data.coverUrl, data.coverAccessName)}<div class="layui-form-item layui-form-text"><label class="layui-form-label">动态摘要</label><div class="layui-input-block"><textarea name="summary" placeholder="请输入动态摘要" class="layui-textarea">${escapeHtml(data.summary || '')}</textarea></div></div>${contentField}</form>`;
+        return `<form lay-filter="editor-form" data-editor>${languageField}${field('title', '动态标题', data.title)}${field('projectRegion', '项目地区', data.projectRegion)}${field('contactEmail', '咨询邮箱', data.contactEmail)}<div class="layui-form-item"><label class="layui-form-label">动态标签</label><div class="layui-input-block"><select name="tagIds" multiple size="4">${tags.map(x => `<option value="${x.tagId}" ${selected.has(x.tagId) ? 'selected' : ''}>${escapeHtml(x.tagName)}</option>`).join('')}</select></div></div>${singleUpload('动态封面', 'coverAccessName', data.coverAccessName, data.coverUrl, data.coverAccessName)}<div class="layui-form-item layui-form-text"><label class="layui-form-label">动态摘要</label><div class="layui-input-block"><textarea name="summary" placeholder="请输入动态摘要" class="layui-textarea">${escapeHtml(data.summary || '')}</textarea></div></div>${contentField}</form>`;
     };
     // 上传组件图标（内联 SVG）
     const eyeIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>';

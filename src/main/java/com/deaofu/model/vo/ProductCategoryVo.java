@@ -11,6 +11,9 @@ import static cn.hutool.core.date.DatePattern.NORM_DATETIME_PATTERN;
 /** 产品分类出参。 */
 @Data
 public class ProductCategoryVo {
+
+    /** 内容语言：0表示中文，1表示英语。 */
+    private Integer language;
     /** 产品分类ID。 */
     private String categoryId;
     /** 产品分类名称。 */

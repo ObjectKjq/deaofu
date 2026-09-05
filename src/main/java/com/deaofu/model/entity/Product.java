@@ -20,6 +20,9 @@ public class Product extends BaseDo implements Serializable {
     @TableId(value = "product_id", type = IdType.ASSIGN_UUID)
     private String productId;
 
+    /** 内容语言：0表示中文，1表示英语，对应 {@code language}。 */
+    private Integer language;
+
     /** 产品二级分类ID，对应 {@code category_id}。 */
     private String categoryId;
 

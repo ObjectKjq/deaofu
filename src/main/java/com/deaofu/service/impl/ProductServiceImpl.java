@@ -46,6 +46,7 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
         Page<Product> page = lambdaQuery()
                 .like(StrUtil.isNotBlank(dto.getKeyword()), Product::getTitle, dto.getKeyword())
                 .eq(StrUtil.isNotBlank(dto.getCategoryId()), Product::getCategoryId, dto.getCategoryId())
+                .eq(dto.getLanguage() != null, Product::getLanguage, dto.getLanguage())
                 .eq(dto.getHomeShow() != null && dto.getHomeShow() == 0, Product::getHomeShowOrder, 0)
                 .gt(dto.getHomeShow() != null && dto.getHomeShow() == 1, Product::getHomeShowOrder, 0)
                 .orderByDesc(dto.getHomeShow() != null && dto.getHomeShow() == 1, Product::getHomeShowOrder)
@@ -63,6 +64,7 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
         Page<Product> page = lambdaQuery()
                 .like(StrUtil.isNotBlank(dto.getKeyword()), Product::getTitle, dto.getKeyword())
                 .eq(StrUtil.isNotBlank(dto.getCategoryId()), Product::getCategoryId, dto.getCategoryId())
+                .eq(dto.getLanguage() != null, Product::getLanguage, dto.getLanguage())
                 .eq(dto.getHomeShow() != null && dto.getHomeShow() == 0, Product::getHomeShowOrder, 0)
                 .gt(dto.getHomeShow() != null && dto.getHomeShow() == 1, Product::getHomeShowOrder, 0)
                 .orderByDesc(dto.getHomeShow() != null && dto.getHomeShow() == 1, Product::getHomeShowOrder)
@@ -84,7 +86,15 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
     @Override
     @Transactional(readOnly = true)
     public PortalProductVo getPortalProduct(String productId) {
-        Product entity = requireProduct(productId);
+        return getPortalProduct(productId, null);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PortalProductVo getPortalProduct(String productId, Integer language) {
+        Product entity = lambdaQuery().eq(Product::getProductId, productId)
+                .eq(language != null, Product::getLanguage, language).one();
+        if (entity == null) throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "产品不存在");
         return toPortalVo(entity, loadCategoryMap());
     }
 
@@ -121,7 +131,10 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
         if (order == null || order < 0 || order > 5) throw new BusinessException(ErrorCode.PARAMS_ERROR, "首页产品顺序必须为0-5");
         Product entity = requireProduct(productId);
         if (order > 0) {
-            lambdaUpdate().eq(Product::getHomeShowOrder, order).ne(Product::getProductId, productId).set(Product::getHomeShowOrder, 0).update();
+            lambdaUpdate().eq(Product::getLanguage, entity.getLanguage())
+                    .eq(Product::getHomeShowOrder, order)
+                    .ne(Product::getProductId, productId)
+                    .set(Product::getHomeShowOrder, 0).update();
         }
         entity.setHomeShowOrder(order);
         updateById(entity);
@@ -130,8 +143,9 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
 
     @Override
     @Transactional(readOnly = true)
-    public List<PortalProductVo> listHomeProducts() {
-        Page<Product> page = lambdaQuery().gt(Product::getHomeShowOrder, 0)
+    public List<PortalProductVo> listHomeProducts(Integer language) {
+        Page<Product> page = lambdaQuery().eq(language != null, Product::getLanguage, language)
+                .gt(Product::getHomeShowOrder, 0)
                 .orderByDesc(Product::getHomeShowOrder)
                 .page(new Page<>(1, 5));
         Map<String, ProductCategory> categories = loadCategoryMap();
@@ -140,7 +154,8 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
 
     private void validateReferences(ProductSaveDto dto) {
         ProductCategory category = productCategoryMapper.selectById(dto.getCategoryId());
-        if (category == null || StrUtil.isBlank(category.getParentId())) {
+        if (category == null || StrUtil.isBlank(category.getParentId())
+                || !Objects.equals(category.getLanguage(), dto.getLanguage())) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "产品必须选择有效的二级分类");
         }
         fileReferenceValidator.requireExists(dto.getCoverAccessName());
@@ -157,6 +172,7 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
 
     private void fill(Product entity, ProductSaveDto dto) {
         entity.setCategoryId(dto.getCategoryId());
+        entity.setLanguage(dto.getLanguage());
         entity.setCoverAccessName(dto.getCoverAccessName());
         entity.setDetailImages(GsonUtils.toJson(dto.getDetailImages()));
         entity.setTitle(dto.getTitle());
@@ -183,6 +199,7 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
     private ProductVo toVo(Product entity, Map<String, ProductCategory> categories, Map<String, SysUser> users) {
         ProductVo vo = new ProductVo();
         vo.setProductId(entity.getProductId());
+        vo.setLanguage(entity.getLanguage());
         vo.setCategoryId(entity.getCategoryId());
         ProductCategory category = categories.get(entity.getCategoryId());
         vo.setCategoryName(category == null ? null : category.getCategoryName());
@@ -207,6 +224,7 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
     private PortalProductVo toPortalVo(Product entity, Map<String, ProductCategory> categories) {
         PortalProductVo vo = new PortalProductVo();
         vo.setProductId(entity.getProductId());
+        vo.setLanguage(entity.getLanguage());
         vo.setCategoryId(entity.getCategoryId());
         ProductCategory category = categories.get(entity.getCategoryId());
         vo.setCategoryName(category == null ? null : category.getCategoryName());

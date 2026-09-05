@@ -144,8 +144,10 @@
         if (categoryId) params.set('categoryId', categoryId);
         const tagId = grid.getAttribute('data-lazy-tag-id');
         if (tagId) params.set('tagId', tagId);
-        const keyword = grid.getAttribute('data-lazy-keyword');
-        if (keyword) params.set('keyword', keyword);
+            const keyword = grid.getAttribute('data-lazy-keyword');
+            if (keyword) params.set('keyword', keyword);
+            const language = grid.getAttribute('data-lazy-language');
+            if (language !== null && language !== '') params.set('language', language);
         return `${base}?${params.toString()}`;
     }
 

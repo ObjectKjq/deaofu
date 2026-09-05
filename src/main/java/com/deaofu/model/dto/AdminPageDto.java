@@ -22,4 +22,9 @@ public class AdminPageDto extends PageDomain {
 
     /** 首页展示筛选：1表示首页展示内容，0表示普通内容，空表示全部。 */
     private Integer homeShow;
+
+    /** 内容语言：0表示中文，1表示英语，空表示全部语言。 */
+    @Min(value = 0, message = "语言标识只能为0或1")
+    @Max(value = 1, message = "语言标识只能为0或1")
+    private Integer language;
 }

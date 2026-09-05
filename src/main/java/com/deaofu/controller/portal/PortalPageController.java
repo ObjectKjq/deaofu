@@ -52,25 +52,30 @@ public class PortalPageController {
      * @return 首页模板 {@code portal/index}
      */
     @GetMapping({"/", "/index"})
-    public String home(Model model) {
+    public String home(AdminPageDto query, Model model) {
+        normalize(query);
         // 世界地图：起点（周口工厂）+ 去重后的目标国家点位 + 路线 SVG 路径
         List<PortalRouteVo> routes = routeService.pageRoutes(page(1, 100)).getList().stream()
-                .map(this::toRouteVo).filter(Objects::nonNull).toList();
+                .map(route -> toRouteVo(route, query.getLanguage())).filter(Objects::nonNull).toList();
         Map<String, PortalMapPointVo> targets = new LinkedHashMap<>();
         routes.forEach(route -> targets.putIfAbsent(route.getTargetName(),
                 point(msg("home.map.target") + route.getTargetName(), route.getTargetX(), route.getTargetY())));
         model.addAttribute("mapOrigin", point(msg("home.map.origin"), CountryEnum.CN.getX(), CountryEnum.CN.getY()));
         model.addAttribute("mapTargets", targets.values());
         model.addAttribute("routes", routes);
+        Map<String, String> countryNames = new LinkedHashMap<>();
+        CountryEnum.listAll().forEach(country -> countryNames.put(country.getCode(), countryName(country, query.getLanguage())));
+        model.addAttribute("countryNames", countryNames);
         // 合作企业 Logo 墙：平均拆分上下两行
         List<PortalPartnerVo> partners = partnerService.pagePortalPartners(page(1, 100)).getList();
         int half = (partners.size() + 1) / 2;
         model.addAttribute("partnerRowTop", partners.subList(0, half));
         model.addAttribute("partnerRowBottom", partners.subList(half, partners.size()));
         // 产品分类（两级）与推荐产品、最新动态
-        model.addAttribute("categories", categoryService.listCategories());
-        model.addAttribute("products", productService.listHomeProducts());
-        model.addAttribute("news", newsService.listHomeNews());
+        model.addAttribute("categories", categoryService.listCategories(query.getLanguage()));
+        model.addAttribute("products", productService.listHomeProducts(query.getLanguage()));
+        model.addAttribute("news", newsService.listHomeNews(query.getLanguage()));
+        model.addAttribute("language", query.getLanguage());
         return "portal/index";
     }
 
@@ -85,7 +90,7 @@ public class PortalPageController {
     @GetMapping("/products")
     public String products(AdminPageDto query, Model model) {
         normalize(query);
-        model.addAttribute("categories", categoryService.listCategories());
+        model.addAttribute("categories", categoryService.listCategories(query.getLanguage()));
         model.addAttribute("products", productService.pagePortalProducts(query).getList());
         model.addAttribute("query", query);
         return "portal/products";
@@ -101,12 +106,15 @@ public class PortalPageController {
      * @throws com.deaofu.exception.BusinessException 产品不存在
      */
     @GetMapping("/product/{productId}")
-    public String product(@PathVariable String productId, Model model) {
-        PortalProductVo product = productService.getPortalProduct(productId);
+    public String product(@PathVariable String productId, AdminPageDto query, Model model) {
+        normalize(query);
+        PortalProductVo product = productService.getPortalProduct(productId, query.getLanguage());
         model.addAttribute("product", product);
+        model.addAttribute("language", query.getLanguage());
         // 相关产品：同二级分类下排除自身的最新产品
         AdminPageDto relatedQuery = page(1, 4);
         relatedQuery.setCategoryId(product.getCategoryId());
+        relatedQuery.setLanguage(query.getLanguage());
         List<PortalProductVo> related = productService.pagePortalProducts(relatedQuery).getList().stream()
                 .filter(item -> !StrUtil.equals(item.getProductId(), product.getProductId()))
                 .limit(3).toList();
@@ -125,7 +133,7 @@ public class PortalPageController {
     @GetMapping("/news")
     public String news(AdminPageDto query, Model model) {
         normalize(query);
-        model.addAttribute("tags", newsTagService.listPortalTags());
+        model.addAttribute("tags", newsTagService.listPortalTags(query.getLanguage()));
         model.addAttribute("news", newsService.pagePortalNews(query).getList());
         model.addAttribute("query", query);
         return "portal/news";
@@ -140,8 +148,10 @@ public class PortalPageController {
      * @throws com.deaofu.exception.BusinessException 动态不存在
      */
     @GetMapping("/news/{newsId}")
-    public String newsDetail(@PathVariable String newsId, Model model) {
-        model.addAttribute("newsItem", newsService.getPortalNews(newsId));
+    public String newsDetail(@PathVariable String newsId, AdminPageDto query, Model model) {
+        normalize(query);
+        model.addAttribute("newsItem", newsService.getPortalNews(newsId, query.getLanguage()));
+        model.addAttribute("language", query.getLanguage());
         return "portal/news-detail";
     }
 
@@ -172,7 +182,7 @@ public class PortalPageController {
      * @param route 运输路线
      * @return 地图路线出参；国家代码无法识别时返回 {@code null}
      */
-    private PortalRouteVo toRouteVo(TransportRouteVo route) {
+    private PortalRouteVo toRouteVo(TransportRouteVo route, Integer language) {
         CountryEnum source = CountryEnum.getByCode(route.getSourceAddress());
         CountryEnum target = CountryEnum.getByCode(route.getTargetAddress());
         if (source == null || target == null) {
@@ -185,10 +195,10 @@ public class PortalPageController {
         int ty = target.getY();
         PortalRouteVo vo = new PortalRouteVo();
         vo.setRouteId(route.getRouteId());
-        vo.setSourceName(cnSource ? msg("home.map.origin") : source.getName());
+        vo.setSourceName(cnSource ? msg("home.map.origin") : countryName(source, language));
         vo.setSourceX(sx);
         vo.setSourceY(sy);
-        vo.setTargetName(target.getName());
+        vo.setTargetName(countryName(target, language));
         vo.setTargetX(tx);
         vo.setTargetY(ty);
         // 控制点取中点并向上拱起，弧高与两点距离成正比
@@ -197,6 +207,11 @@ public class PortalPageController {
         int controlY = (sy + ty) / 2 - (int) (distance * 0.3);
         vo.setPathD("M" + sx + " " + sy + " Q" + controlX + " " + controlY + " " + tx + " " + ty);
         return vo;
+    }
+
+    /** 根据官网内容语言选择国家展示名。 */
+    private String countryName(CountryEnum country, Integer language) {
+        return Integer.valueOf(0).equals(language) ? country.getName() : country.getEnglishName();
     }
 
     /**
@@ -252,5 +267,8 @@ public class PortalPageController {
             query.setPageNum(1);
         }
         query.setPageSize(CommonConstant.PORTAL_PAGE_SIZE);
+        if (query.getLanguage() == null) {
+            query.setLanguage("zh".equals(LocaleContextHolder.getLocale().getLanguage()) ? 0 : 1);
+        }
     }
 }

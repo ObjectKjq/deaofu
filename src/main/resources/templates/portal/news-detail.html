@@ -16,7 +16,7 @@
         <nav class="news-detail-breadcrumb" th:attr="aria-label=#{common.aria.breadcrumb}">
             <a th:href="@{/}" th:text="#{common.nav.home}">Home</a>
             <span>/</span>
-            <a th:href="@{/news}" th:text="#{common.nav.news}">News</a>
+            <a th:href="@{/news(language=${language})}" th:text="#{common.nav.news}">News</a>
             <span>/</span>
             <span th:with="defaultTag=#{home.news.default_tag}" th:text="${#lists.isEmpty(newsItem.tags) ? defaultTag : newsItem.tags[0].tagName}">Company News</span>
         </nav>

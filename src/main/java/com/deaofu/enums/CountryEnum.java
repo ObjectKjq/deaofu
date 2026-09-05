@@ -7,6 +7,7 @@ import lombok.Getter;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 
 /**
@@ -20,7 +21,7 @@ import java.util.stream.Collectors;
  * <ul>
  *   <li>{@link #code}：ISO 3166-1 alpha-2 国家代码（小写），与 {@code prototype/world-countries.js}
  *       中每个国家 {@code <path>} / {@code <g>} 的 {@code id} 属性一一对应，便于地图联动高亮。</li>
- *   <li>{@link #name}：中文显示名。</li>
+ *   <li>{@link #name}：中文显示名；{@link #getEnglishName()}：英文显示名。</li>
  *   <li>{@link #x} / {@link #y}：投影到目标画布 {@code viewBox 0 0 1200 460} 的 SVG 坐标（像素）。</li>
  * </ul>
  * </p>
@@ -644,6 +645,38 @@ public enum CountryEnum {
     public static String getInfoByCode(String code) {
         CountryEnum value = getByCode(code);
         return value == null ? null : value.getName();
+    }
+
+    /**
+     * 获取英文显示名。
+     *
+     * <p>优先处理英文展示中需要区分的国家名称，其余国家根据 ISO alpha-2 代码由
+     * Java 标准 Locale 生成，避免国家枚举维护两套容易不一致的名称清单。</p>
+     *
+     * @return 英文国家名
+     */
+    public String getEnglishName() {
+        return switch (code) {
+            case "cd" -> "Democratic Republic of the Congo";
+            case "cg" -> "Republic of the Congo";
+            case "ci" -> "Cote d'Ivoire";
+            case "cz" -> "Czechia";
+            case "do" -> "Dominican Republic";
+            case "gb" -> "United Kingdom";
+            case "ir" -> "Iran";
+            case "kp" -> "North Korea";
+            case "kr" -> "South Korea";
+            case "la" -> "Laos";
+            case "md" -> "Moldova";
+            case "mk" -> "North Macedonia";
+            case "ru" -> "Russia";
+            case "sy" -> "Syria";
+            case "tz" -> "Tanzania";
+            case "us" -> "United States";
+            case "ve" -> "Venezuela";
+            case "vn" -> "Vietnam";
+            default -> new Locale("", code.toUpperCase(Locale.ROOT)).getDisplayCountry(Locale.ENGLISH);
+        };
     }
 
     /**
