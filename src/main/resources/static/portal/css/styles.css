@@ -354,7 +354,7 @@ img, svg {
 .hero-image {
     position: absolute;
     inset: 0;
-    background: url('https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=2200&q=85') center 58%/cover;
+    background: url('../images/hero.jpg') center 58%/cover;
     transform: scale(1.03)
 }
 
@@ -626,7 +626,7 @@ img, svg {
 
 .factory-image {
     height: 650px;
-    background: url('https://images.unsplash.com/photo-1565610222536-ef125c59da2e?auto=format&fit=crop&w=1300&q=85') center/cover;
+    background: url('../images/factory/生产现场.jpg') center/cover;
     position: relative;
     box-shadow: 0 30px 70px -20px rgba(6, 59, 89, .35)
 }
