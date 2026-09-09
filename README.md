@@ -116,6 +116,15 @@ http://localhost:8080
 
 后台入口为 `/admin/login`。管理端接口和需要登录的页面使用 HTTP Session 进行身份校验；官网前台无需登录。
 
+### 5. 登录账号
+
+```json
+{
+    "username": "admin",
+    "password": "ax./sx762"
+}
+```
+
 ## 核心目录 📁
 
 ```text
