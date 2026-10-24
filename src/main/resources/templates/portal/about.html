@@ -5,8 +5,11 @@
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="description" th:content="#{about.meta}"/>
     <title th:text="#{meta.title.about}">About Us | DEAOFU</title>
+    <link rel="stylesheet" th:href="@{/portal/vendor/fonts/fonts.css}"/>
     <link rel="stylesheet" th:href="@{/portal/css/styles.css}"/>
     <link rel="stylesheet" th:href="@{/portal/css/about.css}"/>
+    <link rel="stylesheet" th:href="@{/portal/css/overrides.css}"/>
+    <link rel="stylesheet" th:href="@{/portal/css/page-enhancements.css(v=20261024)}"/>
 </head>
 <body class="about-page">
 <div class="progress" aria-hidden="true"></div>
@@ -17,7 +20,7 @@
         <div class="container about-story-content">
             <div class="about-story-copy">
                 <p class="kicker" th:text="#{about.kicker}">WHO WE ARE</p>
-                <h2 th:utext="#{about.title}">Professional bus windshield manufacturer,<br/><em>serving every journey worldwide.</em></h2>
+                <h1 th:utext="#{about.title}">Professional bus windshield manufacturer,<br/><em>serving every journey worldwide.</em></h1>
                 <p class="lead" th:text="#{about.lead}">DEAOFU is a professional...</p>
                 <p th:text="#{about.body}">Our production base is located...</p>
             </div>

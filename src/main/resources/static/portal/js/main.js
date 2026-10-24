@@ -1,18 +1,23 @@
 (() => {
-    const enhancementStyles = document.createElement('link');
-    enhancementStyles.rel = 'stylesheet';
-    enhancementStyles.href = '/portal/css/overrides.css';
-    document.head.append(enhancementStyles);
-
+    const legacyPage = document.body.matches('.home-page, .contact-page');
+    if (legacyPage) {
+        const enhancementStyles = document.createElement('link');
+        enhancementStyles.rel = 'stylesheet';
+        enhancementStyles.href = '/portal/css/overrides.css';
+        document.head.append(enhancementStyles);
+    }
     const header = document.querySelector('.site-header');
     const progress = document.querySelector('.progress');
     const menu = document.querySelector('#menuToggle');
     const mobile = document.querySelector('#mobileNav');
+    const backToTop = document.querySelector('#backToTop');
+    const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
 
     function scrollState() {
         const max = document.documentElement.scrollHeight - innerHeight;
         if (header) header.classList.toggle('scrolled', scrollY > 40);
         if (progress) progress.style.transform = `scaleX(${max ? scrollY / max : 0})`;
+        if (backToTop) backToTop.hidden = scrollY < innerHeight;
 
         // 仅首页存在锚点分区，仅在 href 为 "#xxx" 时做滚动高亮，避免对路由地址执行无效选择器
         let anyActive = false;
@@ -34,6 +39,11 @@
 
     addEventListener('scroll', scrollState, {passive: true});
     scrollState();
+    if (backToTop) backToTop.addEventListener('click', () => {
+        window.scrollTo({ top: 0, behavior: reducedMotion.matches ? 'instant' : 'smooth' });
+        const brand = document.querySelector('.site-header .brand');
+        if (brand) brand.focus({ preventScroll: true });
+    });
 
     if (menu && mobile) {
         const mobileWidth = matchMedia('(max-width: 900px)');
@@ -89,6 +99,16 @@
             if (counterCurrent) counterCurrent.textContent = String(activeIndex + 1);
         }
 
+        function updateThumbs() {
+            thumbs.forEach((thumb, index) => {
+                const selected = index === activeIndex;
+                thumb.classList.toggle('is-active', selected);
+                thumb.setAttribute('aria-selected', String(selected));
+                thumb.tabIndex = selected ? 0 : -1;
+            });
+        }
+        updateThumbs();
+
         function showMedia(index) {
             if (busy || thumbs.length <= 1) return;
             const targetIndex = (index + thumbs.length) % thumbs.length;
@@ -104,14 +124,14 @@
                 activeIndex = targetIndex;
                 updateCounter();
                 /* 标记新激活的缩略图，并把旧的标记去掉 */
-                thumbs.forEach((thumb, thumbIndex) => thumb.classList.toggle('is-active', thumbIndex === activeIndex));
+                updateThumbs();
                 if (!nextImage) {
                     image.src = nextSrc;
                     busy = false;
                     return;
                 }
                 nextImage.src = nextSrc;
-                if (window.gsap) {
+                if (window.gsap && !reducedMotion.matches) {
                     /* 柔和 crossfade + 缩放：旧图向方向外淡出并轻微缩小，新图从方向外淡入并轻微放大，
                      * 两者时长略有错位，避免两张图横向对穿造成生硬的"翻页"感。*/
                     const tl = gsap.timeline({
@@ -151,7 +171,7 @@
                 image.src = nextSrc;
                 activeIndex = targetIndex;
                 updateCounter();
-                thumbs.forEach((thumb, thumbIndex) => thumb.classList.toggle('is-active', thumbIndex === activeIndex));
+                updateThumbs();
                 busy = false;
             };
             preloaded.src = nextSrc;
@@ -236,7 +256,7 @@
                 title.setAttribute('aria-expanded', String(!collapsed));
                 options.hidden = collapsed;
             }
-            setCollapsed(saved !== '0' && !group.querySelector('.filter-option.is-active'));
+            setCollapsed(saved === '1' && !group.querySelector('.filter-option.is-active'));
             title.addEventListener('click', () => {
                 const next = !group.classList.contains('is-collapsed');
                 setCollapsed(next);
@@ -271,64 +291,93 @@
     function initProductFilterNav() {
         const grid = document.getElementById('productGrid');
         const title = document.getElementById('resultTitle');
-        if (!grid || !title) return;
-        const head = title.closest('.product-results-head');
+        const form = document.getElementById('productSearchForm');
+        if (!grid || !title || !form) return;
+        const filter = document.querySelector('.product-filter');
+        const results = document.querySelector('.product-results');
+        const status = document.getElementById('productResultsStatus');
+        const labels = window.portalI18n.scroll;
+        let pending = null;
 
         async function loadProducts(url, push) {
+            if (pending) pending.abort();
+            const request = new AbortController();
+            pending = request;
+            grid.dispatchEvent(new CustomEvent('lazy-grid:cancel'));
+            results.setAttribute('aria-busy', 'true');
+            results.classList.add('is-loading');
+            status.textContent = labels.loading;
             try {
-                const res = await fetch(url);
-                if (!res.ok) throw new Error('响应异常');
+                const res = await fetch(url, { signal: request.signal });
+                if (!res.ok) throw new Error('产品列表响应异常');
                 const doc = new DOMParser().parseFromString(await res.text(), 'text/html');
+                if (request !== pending) return;
                 const newGrid = doc.getElementById('productGrid');
                 const newTitle = doc.getElementById('resultTitle');
-                if (!newGrid || !newTitle) throw new Error('结构缺失');
+                if (!newGrid || !newTitle) throw new Error('产品列表结构缺失');
                 grid.innerHTML = newGrid.innerHTML;
                 title.textContent = newTitle.textContent;
-                const desc = head ? head.querySelector('p') : null;
-                const newDesc = doc.querySelector('.product-results-head p');
-                if (desc && newDesc) desc.textContent = newDesc.textContent;
-                const search = document.getElementById('productSearch');
-                const newSearch = doc.getElementById('productSearch');
-                if (search && newSearch) search.value = newSearch.value;
-                const target = new URL(url, window.location.origin);
-                const targetKey = target.pathname + target.search;
-                const selectedCategory = target.searchParams.get('categoryId');
-                document.querySelectorAll('.product-filter a').forEach((a) => {
-                    const category = new URL(a.href).searchParams.get('categoryId');
-                    const active = category === selectedCategory;
-                    a.classList.toggle('is-active', active);
-                    if (active) a.setAttribute('aria-current', 'true');
-                    else a.removeAttribute('aria-current');
+                document.getElementById('productResultCount').textContent = doc.getElementById('productResultCount').textContent;
+                document.getElementById('productSearch').value = doc.getElementById('productSearch').value;
+                const target = new URL(url, location.origin);
+                const selectedCategory = target.searchParams.get('categoryId') || '';
+                const keyword = target.searchParams.get('keyword') || '';
+                form.elements.categoryId.value = selectedCategory;
+                form.elements.language.value = newGrid.dataset.lazyLanguage;
+                document.getElementById('productFilterReset').hidden = !selectedCategory && !keyword;
+                filter.querySelectorAll('a').forEach((link) => {
+                    const linkUrl = new URL(link.href);
+                    const active = (linkUrl.searchParams.get('categoryId') || '') === selectedCategory;
+                    link.classList.toggle('is-active', active);
+                    if (active) link.setAttribute('aria-current', 'true');
+                    else link.removeAttribute('aria-current');
+                    if (keyword) linkUrl.searchParams.set('keyword', keyword);
+                    else linkUrl.searchParams.delete('keyword');
+                    link.href = linkUrl.href;
                 });
-                // 同步懒加载需要的筛选属性（grid.innerHTML 只换子节点，自身属性不会自动更新）。
-                // 不刷新这些属性，lazy-load.js 仍会按旧 categoryId/keyword/tagId 请求下一页。
-                ['data-lazy-category-id', 'data-lazy-keyword', 'data-lazy-tag-id', 'data-lazy-language', 'data-lazy-template'].forEach((attr) => {
-                    if (newGrid.hasAttribute(attr)) {
-                        grid.setAttribute(attr, newGrid.getAttribute(attr));
-                    } else {
-                        grid.removeAttribute(attr);
-                    }
+                ['category-id', 'keyword', 'language', 'size', 'total', 'page'].forEach((name) => {
+                    const attr = 'data-lazy-' + name;
+                    if (newGrid.hasAttribute(attr)) grid.setAttribute(attr, newGrid.getAttribute(attr));
+                    else grid.removeAttribute(attr);
                 });
-                document.querySelector('.product-filter').dispatchEvent(new CustomEvent('product-filter:changed', { detail: { close: push } }));
-                // 通知懒加载模块：分页状态归零、footer 重新隐藏、按需预触发一次加载。
+                filter.dispatchEvent(new CustomEvent('product-filter:changed', { detail: { close: push } }));
                 grid.dispatchEvent(new CustomEvent('lazy-grid:reset'));
-
-                if (push) window.history.pushState({}, '', targetKey);
-            } catch (err) {
-                /* 降级：获取失败时回退到整页跳转 */
-                window.location.href = url;
+                if (push) history.pushState({}, '', target.pathname + target.search);
+                status.textContent = labels.updated;
+                // 在小屏幕已滚过列表标题时，把新结果带回可见区域。
+                if (push && title.getBoundingClientRect().top < 90) {
+                    title.scrollIntoView({ behavior: reducedMotion.matches ? 'instant' : 'smooth', block: 'start' });
+                }
+            } catch (error) {
+                if (error.name !== 'AbortError') location.href = url;
+            } finally {
+                if (request === pending) {
+                    results.removeAttribute('aria-busy');
+                    results.classList.remove('is-loading');
+                    pending = null;
+                }
             }
         }
 
-        document.querySelectorAll('.product-filter a').forEach((link) => {
-            link.addEventListener('click', (e) => {
-                if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
-                e.preventDefault();
-                loadProducts(link.href, true);
+        function intercept(event, link) {
+            if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+            event.preventDefault();
+            loadProducts(link.href, true);
+        }
+        filter.querySelectorAll('a').forEach((link) => link.addEventListener('click', (event) => intercept(event, link)));
+        const reset = document.getElementById('productFilterReset');
+        reset.addEventListener('click', (event) => intercept(event, reset));
+        form.addEventListener('submit', (event) => {
+            event.preventDefault();
+            const url = new URL(form.action);
+            const data = new FormData(form);
+            data.forEach((value, key) => {
+                const normalized = String(value).trim();
+                if (normalized) url.searchParams.set(key, normalized);
             });
+            loadProducts(url.href, true);
         });
-
-        window.addEventListener('popstate', () => loadProducts(window.location.href, false));
+        window.addEventListener('popstate', () => loadProducts(location.href, false));
     }
 
     /** 同步动态分类标题，并在手机横向标签条中显示当前选中项。 */
@@ -663,6 +712,10 @@
                 || 'en';
             const url = new URL(window.location.href);
             url.searchParams.set('lang', next);
+            // 内容按语言独立维护，切换时清除旧语言的分类及分页条件。
+            if (!legacyPage) ['language', 'categoryId', 'tagId', 'pageNum'].forEach((key) => url.searchParams.delete(key));
+            if (/^\/product\//.test(url.pathname)) url.pathname = '/products';
+            if (/^\/news\//.test(url.pathname)) url.pathname = '/news';
             window.location.href = url.toString();
         });
     }
@@ -670,7 +723,7 @@
     /* ============================================================
      * GSAP 滚动叙事：通用 reveal 入场动画
      * ============================================================ */
-    function initRevealAnimations() {
+    function initLegacyRevealAnimations() {
         if (!window.gsap || !window.ScrollTrigger) return;
 
         const gsap = window.gsap;
@@ -817,6 +870,22 @@
                     { '--shine-x': '-120%' },
                     { '--shine-x': '220%', duration: 0.7, ease: 'power2.out' }
                 );
+            });
+        });
+    }
+
+    function initRevealAnimations() {
+        if (legacyPage) return initLegacyRevealAnimations();
+        if (!window.gsap || !window.ScrollTrigger || reducedMotion.matches) return;
+        gsap.registerPlugin(ScrollTrigger);
+        // 每个可见单元只绑定一次；正文保留可读性，避免父子叠加淡入导致发灰。
+        document.querySelectorAll('.hairline--top').forEach((line) => {
+            gsap.to(line, { scaleX: 1, duration: .5, scrollTrigger: { trigger: line, start: 'top 95%', once: true } });
+        });
+        document.querySelectorAll('.section-head, .intro h2, .product-card, .news-card, .factory-image').forEach((element) => {
+            gsap.fromTo(element, { y: 14 }, {
+                y: 0, duration: .5, ease: 'power2.out', clearProps: 'transform',
+                scrollTrigger: { trigger: element, start: 'top 96%', once: true }
             });
         });
     }

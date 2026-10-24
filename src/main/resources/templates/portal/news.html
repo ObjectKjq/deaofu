@@ -9,6 +9,8 @@
     <link rel="stylesheet" th:href="@{/portal/css/styles.css}"/>
     <link rel="stylesheet" th:href="@{/portal/css/product-pages.css}"/>
     <link rel="stylesheet" th:href="@{/portal/css/news-pages.css}"/>
+    <link rel="stylesheet" th:href="@{/portal/css/overrides.css}"/>
+    <link rel="stylesheet" th:href="@{/portal/css/page-enhancements.css(v=20261024)}"/>
 </head>
 <body class="product-page news-page">
 <div th:replace="~{portal/fragments :: header('news')}"></div>
@@ -24,9 +26,10 @@
             </nav>
             <div class="news-results-head">
                 <div><p class="kicker" th:text="#{news.kicker}">LATEST STORIES</p>
-                    <h2 id="newsResultTitle" th:text="#{news.all}">All News</h2></div>
+                    <h1 id="newsResultTitle" th:text="#{news.all}">All News</h1>
+                    <p class="news-result-count" th:text="#{news.results.count(${newsTotal})}"></p></div>
             </div>
-            <div class="news-center-grid" id="newsGrid" data-lazy-grid data-lazy-url="/api/news" data-lazy-size="9" data-lazy-template="news" th:attr="data-lazy-tag-id=${query.tagId},data-lazy-language=${query.language}">
+            <div class="news-center-grid" id="newsGrid" data-lazy-grid data-lazy-url="/api/news" data-lazy-template="news" th:attr="data-lazy-tag-id=${query.tagId},data-lazy-language=${query.language},data-lazy-size=${query.pageSize},data-lazy-total=${newsTotal},data-lazy-page=${query.pageNum}">
                 <a class="news-center-card" th:each="item : ${news}" th:href="@{/news/{id}(id=${item.newsId},language=${query.language})}">
                     <div class="news-center-media">
                         <img th:if="${item.coverUrl != null}" th:src="${item.coverUrl}" th:alt="${item.title}" loading="lazy"/>

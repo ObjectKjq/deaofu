@@ -307,12 +307,12 @@ body.news-page .page-main {
     font-weight: 600;
 }
 
-.news-center-link span {
+.news-center-link > span + span {
     font-size: 18px;
     transition: transform .25s;
 }
 
-.news-center-card:hover .news-center-link span {
+.news-center-card:hover .news-center-link > span + span {
     transform: translateX(4px);
 }
 

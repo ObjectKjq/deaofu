@@ -1,25 +1,5 @@
 (() => {
-  const header = document.querySelector('.site-header');
-  const menu = document.querySelector('#menuToggle');
-  const mobile = document.querySelector('#mobileNav');
-  if (header) {
-    const updateHeader = () => header.classList.toggle('scrolled', window.scrollY > 20);
-    window.addEventListener('scroll', updateHeader, { passive: true });
-    updateHeader();
-  }
-  if (menu && mobile) {
-    menu.addEventListener('click', () => {
-      const open = mobile.classList.toggle('open');
-      menu.setAttribute('aria-expanded', String(open));
-    });
-    mobile.querySelectorAll('a').forEach((link) => {
-      link.addEventListener('click', () => {
-        mobile.classList.remove('open');
-        menu.setAttribute('aria-expanded', 'false');
-      });
-    });
-  }
-
+  // 公共导航与滚动状态统一由 main.js 管理，避免重复绑定导致菜单立即收起。
 
   /* ============================================================
    * 咨询表单：本地校验 + JSON 提交 POST /api/consultations

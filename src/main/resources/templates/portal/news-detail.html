@@ -5,9 +5,12 @@
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="description" th:content="${newsItem.summary}"/>
     <title th:text="#{meta.title.news_detail(${newsItem.title})}">News Detail | DEAOFU</title>
+    <link rel="stylesheet" th:href="@{/portal/vendor/fonts/fonts.css}"/>
     <link rel="stylesheet" th:href="@{/portal/css/styles.css}"/>
     <link rel="stylesheet" th:href="@{/portal/css/product-pages.css}"/>
     <link rel="stylesheet" th:href="@{/portal/css/news-pages.css}"/>
+    <link rel="stylesheet" th:href="@{/portal/css/overrides.css}"/>
+    <link rel="stylesheet" th:href="@{/portal/css/page-enhancements.css(v=20261024)}"/>
 </head>
 <body class="news-page">
 <div th:replace="~{portal/fragments :: header('news')}"></div>

@@ -8,6 +8,8 @@
     <link rel="stylesheet" th:href="@{/portal/vendor/fonts/fonts.css}"/>
     <link rel="stylesheet" th:href="@{/portal/css/styles.css}"/>
     <link rel="stylesheet" th:href="@{/portal/css/product-pages.css}"/>
+    <link rel="stylesheet" th:href="@{/portal/css/overrides.css}"/>
+    <link rel="stylesheet" th:href="@{/portal/css/page-enhancements.css(v=20261024)}"/>
 </head>
 <body class="product-page">
 <div th:replace="~{portal/fragments :: header('products')}"></div>
@@ -21,11 +23,11 @@
                 <span class="filter-chevron" aria-hidden="true"></span>
             </button>
             <div class="filter-groups" id="productFilterGroups">
-                <a class="filter-all" th:classappend="${query.categoryId == null} ? ' is-active'" th:attr="aria-current=${query.categoryId == null ? 'true' : null}" th:href="@{/products}" th:text="#{products.filter.all}">All Products</a>
+                <a class="filter-all" th:classappend="${query.categoryId == null} ? ' is-active'" th:attr="aria-current=${query.categoryId == null ? 'true' : null}" th:href="@{/products(keyword=${query.keyword},language=${query.language})}" th:text="#{products.filter.all}">All Products</a>
                 <div class="filter-group" th:each="parent, stat : ${categories}" th:if="${parent.level == 1}">
                     <button class="filter-group-title" type="button" aria-expanded="true" th:attr="aria-controls=|filter-options-${stat.index}|" th:text="${parent.categoryName}">Category</button>
                     <div class="filter-options" th:id="|filter-options-${stat.index}|">
-                        <a class="filter-option" th:each="child : ${categories}" th:if="${child.parentId == parent.categoryId}" th:classappend="${child.categoryId == query.categoryId} ? ' is-active'" th:attr="aria-current=${child.categoryId == query.categoryId ? 'true' : null}" th:href="@{/products(categoryId=${child.categoryId})}" th:text="${child.categoryName}">Subcategory</a>
+                        <a class="filter-option" th:each="child : ${categories}" th:if="${child.parentId == parent.categoryId}" th:classappend="${child.categoryId == query.categoryId} ? ' is-active'" th:attr="aria-current=${child.categoryId == query.categoryId ? 'true' : null}" th:href="@{/products(categoryId=${child.categoryId},keyword=${query.keyword},language=${query.language})}" th:text="${child.categoryName}">Subcategory</a>
                     </div>
                 </div>
             </div>
@@ -33,6 +35,8 @@
         <div class="product-results">
             <div class="product-results-tools">
                 <form class="product-search" id="productSearchForm" role="search" th:action="@{/products}" method="get">
+                    <input type="hidden" name="categoryId" th:value="${query.categoryId}"/>
+                    <input type="hidden" name="language" th:value="${query.language}"/>
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
                         <circle cx="11" cy="11" r="7"></circle>
                         <path d="m20 20-4-4"></path>
@@ -42,10 +46,12 @@
                 </form>
             </div>
             <div class="product-results-head">
-                <h2 id="resultTitle" th:text="${query.keyword != null && !query.keyword.isEmpty()} ? #{products.results.search.prefix} + ${query.keyword} : #{products.results.all}">All Products</h2>
-                <p th:text="#{products.results.subtitle}">Click a product card...</p>
+                <div><h1 id="resultTitle" th:text="${query.keyword != null && !query.keyword.isEmpty()} ? #{products.results.search.prefix} + ${query.keyword} : #{products.results.all}">All Products</h1>
+                    <p th:text="#{products.results.subtitle}">Click a product card...</p></div>
+                <a class="filter-reset" id="productFilterReset" th:href="@{/products(language=${query.language})}" th:hidden="${query.categoryId == null && (query.keyword == null || query.keyword.isEmpty())}" th:text="#{common.filters.clear}">Clear filters</a>
             </div>
-            <div class="product-grid-page" id="productGrid" data-lazy-grid data-lazy-url="/api/products" data-lazy-size="9" th:attr="data-lazy-category-id=${query.categoryId},data-lazy-keyword=${query.keyword},data-lazy-language=${query.language}">
+            <div class="results-meta"><span id="productResultCount" th:text="#{products.results.count(${productTotal})}"></span><span class="results-status" id="productResultsStatus" role="status" aria-live="polite"></span></div>
+            <div class="product-grid-page" id="productGrid" data-lazy-grid data-lazy-url="/api/products" th:attr="data-lazy-category-id=${query.categoryId},data-lazy-keyword=${query.keyword},data-lazy-language=${query.language},data-lazy-size=${query.pageSize},data-lazy-total=${productTotal},data-lazy-page=${query.pageNum}">
                 <a class="catalog-card" th:each="item, stat : ${products}" th:href="@{/product/{id}(id=${item.productId},language=${query.language})}">
                     <div class="catalog-card-media">
                         <img th:if="${item.coverUrl != null}" th:src="${item.coverUrl}" th:alt="${item.title}" loading="lazy"/>

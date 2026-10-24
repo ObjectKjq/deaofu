@@ -91,7 +91,9 @@ public class PortalPageController {
     public String products(AdminPageDto query, Model model) {
         normalize(query);
         model.addAttribute("categories", categoryService.listCategories(query.getLanguage()));
-        model.addAttribute("products", productService.pagePortalProducts(query).getList());
+        var result = productService.pagePortalProducts(query);
+        model.addAttribute("products", result.getList());
+        model.addAttribute("productTotal", result.getTotal());
         model.addAttribute("query", query);
         return "portal/products";
     }
@@ -134,7 +136,9 @@ public class PortalPageController {
     public String news(AdminPageDto query, Model model) {
         normalize(query);
         model.addAttribute("tags", newsTagService.listPortalTags(query.getLanguage()));
-        model.addAttribute("news", newsService.pagePortalNews(query).getList());
+        var result = newsService.pagePortalNews(query);
+        model.addAttribute("news", result.getList());
+        model.addAttribute("newsTotal", result.getTotal());
         model.addAttribute("query", query);
         return "portal/news";
     }

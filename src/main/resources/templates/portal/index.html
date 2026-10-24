@@ -10,7 +10,7 @@
     <link rel="stylesheet" th:href="@{/portal/css/styles.css}"/>
     <link rel="stylesheet" th:href="@{/portal/css/overrides.css}"/>
 </head>
-<body class="home-page">
+<body class="home-page" th:with="legacyPage=true">
 <div class="progress"></div>
 <div th:replace="~{portal/fragments :: header('home')}"></div>
 <main>

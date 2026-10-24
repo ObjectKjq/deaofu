@@ -8,7 +8,7 @@
     <link rel="stylesheet" th:href="@{/portal/css/styles.css}"/>
     <link rel="stylesheet" th:href="@{/portal/css/contact.css}"/>
 </head>
-<body class="contact-page">
+<body class="contact-page" th:with="legacyPage=true">
 <div th:replace="~{portal/fragments :: header('contact')}"></div>
 <main class="page-main">
     <section class="contact-form-section">
@@ -83,6 +83,6 @@
 </main>
 <div th:replace="~{portal/fragments :: footer}"></div>
 <script th:src="@{/portal/js/main.js}"></script>
-<script th:src="@{/portal/js/contact.js}"></script>
+<script th:src="@{/portal/js/contact.js(v=2026102402)}"></script>
 </body>
 </html>

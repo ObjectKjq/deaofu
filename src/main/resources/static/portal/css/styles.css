@@ -241,6 +241,7 @@ img, svg {
 }
 
 .site-header {
+    font-family: 'Noto Sans SC', 'Inter', sans-serif;
     height: 82px;
     position: fixed;
     z-index: 10;
@@ -267,7 +268,8 @@ img, svg {
 
 .header-inner {
     height: 100%;
-    max-width: var(--max);
+    /* 导航宽度独立于各页面正文宽度，确保所有页面对齐。 */
+    max-width: 1360px;
     padding: 0 56px;
     margin: auto;
     display: flex;

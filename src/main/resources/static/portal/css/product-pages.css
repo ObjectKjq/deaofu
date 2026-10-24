@@ -367,14 +367,14 @@ body.product-page .page-main {
     white-space: nowrap;
 }
 
-.catalog-card-link span {
+.catalog-card-link > span + span {
     display: inline-block;
     margin-left: 6px;
     font-size: 18px;
     transition: transform .25s;
 }
 
-.catalog-card:hover .catalog-card-link span {
+.catalog-card:hover .catalog-card-link > span + span {
     transform: translateX(4px);
 }
 
@@ -1022,7 +1022,7 @@ body.product-page .page-main {
     }
 }
 
-/* ----- 列表页无限滚动加载样式（产品中心 / 公司动态共用） ----- */
+/* 列表页分页反馈样式（产品中心 / 公司动态共用）。 */
 .lazy-sentinel {
     grid-column: 1 / -1;
     display: flex;
@@ -1068,12 +1068,3 @@ body.product-page .page-main {
 .lazy-end[hidden] {
     display: none;
 }
-
-/* 列表页加载期间隐藏 footer，避免用户提前看到页脚 */
-body[data-lazy-loading] footer.footer,
-body[data-lazy-loading] .site-footer,
-footer.footer[data-lazy-loading],
-.site-footer[data-lazy-loading] {
-    display: none !important;
-}
-

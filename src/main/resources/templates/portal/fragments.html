@@ -74,12 +74,14 @@
         </div>
         <div class="footer-col contact-col"><b th:text="#{footer.contact_us}">Contact Us</b>
             <a href="mailto:dafbusglass@163.com">dafbusglass@163.com</a>
-            <a href="tel:+8617737159530">WhatsApp +86 177 3715 9530</a>
+            <a th:if="${legacyPage == true}" href="tel:+8617737159530">WhatsApp +86 177 3715 9530</a>
+            <a th:unless="${legacyPage == true}" href="https://wa.me/8617737159530" target="_blank" rel="noopener">WhatsApp +86 177 3715 9530 ↗</a>
             <span th:text="#{footer.address}">No.11 Tongyuan Road, Zhoukou City, Henan Province, China</span>
         </div>
     </div>
     <div class="container footer-bottom"><span th:text="#{footer.copyright}">© 2026 DEAOFU Auto Glass. All rights reserved.</span><span th:text="#{footer.certifications}">ECE R43 · DOT · ISO9001 · CCC · IATF 16949</span></div>
 </footer>
+<button th:unless="${legacyPage == true}" class="back-to-top" id="backToTop" type="button" hidden th:attr="aria-label=#{common.back_to_top},title=#{common.back_to_top}">↑</button>
 
 <!--
     注入 i18n 文案给前端脚本（contact.js 提交提示、main.js 备用文案等）。
@@ -106,7 +108,15 @@
         },
         scroll: {
             loading: /*[[#{common.scroll.loading}]]*/ "Loading more...",
-            end: /*[[#{common.scroll.end}]]*/ "You have reached the end."
+            end: /*[[#{common.scroll.end}]]*/ "You have reached the end.",
+            more: /*[[#{common.scroll.more}]]*/ "Load more",
+            retry: /*[[#{common.scroll.retry}]]*/ "Loading failed. Try again",
+            updated: /*[[#{common.results.updated}]]*/ "Results updated"
+        },
+        card: {
+            detail: /*[[#{common.btn.view_detail}]]*/ "View Details",
+            news: /*[[#{news.read_more}]]*/ "Read More",
+            defaultTag: /*[[#{home.news.default_tag}]]*/ "Company News"
         }
     };
     window.portalCountryNames = /*[[${countryNames}]]*/ {};
