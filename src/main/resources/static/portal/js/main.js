@@ -113,11 +113,10 @@
             if (busy || thumbs.length <= 1) return;
             const targetIndex = (index + thumbs.length) % thumbs.length;
             if (targetIndex === activeIndex) return;
-            const previousIndex = activeIndex;
             const nextThumb = thumbs[targetIndex];
             const nextSrc = nextThumb.dataset.image;
             /* 方向：前进时新图从右侧入场、后退时从左侧入场，用于控制 scale/xPercent 的方向 */
-            const direction = targetIndex > previousIndex || (previousIndex === thumbs.length - 1 && targetIndex === 0) ? 1 : -1;
+            const direction = index > activeIndex ? 1 : -1;
             busy = true;
             const preloaded = new Image();
             preloaded.onload = () => {
@@ -189,21 +188,42 @@
             else if (e.key === 'ArrowRight') { e.preventDefault(); showMedia(activeIndex + 1); }
         });
 
-        /* 移动端左右滑动切图：仅当横向位移显著大于纵向时触发，避免误触竖向滚动 */
-        if (stage) {
-            let touchStartX = 0;
-            let touchStartY = 0;
-            stage.addEventListener('touchstart', (e) => {
-                touchStartX = e.touches[0].clientX;
-                touchStartY = e.touches[0].clientY;
-            }, { passive: true });
-            stage.addEventListener('touchend', (e) => {
-                const dx = e.changedTouches[0].clientX - touchStartX;
-                const dy = e.changedTouches[0].clientY - touchStartY;
-                if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.4) {
+        /* 手机端单指横滑切图；纵向滚动、多指缩放和被系统取消的手势不切图。 */
+        if (stage && thumbs.length > 1) {
+            let gesture = null;
+            stage.addEventListener('pointerdown', (e) => {
+                if (!e.isPrimary) {
+                    gesture = null;
+                    return;
+                }
+                if (busy || e.pointerType === 'mouse' || e.target.closest('button')) return;
+                gesture = { id: e.pointerId, x: e.clientX, y: e.clientY, axis: null };
+                stage.setPointerCapture(e.pointerId);
+            });
+            stage.addEventListener('pointermove', (e) => {
+                if (!gesture || e.pointerId !== gesture.id || gesture.axis) return;
+                const dx = Math.abs(e.clientX - gesture.x);
+                const dy = Math.abs(e.clientY - gesture.y);
+                if (Math.max(dx, dy) < 8) return;
+                if (dx > dy * 1.2) gesture.axis = 'horizontal';
+                else if (dy > dx * 1.2) gesture.axis = 'vertical';
+            });
+            stage.addEventListener('pointerup', (e) => {
+                if (!gesture || e.pointerId !== gesture.id) return;
+                const { x, y, axis } = gesture;
+                gesture = null;
+                const dx = e.clientX - x;
+                const dy = e.clientY - y;
+                const threshold = Math.min(50, Math.max(24, stage.clientWidth * .1));
+                if (axis !== 'vertical' && Math.abs(dx) >= threshold && Math.abs(dx) > Math.abs(dy) * 1.2) {
                     showMedia(activeIndex + (dx < 0 ? 1 : -1));
                 }
-            }, { passive: true });
+            });
+            const cancelGesture = (e) => {
+                if (gesture && e.pointerId === gesture.id) gesture = null;
+            };
+            stage.addEventListener('pointercancel', cancelGesture);
+            stage.addEventListener('lostpointercapture', cancelGesture);
         }
 
         updateCounter();
@@ -216,6 +236,7 @@
         const selection = document.getElementById('productFilterSelection');
         const mobileWidth = matchMedia('(max-width: 900px)');
         const all = filter.querySelector('.filter-all');
+        const groupSetters = new Map();
 
         function setPanelOpen(open) {
             filter.classList.toggle('is-open', open);
@@ -233,10 +254,8 @@
             filter.querySelectorAll('.filter-group').forEach((group) => {
                 const selected = Boolean(group.querySelector('.filter-option.is-active'));
                 group.classList.toggle('has-active', selected);
-                if (selected) {
-                    group.classList.remove('is-collapsed');
-                    group.querySelector('.filter-group-title').setAttribute('aria-expanded', 'true');
-                    group.querySelector('.filter-options').hidden = false;
+                if (selected && group.classList.contains('is-collapsed')) {
+                    groupSetters.get(group)(false, true);
                 }
             });
         }
@@ -251,16 +270,45 @@
             const options = group.querySelector('.filter-options');
             const key = 'deaofu-filter-collapsed:' + title.textContent.trim();
             const saved = readCollapsed(key);
-            function setCollapsed(collapsed) {
+            const optionsStyle = getComputedStyle(options);
+            const paddingTop = optionsStyle.paddingTop;
+            const paddingBottom = optionsStyle.paddingBottom;
+            function setCollapsed(collapsed, animate = false) {
+                if (window.gsap) gsap.killTweensOf(options);
                 group.classList.toggle('is-collapsed', collapsed);
                 title.setAttribute('aria-expanded', String(!collapsed));
-                options.hidden = collapsed;
+                options.inert = collapsed;
+                if (!animate || reducedMotion.matches || !window.gsap) {
+                    options.hidden = collapsed;
+                    if (window.gsap) gsap.set(options, { clearProps: 'height,opacity,overflow,paddingTop,paddingBottom' });
+                    return;
+                }
+
+                // 从当前高度接续动画，快速反复点击也不会跳回起点。
+                if (options.hidden) {
+                    options.hidden = false;
+                    gsap.set(options, { height: 0, opacity: 0, paddingTop: 0, paddingBottom: 0 });
+                }
+                gsap.set(options, { overflow: 'hidden' });
+                gsap.to(options, {
+                    height: collapsed ? 0 : 'auto',
+                    opacity: collapsed ? 0 : 1,
+                    paddingTop: collapsed ? 0 : paddingTop,
+                    paddingBottom: collapsed ? 0 : paddingBottom,
+                    duration: .3,
+                    ease: 'power2.inOut',
+                    onComplete: () => {
+                        options.hidden = collapsed;
+                        gsap.set(options, { clearProps: 'height,opacity,overflow,paddingTop,paddingBottom' });
+                    }
+                });
             }
+            groupSetters.set(group, setCollapsed);
             // 首次进入默认收起，保留手动展开状态，并展开当前选中分类。
             setCollapsed(saved !== '0' && !group.querySelector('.filter-option.is-active'));
             title.addEventListener('click', () => {
                 const next = !group.classList.contains('is-collapsed');
-                setCollapsed(next);
+                setCollapsed(next, true);
                 try { sessionStorage.setItem(key, next ? '1' : '0'); } catch (error) { /* 忽略存储限制 */ }
             });
         });

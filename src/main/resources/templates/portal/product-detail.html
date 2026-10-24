@@ -26,8 +26,8 @@
         <div class="container detail-hero-grid">
             <div class="detail-media" th:if="${!#lists.isEmpty(product.detailImageUrls)}">
                 <div class="detail-media-stage">
-                    <img class="detail-media-image" th:src="${product.detailImageUrls[0]}" th:alt="${product.title}"/>
-                    <img class="detail-media-image detail-media-image-next" th:src="${product.detailImageUrls[0]}" th:alt="${product.title}" aria-hidden="true"/>
+                    <img class="detail-media-image" th:src="${product.detailImageUrls[0]}" th:alt="${product.title}" draggable="false"/>
+                    <img class="detail-media-image detail-media-image-next" th:src="${product.detailImageUrls[0]}" th:alt="${product.title}" aria-hidden="true" draggable="false"/>
                     <button class="detail-media-prev" type="button" th:attr="aria-label=#{product.media.prev}">
                         <svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="15 6 9 12 15 18"></polyline></svg>
                     </button>

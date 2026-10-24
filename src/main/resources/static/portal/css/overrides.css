@@ -289,6 +289,14 @@
     margin: 13px 0 11px;
 }
 
+/* 首页产品与公司动态卡片标题单行展示，超出宽度显示省略号。 */
+.product-info h3,
+.news-card-body h3 {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
 .news-card-body span {
     right: 28px;
     bottom: 20px;

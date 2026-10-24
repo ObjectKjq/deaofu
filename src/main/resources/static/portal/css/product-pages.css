@@ -108,6 +108,11 @@ body.product-page .page-main {
 
 .filter-group {
     margin: 0 0 20px;
+    transition: margin-bottom .3s ease-in-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .filter-group { transition: none; }
 }
 
 .filter-all {
@@ -431,6 +436,8 @@ body.product-page .page-main {
     overflow: hidden;
     border: 1px solid #d7e2e3;
     background: #fff;
+    /* 横向手势交给图库，保留浏览器纵向滚动与双指缩放。 */
+    touch-action: pan-y pinch-zoom;
 }
 
 .detail-media-image {
@@ -441,6 +448,9 @@ body.product-page .page-main {
     height: 100%;
     object-fit: contain;
     background: #fff;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
 }
 
 .detail-media-image:first-child {
@@ -649,7 +659,7 @@ body.product-page .page-main {
     font-weight: 500;
     line-height: 1.12;
     letter-spacing: -.04em;
-    text-align: center;
+    text-align: left;
 }
 
 .detail-copy .lede {
