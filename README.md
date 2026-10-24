@@ -125,6 +125,19 @@ http://localhost:8080
 }
 ```
 
+## 日志文件
+
+日志配置位于 `src/main/resources/logback-spring.xml`。从项目根目录启动后，会自动创建 `log/all/` 和 `log/error/` 目录，分别按月保存日志：
+
+| 文件 | 内容 |
+| --- | --- |
+| `log/all/all-yyyy-MM.log` | 总日志，默认记录 INFO、WARN、ERROR 级别日志，包含错误日志及异常堆栈 |
+| `log/error/error-yyyy-MM.log` | 仅记录 ERROR 级别日志及异常堆栈 |
+
+文件名中的 `yyyy-MM` 为北京时间的年月，例如 `all-2026-10.log`。每类日志每月一个文件，跨月后首次写入时自动切换到新月份的文件，同月重启继续追加。历史日志持续保留，不自动删除，也不按大小拆分。
+
+控制台同步输出日志，文件使用 UTF-8 编码。日志路径基于进程工作目录（`user.dir`），请将 IDE 的工作目录设为项目根目录，或在项目根目录执行启动命令。日志文件已由 `.gitignore` 的 `*.log` 规则忽略。
+
 ## 核心目录 📁
 
 ```text
