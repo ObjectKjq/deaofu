@@ -24,9 +24,9 @@
             </button>
             <div class="filter-groups" id="productFilterGroups">
                 <a class="filter-all" th:classappend="${query.categoryId == null} ? ' is-active'" th:attr="aria-current=${query.categoryId == null ? 'true' : null}" th:href="@{/products(keyword=${query.keyword},language=${query.language})}" th:text="#{products.filter.all}">All Products</a>
-                <div class="filter-group" th:each="parent, stat : ${categories}" th:if="${parent.level == 1}">
-                    <button class="filter-group-title" type="button" aria-expanded="true" th:attr="aria-controls=|filter-options-${stat.index}|" th:text="${parent.categoryName}">Category</button>
-                    <div class="filter-options" th:id="|filter-options-${stat.index}|">
+                <div class="filter-group is-collapsed" th:each="parent, stat : ${categories}" th:if="${parent.level == 1}">
+                    <button class="filter-group-title" type="button" aria-expanded="false" th:attr="aria-controls=|filter-options-${stat.index}|" th:text="${parent.categoryName}">Category</button>
+                    <div class="filter-options" th:id="|filter-options-${stat.index}|" hidden>
                         <a class="filter-option" th:each="child : ${categories}" th:if="${child.parentId == parent.categoryId}" th:classappend="${child.categoryId == query.categoryId} ? ' is-active'" th:attr="aria-current=${child.categoryId == query.categoryId ? 'true' : null}" th:href="@{/products(categoryId=${child.categoryId},keyword=${query.keyword},language=${query.language})}" th:text="${child.categoryName}">Subcategory</a>
                     </div>
                 </div>

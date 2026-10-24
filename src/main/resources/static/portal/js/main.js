@@ -256,7 +256,8 @@
                 title.setAttribute('aria-expanded', String(!collapsed));
                 options.hidden = collapsed;
             }
-            setCollapsed(saved === '1' && !group.querySelector('.filter-option.is-active'));
+            // 首次进入默认收起，保留手动展开状态，并展开当前选中分类。
+            setCollapsed(saved !== '0' && !group.querySelector('.filter-option.is-active'));
             title.addEventListener('click', () => {
                 const next = !group.classList.contains('is-collapsed');
                 setCollapsed(next);
