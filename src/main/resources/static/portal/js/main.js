@@ -36,10 +36,29 @@
     scrollState();
 
     if (menu && mobile) {
-        menu.addEventListener('click', () => mobile.classList.toggle('open'));
+        const mobileWidth = matchMedia('(max-width: 900px)');
+        function setMobileMenu(open) {
+            mobile.classList.toggle('open', open);
+            mobile.inert = !open;
+            menu.setAttribute('aria-expanded', String(open));
+            const labels = window.portalI18n && window.portalI18n.menu;
+            if (labels) menu.setAttribute('aria-label', open ? labels.close : labels.open);
+            if (header) header.classList.toggle('is-menu-open', open);
+        }
+        menu.addEventListener('click', () => setMobileMenu(!mobile.classList.contains('open')));
         mobile.querySelectorAll('a').forEach((link) => {
-            link.addEventListener('click', () => mobile.classList.remove('open'));
+            link.addEventListener('click', () => setMobileMenu(false));
         });
+        document.addEventListener('click', (event) => {
+            if (header && !header.contains(event.target)) setMobileMenu(false);
+        });
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && mobile.classList.contains('open')) {
+                setMobileMenu(false);
+                menu.focus();
+            }
+        });
+        mobileWidth.addEventListener('change', () => setMobileMenu(false));
     }
 
     function initProductMedia() {
@@ -171,25 +190,79 @@
     }
 
     function initProductFilters() {
+        const filter = document.querySelector('.product-filter');
+        if (!filter) return;
+        const toggle = document.getElementById('productFilterToggle');
+        const selection = document.getElementById('productFilterSelection');
+        const mobileWidth = matchMedia('(max-width: 900px)');
+        const all = filter.querySelector('.filter-all');
+
+        function setPanelOpen(open) {
+            filter.classList.toggle('is-open', open);
+            if (toggle) toggle.setAttribute('aria-expanded', String(open));
+        }
+
+        function syncSelection() {
+            const active = filter.querySelector('.filter-option.is-active');
+            if (selection) selection.textContent = (active || all).textContent.trim();
+            const resultTitle = document.getElementById('resultTitle');
+            const grid = document.getElementById('productGrid');
+            if (resultTitle && grid && !grid.dataset.lazyKeyword) {
+                resultTitle.textContent = (active || all).textContent.trim();
+            }
+            filter.querySelectorAll('.filter-group').forEach((group) => {
+                const selected = Boolean(group.querySelector('.filter-option.is-active'));
+                group.classList.toggle('has-active', selected);
+                if (selected) {
+                    group.classList.remove('is-collapsed');
+                    group.querySelector('.filter-group-title').setAttribute('aria-expanded', 'true');
+                    group.querySelector('.filter-options').hidden = false;
+                }
+            });
+        }
+
+        // 浏览器禁用存储时，分类仍可正常展开和筛选。
+        function readCollapsed(key) {
+            try { return sessionStorage.getItem(key); } catch (error) { return null; }
+        }
+
         document.querySelectorAll('.filter-group-title').forEach((title) => {
             const group = title.closest('.filter-group');
+            const options = group.querySelector('.filter-options');
             const key = 'deaofu-filter-collapsed:' + title.textContent.trim();
-            const saved = sessionStorage.getItem(key);
-            /* 模板默认折叠；无手动记录时展开含选中项的分组 */
-            if (saved !== null) {
-                const collapsed = saved === '1';
+            const saved = readCollapsed(key);
+            function setCollapsed(collapsed) {
                 group.classList.toggle('is-collapsed', collapsed);
                 title.setAttribute('aria-expanded', String(!collapsed));
-            } else if (group.querySelector('.filter-option.is-active')) {
-                group.classList.remove('is-collapsed');
-                title.setAttribute('aria-expanded', 'true');
+                options.hidden = collapsed;
             }
+            setCollapsed(saved !== '0' && !group.querySelector('.filter-option.is-active'));
             title.addEventListener('click', () => {
-                const next = group.classList.toggle('is-collapsed');
-                title.setAttribute('aria-expanded', String(!next));
-                sessionStorage.setItem(key, next ? '1' : '0');
+                const next = !group.classList.contains('is-collapsed');
+                setCollapsed(next);
+                try { sessionStorage.setItem(key, next ? '1' : '0'); } catch (error) { /* 忽略存储限制 */ }
             });
         });
+
+        if (toggle) {
+            filter.classList.add('is-enhanced');
+            setPanelOpen(false);
+            toggle.addEventListener('click', () => setPanelOpen(!filter.classList.contains('is-open')));
+            filter.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape' && mobileWidth.matches) {
+                    setPanelOpen(false);
+                    toggle.focus({ preventScroll: true });
+                }
+            });
+        }
+        filter.addEventListener('product-filter:changed', (event) => {
+            syncSelection();
+            if (mobileWidth.matches && event.detail.close) {
+                setPanelOpen(false);
+                if (toggle) toggle.focus({ preventScroll: true });
+            }
+        });
+        syncSelection();
     }
 
     /**
@@ -214,10 +287,18 @@
                 const desc = head ? head.querySelector('p') : null;
                 const newDesc = doc.querySelector('.product-results-head p');
                 if (desc && newDesc) desc.textContent = newDesc.textContent;
+                const search = document.getElementById('productSearch');
+                const newSearch = doc.getElementById('productSearch');
+                if (search && newSearch) search.value = newSearch.value;
                 const target = new URL(url, window.location.origin);
                 const targetKey = target.pathname + target.search;
+                const selectedCategory = target.searchParams.get('categoryId');
                 document.querySelectorAll('.product-filter a').forEach((a) => {
-                    a.classList.toggle('is-active', a.getAttribute('href') === targetKey);
+                    const category = new URL(a.href).searchParams.get('categoryId');
+                    const active = category === selectedCategory;
+                    a.classList.toggle('is-active', active);
+                    if (active) a.setAttribute('aria-current', 'true');
+                    else a.removeAttribute('aria-current');
                 });
                 // 同步懒加载需要的筛选属性（grid.innerHTML 只换子节点，自身属性不会自动更新）。
                 // 不刷新这些属性，lazy-load.js 仍会按旧 categoryId/keyword/tagId 请求下一页。
@@ -228,6 +309,7 @@
                         grid.removeAttribute(attr);
                     }
                 });
+                document.querySelector('.product-filter').dispatchEvent(new CustomEvent('product-filter:changed', { detail: { close: push } }));
                 // 通知懒加载模块：分页状态归零、footer 重新隐藏、按需预触发一次加载。
                 grid.dispatchEvent(new CustomEvent('lazy-grid:reset'));
 
@@ -249,16 +331,31 @@
         window.addEventListener('popstate', () => loadProducts(window.location.href, false));
     }
 
+    /** 同步动态分类标题，并在手机横向标签条中显示当前选中项。 */
+    function initNewsTags() {
+        const tags = document.getElementById('newsTags');
+        const title = document.getElementById('newsResultTitle');
+        if (!tags) return;
+        const active = tags.querySelector('.is-active');
+        if (!active) return;
+        if (title) title.textContent = active.textContent.trim();
+        const tagsBox = tags.getBoundingClientRect();
+        const activeBox = active.getBoundingClientRect();
+        tags.scrollLeft += activeBox.left - tagsBox.left - (tags.clientWidth - activeBox.width) / 2;
+    }
+
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', () => {
             initProductMedia();
             initProductFilters();
             initProductFilterNav();
+            initNewsTags();
         });
     } else {
         initProductMedia();
         initProductFilters();
         initProductFilterNav();
+        initNewsTags();
     }
 
     /* ============================================================

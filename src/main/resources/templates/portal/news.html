@@ -15,13 +15,13 @@
 <main class="page-main news-main">
     <section class="news-browser" th:attr="aria-label=#{common.aria.news_list}">
         <div class="container">
-            <div class="news-tags" id="newsTags" role="tablist" th:attr="aria-label=#{common.aria.news_tag}">
-                <a class="news-tag" th:classappend="${query.tagId == null} ? ' is-active'" th:href="@{/news}" th:text="#{news.all}">All News</a>
-                <a class="news-tag" th:each="tag : ${tags}" th:classappend="${tag.tagId == query.tagId} ? ' is-active'" th:href="@{/news(tagId=${tag.tagId})}">
-                    <img th:if="${tag.iconUrl != null}" th:src="${tag.iconUrl}" th:alt="${tag.tagName}"/>
+            <nav class="news-tags" id="newsTags" th:attr="aria-label=#{common.aria.news_tag}">
+                <a class="news-tag" th:classappend="${query.tagId == null} ? ' is-active'" th:attr="aria-current=${query.tagId == null ? 'true' : null}" th:href="@{/news}"><span th:text="#{news.all}">All News</span></a>
+                <a class="news-tag" th:each="tag : ${tags}" th:classappend="${tag.tagId == query.tagId} ? ' is-active'" th:attr="aria-current=${tag.tagId == query.tagId ? 'true' : null}" th:href="@{/news(tagId=${tag.tagId})}">
+                    <img th:if="${tag.iconUrl != null}" th:src="${tag.iconUrl}" alt="" aria-hidden="true"/>
                     <span th:text="${tag.tagName}"></span>
                 </a>
-            </div>
+            </nav>
             <div class="news-results-head">
                 <div><p class="kicker" th:text="#{news.kicker}">LATEST STORIES</p>
                     <h2 id="newsResultTitle" th:text="#{news.all}">All News</h2></div>

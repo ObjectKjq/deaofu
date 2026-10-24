@@ -96,6 +96,16 @@ body.product-page .page-main {
     letter-spacing: .04em;
 }
 
+.product-filter-toggle {
+    display: none;
+}
+
+.filter-all:focus-visible, .filter-group-title:focus-visible,
+.filter-option:focus-visible, .product-filter-toggle:focus-visible {
+    outline: 2px solid var(--blue2);
+    outline-offset: 3px;
+}
+
 .filter-group {
     margin: 0 0 20px;
 }
@@ -129,6 +139,8 @@ body.product-page .page-main {
 
 .filter-group-title {
     display: flex;
+    align-items: center;
+    gap: 12px;
     justify-content: space-between;
     width: 100%;
     padding: 0 0 8px;
@@ -151,6 +163,7 @@ body.product-page .page-main {
     content: '−';
     color: var(--gold);
     font: 16px/1 Inter, sans-serif;
+    flex-shrink: 0;
 }
 
 .filter-group-title[aria-expanded='false']::after {
@@ -160,14 +173,10 @@ body.product-page .page-main {
 .filter-options {
     display: grid;
     gap: 1px;
-    max-height: 500px;
-    overflow: hidden;
-    transition: max-height .3s ease, opacity .3s ease;
 }
 
-.filter-group.is-collapsed .filter-options {
-    max-height: 0;
-    opacity: 0;
+.filter-options[hidden] {
+    display: none;
 }
 
 .filter-group.is-collapsed {
@@ -838,20 +847,107 @@ body.product-page .page-main {
 
     .product-filter {
         position: static;
-        margin-bottom: 42px;
-        padding-bottom: 26px;
-        border-bottom: 1px solid var(--line);
+        margin-bottom: 24px;
+        padding: 0;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        background: #fff;
+    }
+
+    .product-filter h2 {
+        margin: 18px 20px;
+    }
+
+    .product-filter.is-enhanced h2 {
+        display: none;
+    }
+
+    .product-filter.is-enhanced .product-filter-toggle {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        width: 100%;
+        min-height: 76px;
+        padding: 16px 20px;
+        color: var(--blue);
+        text-align: left;
+        cursor: pointer;
+    }
+
+    .product-filter-toggle svg {
+        width: 22px;
+        height: 22px;
+        flex-shrink: 0;
+    }
+
+    .product-filter-label {
+        display: grid;
+        gap: 2px;
+        min-width: 0;
+        overflow-wrap: anywhere;
+    }
+
+    .product-filter-label strong {
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    #productFilterSelection {
+        color: var(--muted);
+        font-size: 12px;
+    }
+
+    .filter-chevron {
+        width: 8px;
+        height: 8px;
+        margin-left: auto;
+        flex-shrink: 0;
+        border-right: 1.5px solid currentColor;
+        border-bottom: 1.5px solid currentColor;
+        transform: rotate(45deg);
+        transition: transform .25s;
+    }
+
+    .product-filter.is-open .filter-chevron {
+        transform: rotate(225deg);
+    }
+
+    .product-filter.is-enhanced:not(.is-open) .filter-groups {
+        display: none;
     }
 
     .filter-groups {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 18px 32px;
+        display: block;
+        padding: 4px 20px 16px;
     }
 
-    .filter-group {
-        flex: 1 1 190px;
+    .filter-group, .filter-group.is-collapsed {
         margin: 0;
+    }
+
+    .filter-all, .filter-group-title {
+        min-height: 48px;
+        margin: 0;
+        padding: 12px 0;
+        border-bottom-width: 1px;
+        font-size: 14px;
+        overflow-wrap: anywhere;
+    }
+
+    .filter-options {
+        gap: 6px;
+        padding: 10px 0 12px 10px;
+    }
+
+    .filter-option {
+        min-height: 44px;
+        padding: 10px 12px;
+        border-radius: 0 6px 6px 0;
+        overflow-wrap: anywhere;
+    }
+
+    .filter-group.has-active .filter-group-title {
+        color: var(--blue2);
     }
 
     .detail-hero-grid {

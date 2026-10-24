@@ -20,20 +20,21 @@
         </nav>
         <div class="header-actions">
             <!-- 语言切换：JS 监听 click 后写入 ?lang= 参数，LocaleChangeInterceptor 持久化到 cookie -->
-            <a href="#" id="langToggle"
-               th:with="isZh=${#locale.language == 'zh'},toggleLang=${isZh ? 'en' : 'zh_CN'}">
+            <a class="lang-toggle" id="langToggle"
+               th:with="isZh=${#locale.language == 'zh'},toggleLang=${isZh ? 'en' : 'zh_CN'}"
+               th:href="@{''(lang=${toggleLang})}" th:attr="aria-label=#{common.aria.switch_language},data-lang=${toggleLang},hreflang=${isZh ? 'en' : 'zh-CN'}">
                 <th:block th:if="${isZh}">中 / EN</th:block>
                 <th:block th:unless="${isZh}">EN / 中</th:block>
             </a>
         </div>
-        <button class="menu-toggle" id="menuToggle" th:attr="aria-label=#{common.aria.open_menu}"><i></i><i></i><i></i></button>
+        <button class="menu-toggle" id="menuToggle" type="button" aria-controls="mobileNav" aria-expanded="false" th:attr="aria-label=#{common.aria.open_menu}"><i></i><i></i><i></i></button>
     </div>
-    <nav class="mobile-nav" id="mobileNav" th:attr="aria-label=#{common.aria.mobile_nav}">
-        <a th:href="@{/}" th:text="#{common.nav.home}">Home</a>
-        <a th:href="@{/about}" th:text="#{common.nav.about}">About Us</a>
-        <a th:href="@{/products}" th:text="#{common.nav.products}">Products</a>
-        <a th:href="@{/news}" th:text="#{common.nav.news}">News</a>
-        <a th:href="@{/contact}" th:text="#{common.nav.contact}">Contact Us</a>
+    <nav class="mobile-nav" id="mobileNav" inert th:attr="aria-label=#{common.aria.mobile_nav}">
+        <a th:classappend="${active == 'home'} ? ' active'" th:href="@{/}" th:text="#{common.nav.home}">Home</a>
+        <a th:classappend="${active == 'about'} ? ' active'" th:href="@{/about}" th:text="#{common.nav.about}">About Us</a>
+        <a th:classappend="${active == 'products'} ? ' active'" th:href="@{/products}" th:text="#{common.nav.products}">Products</a>
+        <a th:classappend="${active == 'news'} ? ' active'" th:href="@{/news}" th:text="#{common.nav.news}">News</a>
+        <a th:classappend="${active == 'contact'} ? ' active'" th:href="@{/contact}" th:text="#{common.nav.contact}">Contact Us</a>
     </nav>
 </header><th:block th:fragment="footer">
 <footer class="footer">
@@ -95,6 +96,10 @@
         lang: {
             current: /*[[${#locale.language}]]*/ "en",
             next: /*[[${#locale.language == 'zh' ? 'en' : 'zh_CN'}]]*/ "en"
+        },
+        menu: {
+            open: /*[[#{common.aria.open_menu}]]*/ "Open menu",
+            close: /*[[#{common.aria.close_menu}]]*/ "Close menu"
         },
         scroll: {
             loading: /*[[#{common.scroll.loading}]]*/ "Loading more...",
