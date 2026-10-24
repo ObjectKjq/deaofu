@@ -340,19 +340,33 @@ img, svg {
 }
 
 .header-actions > a:first-child {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+    display: inline-grid;
+    place-items: center;
+    min-width: 56px;
     min-height: 44px;
-    padding: 0 10px;
+    padding: 0;
+    border-radius: 999px;
+    white-space: nowrap
+}
+
+/* 可见边框与点击区域分开，缩小按钮外观并保持文字两侧对称。 */
+.lang-toggle-label {
+    display: inline-grid;
+    grid-template-columns: 16px 6px 16px;
+    place-items: center;
+    height: 30px;
+    padding: 0 6px;
     border: 1px solid transparent;
     border-radius: 999px;
-    white-space: nowrap;
-    font: 12px Inter, 'Noto Sans SC', sans-serif;
+    font: 500 12px/1 'Noto Sans SC', 'Inter', sans-serif;
     transition: background .25s, border-color .25s
 }
 
-.lang-toggle:hover {
+.lang-toggle-separator {
+    opacity: .55
+}
+
+.lang-toggle:hover .lang-toggle-label {
     border-color: currentColor
 }
 
@@ -1064,8 +1078,9 @@ img, svg {
         margin-right: 8px
     }
 
-    .header-actions > a:first-child {
-        border-color: currentColor
+    .header-actions .lang-toggle-label {
+        border-color: currentColor;
+        font-size: 11px
     }
 
     .menu-toggle {
@@ -1261,6 +1276,11 @@ img, svg {
 
     .product-grid, .news-grid {
         grid-template-columns:1fr
+    }
+
+    /* 手机端取消首张动态跨列，避免生成额外网格列导致后续卡片错位。 */
+    .news-feature {
+        grid-column: auto
     }
 
     .product-large {

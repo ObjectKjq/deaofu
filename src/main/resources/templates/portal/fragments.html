@@ -23,8 +23,11 @@
             <a class="lang-toggle" id="langToggle"
                th:with="isZh=${#locale.language == 'zh'},toggleLang=${isZh ? 'en' : 'zh_CN'}"
                th:href="@{''(lang=${toggleLang})}" th:attr="aria-label=#{common.aria.switch_language},data-lang=${toggleLang},hreflang=${isZh ? 'en' : 'zh-CN'}">
-                <th:block th:if="${isZh}">中 / EN</th:block>
-                <th:block th:unless="${isZh}">EN / 中</th:block>
+                <span class="lang-toggle-label" aria-hidden="true">
+                    <span th:text="${isZh ? '中' : 'EN'}">EN</span>
+                    <span class="lang-toggle-separator">/</span>
+                    <span th:text="${isZh ? 'EN' : '中'}">中</span>
+                </span>
             </a>
         </div>
         <button class="menu-toggle" id="menuToggle" type="button" aria-controls="mobileNav" aria-expanded="false" th:attr="aria-label=#{common.aria.open_menu}"><i></i><i></i><i></i></button>
