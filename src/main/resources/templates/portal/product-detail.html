@@ -26,7 +26,7 @@
         <div class="container detail-hero-grid">
             <div class="detail-media" th:if="${!#lists.isEmpty(product.detailImageUrls)}">
                 <div class="detail-media-stage">
-                    <img class="detail-media-image" th:src="${product.detailImageUrls[0]}" th:alt="${product.title}" draggable="false"/>
+                    <img class="detail-media-image" th:src="${product.detailImageUrls[0]}" th:alt="${product.title}" draggable="false" role="button" tabindex="0" aria-haspopup="dialog" th:attr="aria-label=#{product.media.enlarge}"/>
                     <img class="detail-media-image detail-media-image-next" th:src="${product.detailImageUrls[0]}" th:alt="${product.title}" aria-hidden="true" draggable="false"/>
                     <button class="detail-media-prev" type="button" th:attr="aria-label=#{product.media.prev}">
                         <svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="15 6 9 12 15 18"></polyline></svg>
@@ -54,13 +54,20 @@
                     <a class="button button-primary" th:href="@{/contact}"><span th:text="#{product-detail.quote}">Get a Quote</span> <span>↗</span></a>
                     <a class="button detail-outline" th:href="@{/products}" th:text="#{product-detail.back}">Back to Products</a>
                 </div>
-                <dl class="detail-specs">
+            </div>
+            <section class="detail-parameters" th:if="${!#lists.isEmpty(product.parameters)}" aria-labelledby="productParametersTitle">
+                <h2 id="productParametersTitle" th:text="#{product.parameters.title}">产品参数</h2>
+                <dl class="detail-specs" id="productParameters">
                     <div class="detail-spec-row" th:each="parameter : ${product.parameters}">
                         <dt th:text="${parameter.label}"></dt>
                         <dd th:text="${parameter.value}"></dd>
                     </div>
                 </dl>
-            </div>
+                <button class="detail-spec-toggle" type="button" hidden aria-expanded="false" aria-controls="productParameters" th:attr="data-expand-label=#{product.parameters.expand},data-collapse-label=#{product.parameters.collapse}">
+                    <span th:text="#{product.parameters.expand}">展开全部参数</span>
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+                </button>
+            </section>
         </div>
     </section>
     <section class="detail-section" th:if="${!#lists.isEmpty(relatedProducts)}">
@@ -73,12 +80,25 @@
                 <a class="related-card" th:each="item : ${relatedProducts}" th:href="@{/product/{id}(id=${item.productId},language=${language})}">
                     <img th:if="${item.coverUrl != null}" th:src="${item.coverUrl}" th:alt="${item.title}" loading="lazy"/>
                     <div><small th:text="${item.categoryName}"></small>
-                        <h3 th:text="${item.title}"></h3></div>
+                        <h3 th:text="${item.title}" th:title="${item.title}"></h3></div>
                 </a>
             </div>
         </div>
     </section>
 </main>
+<dialog class="product-image-preview" id="productImagePreview" th:if="${!#lists.isEmpty(product.detailImageUrls)}" th:attr="aria-label=#{product.media.preview}">
+    <button class="product-preview-close" type="button" autofocus th:attr="aria-label=#{product.media.close}">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>
+    </button>
+    <button class="product-preview-prev" type="button" th:attr="aria-label=#{product.media.prev}">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14 6-6 6 6 6"/></svg>
+    </button>
+    <img class="product-preview-image" th:alt="${product.title}"/>
+    <button class="product-preview-next" type="button" th:attr="aria-label=#{product.media.next}">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m10 6 6 6-6 6"/></svg>
+    </button>
+    <span class="product-preview-counter" aria-live="polite"></span>
+</dialog>
 <div th:replace="~{portal/fragments :: footer}"></div>
 <script th:src="@{/portal/vendor/gsap/gsap.min.js}"></script>
 <script th:src="@{/portal/vendor/gsap/ScrollTrigger.min.js}"></script>

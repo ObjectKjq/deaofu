@@ -95,6 +95,63 @@
         let activeIndex = 0;
         let busy = false;
 
+        // 原生模态框提供焦点约束和 Esc 关闭，预览始终从当前主图开始。
+        const preview = document.getElementById('productImagePreview');
+        if (preview) {
+            const previewImage = preview.querySelector('.product-preview-image');
+            const previewCounter = preview.querySelector('.product-preview-counter');
+            const previewPrev = preview.querySelector('.product-preview-prev');
+            const previewNext = preview.querySelector('.product-preview-next');
+            let previewIndex = 0;
+            let pointerStart = null;
+
+            function showPreview(index) {
+                previewIndex = (index + thumbs.length) % thumbs.length;
+                previewImage.src = thumbs[previewIndex].dataset.image;
+                previewCounter.textContent = `${previewIndex + 1} / ${thumbs.length}`;
+            }
+
+            function openPreview() {
+                if (busy || preview.open) return;
+                showPreview(activeIndex);
+                preview.showModal();
+                document.documentElement.classList.add('product-preview-open');
+            }
+
+            stage.addEventListener('pointerdown', (event) => {
+                pointerStart = { x: event.clientX, y: event.clientY };
+            });
+            stage.addEventListener('click', (event) => {
+                if (event.target.closest('button')) return;
+                // 横滑切图和纵向滚动结束后，不把手势误判成点击放大。
+                if (pointerStart && Math.hypot(event.clientX - pointerStart.x, event.clientY - pointerStart.y) > 10) return;
+                openPreview();
+            });
+            image.addEventListener('keydown', (event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    openPreview();
+                }
+            });
+            previewPrev.hidden = previewNext.hidden = thumbs.length <= 1;
+            previewPrev.addEventListener('click', () => showPreview(previewIndex - 1));
+            previewNext.addEventListener('click', () => showPreview(previewIndex + 1));
+            preview.querySelector('.product-preview-close').addEventListener('click', () => preview.close());
+            preview.addEventListener('click', (event) => {
+                if (event.target === preview) preview.close();
+            });
+            preview.addEventListener('keydown', (event) => {
+                if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+                    event.preventDefault();
+                    showPreview(previewIndex + (event.key === 'ArrowLeft' ? -1 : 1));
+                }
+            });
+            preview.addEventListener('close', () => {
+                document.documentElement.classList.remove('product-preview-open');
+                image.focus({ preventScroll: true });
+            });
+        }
+
         function updateCounter() {
             if (counterCurrent) counterCurrent.textContent = String(activeIndex + 1);
         }
@@ -229,6 +286,23 @@
         updateCounter();
     }
 
+    /** 参数较多时先展示八项，按需展开，避免首屏被长列表占满。 */
+    function initProductSpecs() {
+        const panel = document.querySelector('.detail-parameters');
+        if (!panel || panel.querySelectorAll('.detail-spec-row').length <= 8) return;
+        const toggle = panel.querySelector('.detail-spec-toggle');
+        const label = toggle.querySelector('span');
+        panel.classList.add('is-collapsed');
+        toggle.hidden = false;
+        toggle.addEventListener('click', () => {
+            const collapsed = panel.classList.toggle('is-collapsed');
+            toggle.setAttribute('aria-expanded', String(!collapsed));
+            label.textContent = collapsed ? toggle.dataset.expandLabel : toggle.dataset.collapseLabel;
+            // 收起后将仍聚焦的按钮带回视口，避免停留在后续内容中。
+            if (collapsed) toggle.scrollIntoView({ block: 'nearest' });
+        });
+    }
+
     function initProductFilters() {
         const filter = document.querySelector('.product-filter');
         if (!filter) return;
@@ -237,6 +311,13 @@
         const mobileWidth = matchMedia('(max-width: 900px)');
         const all = filter.querySelector('.filter-all');
         const groupSetters = new Map();
+
+        // 所有展开入口统一关闭其它分类，包括选中项回显和历史状态恢复。
+        function expandGroup(group, animate = false) {
+            groupSetters.forEach((setCollapsed, current) => {
+                setCollapsed(current !== group, current === group && animate);
+            });
+        }
 
         function setPanelOpen(open) {
             filter.classList.toggle('is-open', open);
@@ -255,7 +336,7 @@
                 const selected = Boolean(group.querySelector('.filter-option.is-active'));
                 group.classList.toggle('has-active', selected);
                 if (selected && group.classList.contains('is-collapsed')) {
-                    groupSetters.get(group)(false, true);
+                    expandGroup(group, true);
                 }
             });
         }
@@ -265,11 +346,12 @@
             try { return sessionStorage.getItem(key); } catch (error) { return null; }
         }
 
-        document.querySelectorAll('.filter-group-title').forEach((title) => {
+        let restoredGroup = null;
+        filter.querySelectorAll('.filter-group-title').forEach((title) => {
             const group = title.closest('.filter-group');
             const options = group.querySelector('.filter-options');
             const key = 'deaofu-filter-collapsed:' + title.textContent.trim();
-            const saved = readCollapsed(key);
+            if (!restoredGroup && readCollapsed(key) === '0') restoredGroup = group;
             const optionsStyle = getComputedStyle(options);
             const paddingTop = optionsStyle.paddingTop;
             const paddingBottom = optionsStyle.paddingBottom;
@@ -278,6 +360,7 @@
                 group.classList.toggle('is-collapsed', collapsed);
                 title.setAttribute('aria-expanded', String(!collapsed));
                 options.inert = collapsed;
+                try { sessionStorage.setItem(key, collapsed ? '1' : '0'); } catch (error) { /* 忽略存储限制 */ }
                 if (!animate || reducedMotion.matches || !window.gsap) {
                     options.hidden = collapsed;
                     if (window.gsap) gsap.set(options, { clearProps: 'height,opacity,overflow,paddingTop,paddingBottom' });
@@ -304,14 +387,16 @@
                 });
             }
             groupSetters.set(group, setCollapsed);
-            // 首次进入默认收起，保留手动展开状态，并展开当前选中分类。
-            setCollapsed(saved !== '0' && !group.querySelector('.filter-option.is-active'));
+            // 先全部收起，初始化完成后最多恢复一个分类。
+            setCollapsed(true);
             title.addEventListener('click', () => {
-                const next = !group.classList.contains('is-collapsed');
-                setCollapsed(next, true);
-                try { sessionStorage.setItem(key, next ? '1' : '0'); } catch (error) { /* 忽略存储限制 */ }
+                if (group.classList.contains('is-collapsed')) expandGroup(group, true);
+                else setCollapsed(true, true);
             });
         });
+
+        const activeOption = filter.querySelector('.filter-option.is-active');
+        expandGroup(activeOption ? activeOption.closest('.filter-group') : restoredGroup);
 
         if (toggle) {
             filter.classList.add('is-enhanced');
@@ -445,12 +530,14 @@
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', () => {
             initProductMedia();
+            initProductSpecs();
             initProductFilters();
             initProductFilterNav();
             initNewsTags();
         });
     } else {
         initProductMedia();
+        initProductSpecs();
         initProductFilters();
         initProductFilterNav();
         initNewsTags();

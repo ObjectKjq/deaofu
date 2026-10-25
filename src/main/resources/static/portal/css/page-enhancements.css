@@ -39,6 +39,18 @@ body.about-page .about-story { padding-top: 140px; }
 /* 产品和动态：标题单行省略，摘要最多展示两行。 */
 .products-layout { grid-template-columns: 216px minmax(0, 1fr); gap: 40px; padding-top: 40px; padding-bottom: 64px; }
 .product-filter { top: 112px; padding: 22px 18px; border: 1px solid var(--line); border-radius: 6px; background: #fff; }
+/* 分类列表独立滚动，保留标题并为视口底部留出空间。 */
+.product-filter .filter-groups {
+    height: min(560px, calc(100vh - 220px));
+    height: min(560px, calc(100dvh - 220px));
+    overflow-y: auto;
+    overflow-x: hidden;
+    overscroll-behavior-y: contain;
+    scrollbar-width: thin;
+    scrollbar-color: #b9cbd2 transparent;
+    scrollbar-gutter: stable;
+    padding-inline: 4px;
+}
 .filter-all, .filter-group-title { min-height: 44px; align-items: center; padding-block: 8px; margin-bottom: 8px; border-bottom-width: 1px; }
 .filter-option { min-height: 44px; border-radius: 3px; }
 .product-results-tools { justify-content: flex-end; margin-bottom: 26px; }
@@ -105,6 +117,7 @@ body.about-page .about-story { padding-top: 140px; }
     body.about-page .about-story { padding-top: 112px; }
     .products-layout { grid-template-columns: 1fr; gap: 24px; padding-top: 24px; }
     .product-filter { position: static; padding: 0; }
+    .product-filter .filter-groups { height: min(400px, 50vh); height: min(400px, 50dvh); }
     .product-filter.is-enhanced .filter-groups { padding-inline: 18px; }
     .product-results-head h1, .news-results-head h1 { font-size: 28px; }
 }
