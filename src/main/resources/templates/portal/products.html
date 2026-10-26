@@ -15,9 +15,10 @@
 <div th:replace="~{portal/fragments :: header('products')}"></div>
 <main class="page-main">
     <section class="container products-layout">
-        <aside class="product-filter" th:attr="aria-label=#{common.aria.product_filter}">
+        <!-- 首次渲染即使用收起布局，避免等待脚本加载时先展开后收起。 -->
+        <aside class="product-filter is-enhanced" th:attr="aria-label=#{common.aria.product_filter}">
             <h2 th:text="#{products.filter.title}">Filter Products</h2>
-            <button class="product-filter-toggle" id="productFilterToggle" type="button" aria-expanded="true" aria-controls="productFilterGroups">
+            <button class="product-filter-toggle" id="productFilterToggle" type="button" aria-expanded="false" aria-controls="productFilterGroups">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M4 7h16M4 17h16"/><circle cx="9" cy="7" r="3" fill="currentColor" stroke="none"/><circle cx="15" cy="17" r="3" fill="currentColor" stroke="none"/></svg>
                 <span class="product-filter-label"><strong th:text="#{products.filter.title}">Filter Products</strong><span id="productFilterSelection" th:text="#{products.filter.all}">All Products</span></span>
                 <span class="filter-chevron" aria-hidden="true"></span>

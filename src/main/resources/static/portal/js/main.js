@@ -399,7 +399,6 @@
         expandGroup(activeOption ? activeOption.closest('.filter-group') : restoredGroup);
 
         if (toggle) {
-            filter.classList.add('is-enhanced');
             setPanelOpen(false);
             toggle.addEventListener('click', () => setPanelOpen(!filter.classList.contains('is-open')));
             filter.addEventListener('keydown', (event) => {
