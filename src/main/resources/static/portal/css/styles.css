@@ -1001,7 +1001,12 @@ img, svg {
     width: 38px;
     height: 38px;
     border-radius: 50%;
-    background: rgba(255, 255, 255, .08);
+    /* 背景从外边框起铺满，避免渐变按内框重复时在圆周出现细边。 */
+    background-origin: border-box;
+    background-clip: border-box;
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
+    background-color: rgba(255, 255, 255, .08);
     color: #ccd8db;
     border: 1px solid rgba(255, 255, 255, .1);
     transition: background .3s ease, color .3s ease, transform .3s ease, border-color .3s ease, box-shadow .3s ease
@@ -1014,7 +1019,7 @@ img, svg {
 }
 
 .social-link:hover {
-    background: #fff;
+    background-color: #fff;
     color: #003B5C;
     border-color: #fff;
     transform: translateY(-2px);
@@ -1038,14 +1043,14 @@ img, svg {
 }
 
 .social-link[data-platform="TikTok"]:hover {
-    background: linear-gradient(135deg, #25F4EE 0%, #FE2C55 100%);
+    background-image: linear-gradient(135deg, #25F4EE 0%, #FE2C55 100%);
     color: #fff;
     border-color: transparent;
     box-shadow: 0 6px 16px rgba(254, 44, 85, .4)
 }
 
 .social-link[data-platform="Instagram"]:hover {
-    background: linear-gradient(45deg, #F58529 0%, #DD2A7B 50%, #8134AF 100%);
+    background-image: linear-gradient(45deg, #F58529 0%, #DD2A7B 50%, #8134AF 100%);
     color: #fff;
     border-color: transparent;
     box-shadow: 0 6px 16px rgba(221, 42, 123, .4)
