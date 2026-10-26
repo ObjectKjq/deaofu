@@ -936,6 +936,8 @@ html.product-preview-open {
 
 .related-card {
     display: flex;
+    min-width: 0;
+    width: 100%;
     gap: 15px;
     align-items: center;
     padding: 12px;
@@ -1127,6 +1129,15 @@ html.product-preview-open {
     .detail-section {
         padding: 82px 0;
     }
+
+    .related-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .related-card img {
+        width: 88px;
+        height: 76px;
+    }
 }
 
 @media (max-width: 560px) {
@@ -1139,7 +1150,7 @@ html.product-preview-open {
     }
 
     .product-grid-page, .detail-features, .related-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1fr);
     }
 
     .product-results-head {
@@ -1177,13 +1188,36 @@ html.product-preview-open {
         margin-top: 13px;
     }
 
+    .detail-section-head h2 {
+        font-size: 26px;
+        margin-bottom: 12px;
+    }
+
     .detail-spec-row {
         grid-template-columns: 92px 1fr;
         gap: 12px;
     }
 
     .related-card img {
-        width: 100px;
+        width: 76px;
+        height: 76px;
+        object-fit: contain;
+    }
+
+    .related-grid { gap: 12px; }
+    .related-card { gap: 12px; padding: 12px; }
+    .related-card small { font-size: 11px; letter-spacing: .02em; }
+    /* 手机标题最多两行，网格和文字区均允许收缩，不撑宽页面。 */
+    .related-card h3 {
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+        height: auto;
+        max-height: 42px;
+        font-size: 14px;
+        line-height: 1.5;
+        white-space: normal;
+        overflow-wrap: anywhere;
     }
 }
 
