@@ -81,7 +81,7 @@ public class PortalPageController {
 
     /**
      * GET /products：渲染产品中心页。
-     * <p>支持 {@code categoryId}（二级分类）与 {@code keyword} 筛选，服务端渲染结果。
+     * <p>支持二级分类筛选；关键词模糊匹配名称、描述、一二级分类名称和参数名称/值，服务端渲染结果。
      *
      * @param query 分页与筛选入参（categoryId / keyword / pageNum / pageSize）
      * @param model 视图模型

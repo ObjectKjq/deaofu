@@ -14,7 +14,7 @@ public class AdminPageDto extends PageDomain {
     /** 模糊搜索关键字，各模块按标题、名称、地址或联系人匹配。 */
     private String keyword;
 
-    /** 产品分类筛选ID，仅产品分页使用。 */
+    /** 产品分类筛选ID；管理端传一级分类时包含其二级分类，传二级分类时精确筛选。 */
     private String categoryId;
 
     /** 动态标签筛选ID，仅公司动态分页使用。 */

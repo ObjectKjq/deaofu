@@ -55,11 +55,12 @@ public class PortalApiController {
 
     /**
      * GET /api/products：官网前台产品分页JSON接口，供前端无限滚动加载使用。
-     * <p>支持 {@code categoryId}（二级分类）与 {@code keyword} 筛选，固定页大小 。
+     * <p>支持二级分类筛选；关键词模糊匹配产品名称、描述、一二级分类名称和参数名称/值，固定页大小。
      *
      * @param pageNum    页码，从1开始，缺省1
      * @param categoryId 二级分类ID，可空
-     * @param keyword    关键字，可空
+     * @param keyword    搜索关键词，可空，任一搜索字段命中即可
+     * @param language   内容语言，可空
      * @return 当前页的产品列表与总量
      */
     @GetMapping("/api/products")

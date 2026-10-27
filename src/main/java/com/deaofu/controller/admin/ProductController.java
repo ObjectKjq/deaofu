@@ -27,7 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class ProductController {
     private final IProductService productService;
 
-    /** GET /admin/products/page：分页查询产品；参数非法时返回参数错误。 @param dto 查询条件 @return 统一响应中的产品分页数据 */
+    /** GET /admin/products/page：分页查询产品，支持一级分类及其子分类或指定二级分类筛选；参数非法时返回参数错误。 @param dto 查询条件，categoryId可为空或一级、二级分类ID @return 统一响应中的产品分页数据 */
     @GetMapping("/page")
     public BaseResponse<PageResult<ProductVo>> page(@Valid AdminPageDto dto) {
         return ResultUtils.success(productService.pageProducts(dto));

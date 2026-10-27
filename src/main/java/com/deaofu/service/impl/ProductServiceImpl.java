@@ -1,7 +1,9 @@
 package com.deaofu.service.impl;
 
 import cn.hutool.core.util.StrUtil;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.baomidou.mybatisplus.extension.conditions.query.LambdaQueryChainWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.deaofu.common.ErrorCode;
 import com.deaofu.common.PageResult;
@@ -25,10 +27,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /** 产品管理业务实现。 */
 @Slf4j
@@ -43,16 +49,23 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
     @Override
     @Transactional(readOnly = true)
     public PageResult<ProductVo> pageProducts(AdminPageDto dto) {
+        Map<String, ProductCategory> categories = loadCategoryMap();
+        List<String> categoryIds = new ArrayList<>();
+        if (StrUtil.isNotBlank(dto.getCategoryId())) {
+            categoryIds.add(dto.getCategoryId());
+            categories.values().stream()
+                    .filter(category -> StrUtil.equals(category.getParentId(), dto.getCategoryId()))
+                    .map(ProductCategory::getCategoryId).forEach(categoryIds::add);
+        }
         Page<Product> page = lambdaQuery()
                 .like(StrUtil.isNotBlank(dto.getKeyword()), Product::getTitle, dto.getKeyword())
-                .eq(StrUtil.isNotBlank(dto.getCategoryId()), Product::getCategoryId, dto.getCategoryId())
+                .in(!categoryIds.isEmpty(), Product::getCategoryId, categoryIds)
                 .eq(dto.getLanguage() != null, Product::getLanguage, dto.getLanguage())
                 .eq(dto.getHomeShow() != null && dto.getHomeShow() == 0, Product::getHomeShowOrder, 0)
                 .gt(dto.getHomeShow() != null && dto.getHomeShow() == 1, Product::getHomeShowOrder, 0)
                 .orderByDesc(dto.getHomeShow() != null && dto.getHomeShow() == 1, Product::getHomeShowOrder)
                 .orderByDesc(dto.getHomeShow() == null || dto.getHomeShow() == 0, Product::getCreateTime)
                 .page(new Page<>(dto.getPageNum(), dto.getPageSize()));
-        Map<String, ProductCategory> categories = loadCategoryMap();
         Map<String, SysUser> users = loadUserMap(page.getRecords().stream().map(Product::getCreateBy).filter(Objects::nonNull).distinct().toList());
         List<ProductVo> list = page.getRecords().stream().map(item -> toVo(item, categories, users)).toList();
         return new PageResult<>(list, page.getTotal());
@@ -61,8 +74,20 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
     @Override
     @Transactional(readOnly = true)
     public PageResult<PortalProductVo> pagePortalProducts(AdminPageDto dto) {
-        Page<Product> page = lambdaQuery()
-                .like(StrUtil.isNotBlank(dto.getKeyword()), Product::getTitle, dto.getKeyword())
+        Map<String, ProductCategory> categories = loadCategoryMap();
+        LambdaQueryChainWrapper<Product> query = lambdaQuery();
+        if (StrUtil.isNotBlank(dto.getKeyword())) {
+            String pattern = "%" + StrUtil.trim(dto.getKeyword())
+                    .replace("!", "!!").replace("%", "!%").replace("_", "!_") + "%";
+            List<String> categoryIds = findKeywordCategoryIds(pattern, dto.getLanguage(), categories);
+            // 搜索字段使用 OR 分组，其它筛选继续使用 AND，避免跨分类或跨语言命中。
+            query.and(condition -> condition.apply("title LIKE {0} ESCAPE '!'", pattern)
+                    .or().apply("summary LIKE {0} ESCAPE '!'", pattern)
+                    .or().apply("JSON_SEARCH(LOWER(specs), 'one', {0}, '!', '$[*].label', '$[*].value') IS NOT NULL",
+                            pattern.toLowerCase(Locale.ROOT))
+                    .or(!categoryIds.isEmpty()).in(!categoryIds.isEmpty(), Product::getCategoryId, categoryIds));
+        }
+        Page<Product> page = query
                 .eq(StrUtil.isNotBlank(dto.getCategoryId()), Product::getCategoryId, dto.getCategoryId())
                 .eq(dto.getLanguage() != null, Product::getLanguage, dto.getLanguage())
                 .eq(dto.getHomeShow() != null && dto.getHomeShow() == 0, Product::getHomeShowOrder, 0)
@@ -70,9 +95,26 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
                 .orderByDesc(dto.getHomeShow() != null && dto.getHomeShow() == 1, Product::getHomeShowOrder)
                 .orderByDesc(dto.getHomeShow() == null || dto.getHomeShow() == 0, Product::getCreateTime)
                 .page(new Page<>(dto.getPageNum(), dto.getPageSize()));
-        Map<String, ProductCategory> categories = loadCategoryMap();
         List<PortalProductVo> list = page.getRecords().stream().map(item -> toPortalVo(item, categories)).toList();
         return new PageResult<>(list, page.getTotal());
+    }
+
+    /**
+     * 根据分类名称模糊查找分类ID；一级分类命中时包含其二级分类。
+     *
+     * @param pattern 已转义通配字符、两端包含百分号的搜索模式
+     * @param language 内容语言，空表示不限语言
+     * @param categories 未删除的分类映射
+     * @return 可匹配产品的分类ID列表
+     */
+    private List<String> findKeywordCategoryIds(String pattern, Integer language, Map<String, ProductCategory> categories) {
+        Set<String> matchedIds = productCategoryMapper.selectList(Wrappers.<ProductCategory>lambdaQuery()
+                        .apply("category_name LIKE {0} ESCAPE '!'", pattern)
+                        .eq(language != null, ProductCategory::getLanguage, language))
+                .stream().map(ProductCategory::getCategoryId).collect(Collectors.toSet());
+        return categories.values().stream()
+                .filter(category -> matchedIds.contains(category.getCategoryId()) || matchedIds.contains(category.getParentId()))
+                .map(ProductCategory::getCategoryId).toList();
     }
 
     @Override

@@ -325,27 +325,57 @@
         if (filter) filter.onsubmit = event => {
             event.preventDefault();
             const data = new FormData(event.currentTarget);
+            if (module === 'products') {
+                // 未指定二级分类时，按一级分类查询其下全部产品。
+                data.set('categoryId', data.get('categoryId') || root.querySelector('[data-parent-category-filter]')?.value || '');
+            }
             pageState[module] = {...pageState[module], ...Object.fromEntries(data), pageNum: 1};
             renderModule(module, root);
         };
         const resetButton = root.querySelector('[data-action="reset"]');
         if (resetButton) resetButton.onclick = () => setTimeout(() => {
+            root.querySelector('[data-product-language-filter]')?.onchange?.();
+            window.layui?.form.render('select');
             pageState[module] = {pageNum: 1, pageSize: 10, keyword: ''};
             renderModule(module, root);
         }, 0);
         const createButton = root.querySelector('[data-action="create"]');
         if (createButton) createButton.onclick = () => openEditor(module);
-        if (module === 'products' || module === 'categories') await populateCategories(root, module === 'products');
+        if (module === 'products') await populateCategories(root);
         if (module === 'news') await populateTags(root);
         await renderModule(module, root);
     };
-    const populateCategories = async (root, secondaryOnly = false) => {
+    const populateCategories = async root => {
         const categories = await request(`${API}/product-categories`);
+        const parentSelect = root.querySelector('[data-parent-category-filter]');
         const select = root.querySelector('[data-category-filter]');
-        if (select) {
-            select.insertAdjacentHTML('beforeend', categories.filter(x => !secondaryOnly || x.level === 2).map(x => `<option value="${x.categoryId}">${escapeHtml(x.parentName ? `${x.parentName} / ${x.categoryName}` : x.categoryName)}</option>`).join(''));
+        const languageSelect = root.querySelector('[data-product-language-filter]');
+        if (!parentSelect || !select || !languageSelect) return;
+        const matchesLanguage = category => !languageSelect.value || String(category.language) === languageSelect.value;
+        const option = category => `<option value="${escapeHtml(category.categoryId)}">${escapeHtml(category.categoryName)}</option>`;
+        const refreshChildren = () => {
+            const children = categories.filter(category => category.level === 2
+                && category.parentId === parentSelect.value && matchesLanguage(category));
+            const placeholder = !parentSelect.value ? '请先选择一级分类' : children.length ? '全部二级分类' : '该分类暂无二级分类';
+            select.innerHTML = `<option value="">${placeholder}</option>${children.map(option).join('')}`;
+            select.disabled = !parentSelect.value || !children.length;
             window.layui?.form.render('select');
-        }
+        };
+        const refreshParents = () => {
+            parentSelect.innerHTML = '<option value="">全部一级分类</option>'
+                + categories.filter(category => category.level === 1 && matchesLanguage(category)).map(option).join('');
+            refreshChildren();
+        };
+        // 同时支持原生下拉框和 layui 渲染的下拉框，赋值方式避免重复初始化时叠加事件。
+        parentSelect.onchange = refreshChildren;
+        languageSelect.onchange = refreshParents;
+        window.layui?.form.on('select(product-parent-category)', event => {
+            if (event.elem === parentSelect) refreshChildren();
+        });
+        window.layui?.form.on('select(product-filter-language)', event => {
+            if (event.elem === languageSelect) refreshParents();
+        });
+        refreshParents();
     };
     const populateTags = async root => {
         const tags = await request(`${API}/news-tags`);
@@ -607,9 +637,22 @@
         const target = root.querySelector('[data-pagination]');
         if (!target) return;
         const state = pageState[module], pages = Math.max(1, Math.ceil(total / state.pageSize));
-        target.innerHTML = `<span>共 ${total} 条</span><div class="pagination"><button data-page="${state.pageNum - 1}" ${state.pageNum <= 1 ? 'disabled' : ''}>&lsaquo;</button>${Array.from({length: pages}, (_, i) => i + 1).slice(0, 7).map(p => `<button data-page="${p}" class="${p === Number(state.pageNum) ? 'is-current' : ''}">${p}</button>`).join('')}<button data-page="${state.pageNum + 1}" ${state.pageNum >= pages ? 'disabled' : ''}>&rsaquo;</button></div>`;
+        const currentPage = Number(state.pageNum);
+        // 连续页码随当前页移动，同时保留首页、末页入口，避免只能看到前七页。
+        const startPage = Math.max(1, Math.min(currentPage - 3, pages - 6));
+        const endPage = Math.min(pages, startPage + 6);
+        const pageButton = page => `<button type="button" data-page="${page}" class="${page === currentPage ? 'is-current' : ''}"${page === currentPage ? ' aria-current="page"' : ''}>${page}</button>`;
+        const pageButtons = [];
+        if (startPage > 1) pageButtons.push(pageButton(1));
+        if (startPage > 2) pageButtons.push('<span aria-hidden="true">…</span>');
+        for (let page = startPage; page <= endPage; page++) pageButtons.push(pageButton(page));
+        if (endPage < pages - 1) pageButtons.push('<span aria-hidden="true">…</span>');
+        if (endPage < pages) pageButtons.push(pageButton(pages));
+        target.innerHTML = `<span>共 ${total} 条</span><div class="pagination"><button type="button" aria-label="上一页" data-page="${currentPage - 1}" ${currentPage <= 1 ? 'disabled' : ''}>&lsaquo;</button>${pageButtons.join('')}<button type="button" aria-label="下一页" data-page="${currentPage + 1}" ${currentPage >= pages ? 'disabled' : ''}>&rsaquo;</button></div>`;
         target.querySelectorAll('[data-page]').forEach(btn => btn.onclick = () => {
-            pageState[module].pageNum = Number(btn.dataset.page);
+            const page = Number(btn.dataset.page);
+            if (btn.disabled || page < 1 || page > pages || page === currentPage) return;
+            pageState[module].pageNum = page;
             renderModule(module, root);
         });
     };

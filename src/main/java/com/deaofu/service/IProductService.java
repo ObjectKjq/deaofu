@@ -9,9 +9,14 @@ import java.util.List;
 
 /** 产品管理业务接口。 */
 public interface IProductService {
-    /** 分页查询产品。 @param dto 查询条件 @return 产品分页结果 */
+    /** 分页查询产品，支持一级分类下全部产品或指定二级分类筛选。 @param dto 查询条件，分类ID可为空 @return 产品分页结果 */
     PageResult<ProductVo> pageProducts(AdminPageDto dto);
-    /** 官网前台分页查询产品。 @param dto 查询条件 @return 产品分页结果 */
+    /**
+     * 官网前台分页查询产品，关键词对名称、描述、一二级分类名称及参数名称/值进行模糊匹配。
+     *
+     * @param dto 分页及筛选条件，关键词为空时不限制，分类和语言条件与关键词同时生效
+     * @return 符合条件的产品分页结果及总量
+     */
     PageResult<PortalProductVo> pagePortalProducts(AdminPageDto dto);
     /** 查询产品详情。 @param productId 产品ID @return 产品详情 @throws com.deaofu.exception.BusinessException 产品不存在 */
     ProductVo getProduct(String productId);

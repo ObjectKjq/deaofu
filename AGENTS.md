@@ -391,7 +391,7 @@ String statusText = StatusEnum.getInfoByCode(user.getStatus());   // 暴露给�
 
 | 方法     | 路径                          | 说明         | 入参                      | 响应                                  |
 | -------- | ----------------------------- | ------------ | ------------------------- | ------------------------------------- |
-| `GET`    | `/admin/products/page`        | 产品分页     | `AdminPageDto`            | `BaseResponse<PageResult<ProductVo>>` |
+| `GET`    | `/admin/products/page`        | 产品分页，支持两级分类筛选     | `AdminPageDto`（`categoryId` 为空查询全部；一级分类ID查询其下全部产品；二级分类ID精确筛选） | `BaseResponse<PageResult<ProductVo>>` |
 | `GET`    | `/admin/products/{productId}` | 产品详情     | 产品ID                    | `BaseResponse<ProductVo>`             |
 | `POST`   | `/admin/products`             | 新增产品     | `ProductSaveDto`          | `BaseResponse<ProductVo>`             |
 | `PUT`    | `/admin/products/{productId}` | 修改产品     | 产品ID + `ProductSaveDto` | `BaseResponse<ProductVo>`             |
